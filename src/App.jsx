@@ -269,19 +269,15 @@ const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
 const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
 
 // modelCol/priceCol are 0-indexed (A=0, B=1, C=2, D=3, E=4)
-// startRow is 0-indexed (row 12 = index 11, row 11 = index 10)
+// startRow is 0-indexed (row 12 = index 11, row 11 = index 10, row 6 = index 5, etc)
 const TABS = [
-  { label: "iPhone Used",       modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Samsung",           modelCol: 1, priceCol: 4, startRow: 10 },
-  { label: "Google Pixel",      modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "iPad Used",         modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "New in Box",        modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Apple Watch",       modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "MacBooks",          modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Parts / ic",        modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "MDM Locked",        modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Misc",              modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "General Info/Grading", modelCol: 0, priceCol: 1, startRow: 0 },
+  { label: "iPhone Used",  modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Samsung",      modelCol: 1, priceCol: 4, startRow: 10 },
+  { label: "Google Pixel", modelCol: 0, priceCol: 2, startRow: 1  },
+  { label: "iPad Used",    modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Apple Watch",  modelCol: 1, priceCol: 4, startRow: 5  },
+  { label: "MacBooks",     modelCol: 1, priceCol: 3, startRow: 4  },
+  { label: "Parts / ic",   modelCol: 1, priceCol: 3, startRow: 11 },
 ];
 
 const BuyPhonesView = () => {
