@@ -304,8 +304,17 @@ const BuyPhonesView = () => {
         .map(row => ({
           model: (row[tab.modelCol] || "").toString().trim(),
           atlasPrice: (row[tab.priceCol] || "").toString().trim(),
+          condition: tab.conditionCol !== undefined ? (row[tab.conditionCol] || "").toString().trim() : "",
         }))
-        .filter(r => r.model && r.model.length > 1);
+        .filter(r => {
+          if (!r.model || r.model.length < 2) return false;
+          // Skip header/label rows that have no price
+          if (!r.atlasPrice || r.atlasPrice === "" || r.atlasPrice === "-") return false;
+          // Skip rows where price is NOT BUYING, ASK, #NUM etc
+          const skipPrices = ["not buying", "ask", "#num", "new", "a", "b", "c", "d", "doa"];
+          if (skipPrices.includes(r.atlasPrice.toLowerCase())) return false;
+          return true;
+        });
       setPhones(parsed);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
@@ -382,7 +391,8 @@ const BuyPhonesView = () => {
             <thead>
               <tr style={{ color: C.textMuted, textAlign: "left" }}>
                 <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Model</th>
-                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Atlas Price</th>
+                {activeTab.conditionCol !== undefined && <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Condition</th>}
+                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Atlas Price (A Grade)</th>
                 <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, color: C.teal }}>Your Offer</th>
               </tr>
             </thead>
@@ -396,6 +406,7 @@ const BuyPhonesView = () => {
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     style={{ borderBottom: `1px solid ${C.border}22` }}>
                     <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600 }}>{row.model}</td>
+                    {activeTab.conditionCol !== undefined && <td style={{ padding: "10px 12px", color: C.textDim }}>{row.condition}</td>}
                     <td style={{ padding: "10px 12px", color: C.textDim }}>{row.atlasPrice}</td>
                     <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{offer}</td>
                   </tr>
