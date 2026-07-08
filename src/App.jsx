@@ -264,171 +264,60 @@ const PricingView = () => {
   );
 };
 
-// ── BUY PHONES (ATLAS - LIVE GOOGLE SHEETS) ──────────────────────────────
-const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
-const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
-
-// modelCol/priceCol are 0-indexed (A=0, B=1, C=2, D=3, E=4)
-// startRow is 0-indexed (row 12 = index 11, row 11 = index 10, row 6 = index 5, etc)
-const TABS = [
-  { label: "iPhone Used",  modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Samsung",      modelCol: 1, priceCol: 4, startRow: 10 },
-  { label: "Google Pixel", modelCol: 0, priceCol: 2, startRow: 1  },
-  { label: "iPad Used",    modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Apple Watch",  modelCol: 1, priceCol: 4, startRow: 5  },
-  { label: "MacBooks",     modelCol: 1, priceCol: 3, startRow: 4  },
-  { label: "Parts / ic",   modelCol: 1, priceCol: 3, startRow: 11 },
-];
-
+// ── BUY PHONES (ATLAS) ────────────────────────────────────────────────────
 const BuyPhonesView = () => {
   const [search, setSearch] = useState("");
   const [margin, setMargin] = useState(8);
-  const [phones, setPhones] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(TABS[0]);
-  const [lastUpdated, setLastUpdated] = useState(null);
-
-  const fetchSheetData = async (tab) => {
-    setLoading(true);
-    setError(null);
-    setPhones([]);
-    try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab.label)}!A:Z?key=${SHEETS_API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const rows = data.values || [];
-      // Use startRow to skip header/empty rows, pull modelCol and priceCol directly
-      const parsed = rows.slice(tab.startRow)
-        .map(row => ({
-          model: (row[tab.modelCol] || "").toString().trim(),
-          atlasPrice: (row[tab.priceCol] || "").toString().trim(),
-          condition: tab.conditionCol !== undefined ? (row[tab.conditionCol] || "").toString().trim() : "",
-        }))
-        .filter(r => {
-          if (!r.model || r.model.length < 2) return false;
-          // Skip header/label rows that have no price
-          if (!r.atlasPrice || r.atlasPrice === "" || r.atlasPrice === "-") return false;
-          // Skip rows where price is NOT BUYING, ASK, #NUM etc
-          const skipPrices = ["not buying", "ask", "#num", "new", "a", "b", "c", "d", "doa"];
-          if (skipPrices.includes(r.atlasPrice.toLowerCase())) return false;
-          return true;
-        });
-      setPhones(parsed);
-      setLastUpdated(new Date().toLocaleTimeString());
-    } catch (e) {
-      setError(`Could not load "${tab.label}" — ${e.message}. Check API key and sheet sharing.`);
-    }
-    setLoading(false);
-  };
-
-  // Load iPhone Used on mount
-  const [mounted, setMounted] = useState(false);
-  if (!mounted) { setMounted(true); fetchSheetData(TABS[0]); }
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    fetchSheetData(tab);
-  };
-
-  const filtered = phones.filter(p =>
-    p.model.toLowerCase().includes(search.toLowerCase()) ||
-    p.atlasPrice.toLowerCase().includes(search.toLowerCase())
-  );
-
+  const filtered = ATLAS_PHONES.filter(p => p.model.toLowerCase().includes(search.toLowerCase()));
+  const condColor = { A: C.green, B: C.gold, C: C.accent };
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Buy Phones</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>
-          Live Atlas pricing · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
-        </div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Atlas pricing + your buying buffer</div>
       </div>
-
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        {TABS.map(tab => (
-          <button key={tab.label} onClick={() => handleTabChange(tab)}
-            style={{ background: activeTab.label === tab.label ? C.teal : C.surface, color: activeTab.label === tab.label ? "#fff" : C.textDim, border: `1px solid ${activeTab.label === tab.label ? C.teal : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            {tab.label}
-          </button>
-        ))}
-        <button onClick={() => fetchSheetData(activeTab)}
-          style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
-          ↻ Refresh
-        </button>
-      </div>
-
-      {/* Controls */}
+      <IntegrationBanner name="Atlas" description="Live Atlas scraping requires backend setup. Prices below are sample data — connect in Settings." />
       <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model…"
-          style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
+        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model…"
+            style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px" }}>
-          <span style={{ color: C.textMuted, fontSize: 13 }}>Offer below Atlas by</span>
-          <input type="number" value={margin} onChange={e => setMargin(+e.target.value)}
-            style={{ width: 40, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
+          <span style={{ color: C.textMuted, fontSize: 13 }}>Buy below Atlas by</span>
+          <input type="number" value={margin} onChange={e => setMargin(+e.target.value)} style={{ width: 40, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
           <span style={{ color: C.textMuted, fontSize: 13 }}>%</span>
         </div>
       </div>
-
-      {loading && (
-        <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
-          <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
-          Loading live Atlas prices…
-        </div>
-      )}
-      {error && (
-        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "14px 18px", color: C.red, marginBottom: 16 }}>
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && phones.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
-          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{filtered.length} devices found</div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead>
-              <tr style={{ color: C.textMuted, textAlign: "left" }}>
-                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Model</th>
-                {activeTab.conditionCol !== undefined && <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Condition</th>}
-                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Atlas Price (A Grade)</th>
-                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, color: C.teal }}>Your Offer</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.slice(0, 150).map((row, i) => {
-                const rawPrice = parseFloat(row.atlasPrice.replace(/[^0-9.]/g, ""));
-                const offer = rawPrice ? `$${(rawPrice * (1 - margin / 100)).toFixed(0)}` : "—";
-                return (
-                  <tr key={i}
-                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
-                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    style={{ borderBottom: `1px solid ${C.border}22` }}>
-                    <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600 }}>{row.model}</td>
-                    {activeTab.conditionCol !== undefined && <td style={{ padding: "10px 12px", color: C.textDim }}>{row.condition}</td>}
-                    <td style={{ padding: "10px 12px", color: C.textDim }}>{row.atlasPrice}</td>
-                    <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{offer}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {filtered.length > 150 && (
-            <div style={{ color: C.textMuted, fontSize: 12, padding: "10px", textAlign: "center" }}>
-              Showing 150 of {filtered.length} — use search to narrow results
-            </div>
-          )}
-        </div>
-      )}
-
-      {!loading && !error && phones.length === 0 && (
-        <Card>
-          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
-            No data found for this tab.
-          </div>
-        </Card>
-      )}
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ color: C.textMuted, textAlign: "left" }}>
+              {["Model", "Condition", "Atlas Price", "Offer Customer", "Network", ""].map((h, i) => (
+                <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((p, i) => {
+              const offer = +(p.atlasBuy * (1 - margin / 100)).toFixed(0);
+              return (
+                <tr key={i} style={{ borderBottom: `1px solid ${C.border}11` }}
+                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  <td style={{ padding: "12px 12px", color: C.text, fontWeight: 500 }}>{p.model}</td>
+                  <td style={{ padding: "12px 12px" }}><Tag color={condColor[p.condition]}>Grade {p.condition}</Tag></td>
+                  <td style={{ padding: "12px 12px", color: C.textDim }}>${p.atlasBuy}</td>
+                  <td style={{ padding: "12px 12px", color: C.teal, fontWeight: 700 }}>${offer}</td>
+                  <td style={{ padding: "12px 12px" }}>{p.locked ? <Tag color={C.red}>Locked</Tag> : <Tag color={C.green}>Unlocked</Tag>}</td>
+                  <td style={{ padding: "12px 12px" }}>
+                    <button style={{ background: C.tealDim, color: C.teal, border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Print Quote</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
