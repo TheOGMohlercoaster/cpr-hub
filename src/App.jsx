@@ -264,60 +264,169 @@ const PricingView = () => {
   );
 };
 
-// ── BUY PHONES (ATLAS) ────────────────────────────────────────────────────
+// ── BUY PHONES (ATLAS - LIVE GOOGLE SHEETS) ──────────────────────────────
+const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
+const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
+
+const TABS = [
+  { label: "iPhone Used", gid: "1453313541", range: "A:F" },
+  { label: "Samsung", gid: "0", range: "A:F" },
+  { label: "Google Pixel", gid: "0", range: "A:F" },
+  { label: "iPad Used", gid: "0", range: "A:F" },
+];
+
 const BuyPhonesView = () => {
   const [search, setSearch] = useState("");
   const [margin, setMargin] = useState(8);
-  const filtered = ATLAS_PHONES.filter(p => p.model.toLowerCase().includes(search.toLowerCase()));
-  const condColor = { A: C.green, B: C.gold, C: C.accent };
+  const [phones, setPhones] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState(TABS[0].label);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchSheetData = async (tab) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab.label)}!A:Z?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      const rows = data.values || [];
+      if (rows.length < 2) { setPhones([]); setLoading(false); return; }
+      // First row = headers, rest = data
+      const headers = rows[0];
+      const parsed = rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+        return obj;
+      }).filter(r => Object.values(r).some(v => v !== ""));
+      setPhones(parsed);
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch (e) {
+      setError("Could not load sheet data. Check that the sheet is publicly shared.");
+    }
+    setLoading(false);
+  };
+
+  // Load on mount and tab change
+  useState(() => { fetchSheetData(TABS[0]); }, []);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab.label);
+    fetchSheetData(tab);
+  };
+
+  // Try to find model/price columns dynamically
+  const getModelKey = (row) => {
+    const keys = Object.keys(row);
+    return keys.find(k => k.toLowerCase().includes("model") || k.toLowerCase().includes("device") || k.toLowerCase().includes("name") || k === keys[0]) || keys[0];
+  };
+  const getPriceKey = (row) => {
+    const keys = Object.keys(row);
+    return keys.find(k => k.toLowerCase().includes("price") || k.toLowerCase().includes("value") || k.toLowerCase().includes("grade a") || k.toLowerCase().includes("a grade")) || keys[1];
+  };
+
+  const headers = phones.length > 0 ? Object.keys(phones[0]) : [];
+  const filtered = phones.filter(p =>
+    Object.values(p).some(v => v.toString().toLowerCase().includes(search.toLowerCase()))
+  );
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Buy Phones</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Atlas pricing + your buying buffer</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Live Atlas pricing from your Google Sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}</div>
       </div>
-      <IntegrationBanner name="Atlas" description="Live Atlas scraping requires backend setup. Prices below are sample data — connect in Settings." />
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {TABS.map(tab => (
+          <button key={tab.label} onClick={() => handleTabChange(tab)}
+            style={{ background: activeTab === tab.label ? C.teal : C.surface, color: activeTab === tab.label ? "#fff" : C.textDim, border: `1px solid ${activeTab === tab.label ? C.teal : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {tab.label}
+          </button>
+        ))}
+        <button onClick={() => fetchSheetData(TABS.find(t => t.label === activeTab))}
+          style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
+          ↻ Refresh
+        </button>
+      </div>
+
+      {/* Controls */}
       <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model…"
-            style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
-        </div>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model or price…"
+          style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px" }}>
-          <span style={{ color: C.textMuted, fontSize: 13 }}>Buy below Atlas by</span>
-          <input type="number" value={margin} onChange={e => setMargin(+e.target.value)} style={{ width: 40, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
+          <span style={{ color: C.textMuted, fontSize: 13 }}>Offer below Atlas by</span>
+          <input type="number" value={margin} onChange={e => setMargin(+e.target.value)}
+            style={{ width: 40, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
           <span style={{ color: C.textMuted, fontSize: 13 }}>%</span>
         </div>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ color: C.textMuted, textAlign: "left" }}>
-              {["Model", "Condition", "Atlas Price", "Offer Customer", "Network", ""].map((h, i) => (
-                <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p, i) => {
-              const offer = +(p.atlasBuy * (1 - margin / 100)).toFixed(0);
-              return (
-                <tr key={i} style={{ borderBottom: `1px solid ${C.border}11` }}
-                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <td style={{ padding: "12px 12px", color: C.text, fontWeight: 500 }}>{p.model}</td>
-                  <td style={{ padding: "12px 12px" }}><Tag color={condColor[p.condition]}>Grade {p.condition}</Tag></td>
-                  <td style={{ padding: "12px 12px", color: C.textDim }}>${p.atlasBuy}</td>
-                  <td style={{ padding: "12px 12px", color: C.teal, fontWeight: 700 }}>${offer}</td>
-                  <td style={{ padding: "12px 12px" }}>{p.locked ? <Tag color={C.red}>Locked</Tag> : <Tag color={C.green}>Unlocked</Tag>}</td>
-                  <td style={{ padding: "12px 12px" }}>
-                    <button style={{ background: C.tealDim, color: C.teal, border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Print Quote</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+
+      {/* States */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
+          <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+          Loading live Atlas prices…
+        </div>
+      )}
+      {error && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "14px 18px", color: C.red, marginBottom: 16 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Table */}
+      {!loading && !error && phones.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{filtered.length} devices found</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ color: C.textMuted, textAlign: "left" }}>
+                {headers.map((h, i) => (
+                  <th key={i} style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+                <th style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Your Offer</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.slice(0, 100).map((row, i) => {
+                const priceKey = getPriceKey(row);
+                const rawPrice = parseFloat((row[priceKey] || "").toString().replace(/[^0-9.]/g, ""));
+                const offer = rawPrice ? `$${(rawPrice * (1 - margin / 100)).toFixed(0)}` : "—";
+                return (
+                  <tr key={i}
+                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    style={{ borderBottom: `1px solid ${C.border}22` }}>
+                    {headers.map((h, j) => (
+                      <td key={j} style={{ padding: "10px 10px", color: j === 0 ? C.text : C.textDim, fontWeight: j === 0 ? 600 : 400, whiteSpace: "nowrap" }}>
+                        {row[h]}
+                      </td>
+                    ))}
+                    <td style={{ padding: "10px 10px", color: C.teal, fontWeight: 700 }}>{offer}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filtered.length > 100 && (
+            <div style={{ color: C.textMuted, fontSize: 12, padding: "10px", textAlign: "center" }}>
+              Showing 100 of {filtered.length} — use search to narrow results
+            </div>
+          )}
+        </div>
+      )}
+
+      {!loading && !error && phones.length === 0 && (
+        <Card>
+          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
+            No data found for this tab. Make sure the sheet tab name matches exactly.
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
