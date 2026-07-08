@@ -268,18 +268,20 @@ const PricingView = () => {
 const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
 const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
 
+// modelCol/priceCol are 0-indexed (A=0, B=1, C=2, D=3, E=4)
+// startRow is 0-indexed (row 12 = index 11, row 11 = index 10)
 const TABS = [
-  { label: "iPhone Used" },
-  { label: "Samsung" },
-  { label: "Google Pixel" },
-  { label: "iPad Used" },
-  { label: "New in Box" },
-  { label: "Apple Watch" },
-  { label: "MacBooks" },
-  { label: "Parts / ic" },
-  { label: "MDM Locked" },
-  { label: "Misc" },
-  { label: "General Info/Grading" },
+  { label: "iPhone Used",       modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Samsung",           modelCol: 1, priceCol: 4, startRow: 10 },
+  { label: "Google Pixel",      modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "iPad Used",         modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "New in Box",        modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Apple Watch",       modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "MacBooks",          modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Parts / ic",        modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "MDM Locked",        modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "Misc",              modelCol: 1, priceCol: 3, startRow: 11 },
+  { label: "General Info/Grading", modelCol: 0, priceCol: 1, startRow: 0 },
 ];
 
 const BuyPhonesView = () => {
@@ -288,73 +290,66 @@ const BuyPhonesView = () => {
   const [phones, setPhones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(TABS[0].label);
+  const [activeTab, setActiveTab] = useState(TABS[0]);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchSheetData = async (tab) => {
     setLoading(true);
     setError(null);
+    setPhones([]);
     try {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab.label)}!A:Z?key=${SHEETS_API_KEY}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const rows = data.values || [];
-      if (rows.length < 2) { setPhones([]); setLoading(false); return; }
-      // First row = headers, rest = data
-      const headers = rows[0];
-      const parsed = rows.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] || ""; });
-        return obj;
-      }).filter(r => Object.values(r).some(v => v !== ""));
+      // Use startRow to skip header/empty rows, pull modelCol and priceCol directly
+      const parsed = rows.slice(tab.startRow)
+        .map(row => ({
+          model: (row[tab.modelCol] || "").toString().trim(),
+          atlasPrice: (row[tab.priceCol] || "").toString().trim(),
+        }))
+        .filter(r => r.model && r.model.length > 1);
       setPhones(parsed);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
-      setError("Could not load sheet data. Check that the sheet is publicly shared.");
+      setError(`Could not load "${tab.label}" — ${e.message}. Check API key and sheet sharing.`);
     }
     setLoading(false);
   };
 
-  // Load on mount and tab change
-  useState(() => { fetchSheetData(TABS[0]); }, []);
+  // Load iPhone Used on mount
+  const [mounted, setMounted] = useState(false);
+  if (!mounted) { setMounted(true); fetchSheetData(TABS[0]); }
 
   const handleTabChange = (tab) => {
-    setActiveTab(tab.label);
+    setActiveTab(tab);
     fetchSheetData(tab);
   };
 
-  // Try to find model/price columns dynamically
-  const getModelKey = (row) => {
-    const keys = Object.keys(row);
-    return keys.find(k => k.toLowerCase().includes("model") || k.toLowerCase().includes("device") || k.toLowerCase().includes("name") || k === keys[0]) || keys[0];
-  };
-  const getPriceKey = (row) => {
-    const keys = Object.keys(row);
-    return keys.find(k => k.toLowerCase().includes("price") || k.toLowerCase().includes("value") || k.toLowerCase().includes("grade a") || k.toLowerCase().includes("a grade")) || keys[1];
-  };
-
-  const headers = phones.length > 0 ? Object.keys(phones[0]) : [];
   const filtered = phones.filter(p =>
-    Object.values(p).some(v => v.toString().toLowerCase().includes(search.toLowerCase()))
+    p.model.toLowerCase().includes(search.toLowerCase()) ||
+    p.atlasPrice.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Buy Phones</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Live Atlas pricing from your Google Sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>
+          Live Atlas pricing · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
+        </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {TABS.map(tab => (
           <button key={tab.label} onClick={() => handleTabChange(tab)}
-            style={{ background: activeTab === tab.label ? C.teal : C.surface, color: activeTab === tab.label ? "#fff" : C.textDim, border: `1px solid ${activeTab === tab.label ? C.teal : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            style={{ background: activeTab.label === tab.label ? C.teal : C.surface, color: activeTab.label === tab.label ? "#fff" : C.textDim, border: `1px solid ${activeTab.label === tab.label ? C.teal : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
             {tab.label}
           </button>
         ))}
-        <button onClick={() => fetchSheetData(TABS.find(t => t.label === activeTab))}
+        <button onClick={() => fetchSheetData(activeTab)}
           style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
           ↻ Refresh
         </button>
@@ -362,7 +357,7 @@ const BuyPhonesView = () => {
 
       {/* Controls */}
       <div style={{ display: "flex", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model or price…"
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search model…"
           style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px" }}>
           <span style={{ color: C.textMuted, fontSize: 13 }}>Offer below Atlas by</span>
@@ -372,7 +367,6 @@ const BuyPhonesView = () => {
         </div>
       </div>
 
-      {/* States */}
       {loading && (
         <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
           <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
@@ -385,43 +379,37 @@ const BuyPhonesView = () => {
         </div>
       )}
 
-      {/* Table */}
       {!loading && !error && phones.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{filtered.length} devices found</div>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ color: C.textMuted, textAlign: "left" }}>
-                {headers.map((h, i) => (
-                  <th key={i} style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
-                ))}
-                <th style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Your Offer</th>
+                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Model</th>
+                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>Atlas Price</th>
+                <th style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, color: C.teal }}>Your Offer</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.slice(0, 100).map((row, i) => {
-                const priceKey = getPriceKey(row);
-                const rawPrice = parseFloat((row[priceKey] || "").toString().replace(/[^0-9.]/g, ""));
+              {filtered.slice(0, 150).map((row, i) => {
+                const rawPrice = parseFloat(row.atlasPrice.replace(/[^0-9.]/g, ""));
                 const offer = rawPrice ? `$${(rawPrice * (1 - margin / 100)).toFixed(0)}` : "—";
                 return (
                   <tr key={i}
                     onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                     style={{ borderBottom: `1px solid ${C.border}22` }}>
-                    {headers.map((h, j) => (
-                      <td key={j} style={{ padding: "10px 10px", color: j === 0 ? C.text : C.textDim, fontWeight: j === 0 ? 600 : 400, whiteSpace: "nowrap" }}>
-                        {row[h]}
-                      </td>
-                    ))}
-                    <td style={{ padding: "10px 10px", color: C.teal, fontWeight: 700 }}>{offer}</td>
+                    <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600 }}>{row.model}</td>
+                    <td style={{ padding: "10px 12px", color: C.textDim }}>{row.atlasPrice}</td>
+                    <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{offer}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-          {filtered.length > 100 && (
+          {filtered.length > 150 && (
             <div style={{ color: C.textMuted, fontSize: 12, padding: "10px", textAlign: "center" }}>
-              Showing 100 of {filtered.length} — use search to narrow results
+              Showing 150 of {filtered.length} — use search to narrow results
             </div>
           )}
         </div>
@@ -430,7 +418,7 @@ const BuyPhonesView = () => {
       {!loading && !error && phones.length === 0 && (
         <Card>
           <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
-            No data found for this tab. Make sure the sheet tab name matches exactly.
+            No data found for this tab.
           </div>
         </Card>
       )}
