@@ -269,10 +269,17 @@ const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
 const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
 
 const TABS = [
-  { label: "iPhone Used", gid: "1453313541", range: "A:F" },
-  { label: "Samsung", gid: "0", range: "A:F" },
-  { label: "Google Pixel", gid: "0", range: "A:F" },
-  { label: "iPad Used", gid: "0", range: "A:F" },
+  { label: "iPhone Used" },
+  { label: "Samsung" },
+  { label: "Google Pixel" },
+  { label: "iPad Used" },
+  { label: "New in Box" },
+  { label: "Apple Watch" },
+  { label: "MacBooks" },
+  { label: "Parts / ic" },
+  { label: "MDM Locked" },
+  { label: "Misc" },
+  { label: "General Info/Grading" },
 ];
 
 const BuyPhonesView = () => {
