@@ -302,32 +302,20 @@ const BuyPhonesView = () => {
       // Use startRow to skip header/empty rows, pull modelCol and priceCol directly
       let parsed = [];
       if (tab.samsung) {
-        // Samsung has a unique structure:
-        // - Row with "Unlocked" in col C (no model in col B)
-        // - Row below with model in col B and "Carrier Locked" in col C
-        // We pair them up by tracking the last seen unlocked price
         const skipValues = ["not buying", "ask", "#num!", "-", "", "new", "a", "b", "c", "d", "doa"];
-        let lastModel = "";
         let lastUnlockedPrice = "";
-        const dataRows = rows.slice(tab.startRow);
-        dataRows.forEach(row => {
+        // Use ALL rows, let logic find unlocked/carrier locked by content
+        rows.forEach(row => {
           const model = (row[1] || "").toString().trim();
           const condition = (row[2] || "").toString().trim().toLowerCase();
-          const price = (row[4] || "").toString().trim(); // col E = A grade price
+          const price = (row[4] || "").toString().trim();
 
           if (condition === "unlocked") {
-            // Store unlocked price, will use when we find the model name
-            lastUnlockedPrice = skipValues.includes(price.toLowerCase()) ? "NOT BUYING" : price;
+            lastUnlockedPrice = skipValues.some(s => price.toLowerCase().includes(s)) ? "NOT BUYING" : price;
           } else if (model && model.length > 2 && condition.includes("carrier")) {
-            // This row has the model name and carrier locked price
-            lastModel = model;
-            const carrierPrice = skipValues.includes(price.toLowerCase()) ? "NOT BUYING" : price;
-            // Add unlocked row
-            if (lastUnlockedPrice) {
-              parsed.push({ model: lastModel, condition: "Unlocked", atlasPrice: lastUnlockedPrice });
-            }
-            // Add carrier locked row
-            parsed.push({ model: lastModel, condition: "Carrier Locked", atlasPrice: carrierPrice });
+            const carrierPrice = skipValues.some(s => price.toLowerCase().includes(s)) ? "NOT BUYING" : price;
+            parsed.push({ model, condition: "Unlocked", atlasPrice: lastUnlockedPrice || "NOT BUYING" });
+            parsed.push({ model, condition: "Carrier Locked", atlasPrice: carrierPrice });
             lastUnlockedPrice = "";
           }
         });
