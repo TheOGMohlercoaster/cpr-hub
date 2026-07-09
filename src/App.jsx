@@ -322,6 +322,43 @@ End of Shift
 ✔ Clean soldering workstation (if used)
 ✔ Ensure no open repairs are overdue`
   },
+  {
+    id: 11,
+    title: "Discounts SOP",
+    category: "Sales",
+    updated: "Jul 9",
+    content: `DISCOUNTS SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CUSTOMER DISCOUNTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Military Discount
+• 20% off — maximum discount $20
+
+Student Discount
+• 20% off — maximum discount $20
+
+Business Discount
+• $20 off
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMPLOYEE DISCOUNTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Ask Management or Owners for approval before applying
+• Most accessories: $5 above cost
+• Most phones: $25 to $50 below retail
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPORTANT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Discounts cannot be combined unless approved by management
+• Always verify military or student status before applying discount
+• Employee discounts require manager or owner approval first`
+  },
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
