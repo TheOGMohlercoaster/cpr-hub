@@ -83,15 +83,51 @@ const REPAIR_TOTALS = [
   { name: "Brianna L.", role: "Tech", completed: 8, pending: 5, revenue: 520 },
   { name: "Carlos M.", role: "Tech Lead", completed: 14, pending: 1, revenue: 1020 },
 ];
-const TASKS = [
-  { id: 1, text: "Open store & count drawer", assignee: "All", done: true, priority: "high" },
-  { id: 2, text: "Check RepairQ for overnight claims", assignee: "Manager", done: true, priority: "high" },
-  { id: 3, text: "Restock screen protector display", assignee: "Sales", done: false, priority: "med" },
-  { id: 4, text: "Follow up on 3 pending repairs", assignee: "Techs", done: false, priority: "high" },
-  { id: 5, text: "Post daily promo on Facebook", assignee: "Manager", done: false, priority: "med" },
-  { id: 6, text: "MobileSentrix order — check backorders", assignee: "Manager", done: false, priority: "low" },
-  { id: 7, text: "Clean workbench stations", assignee: "Techs", done: false, priority: "low" },
+// ── Daily Tasks Data ─────────────────────────────────────────────────────
+// Recurring tasks reset every day at midnight
+const RECURRING_TASKS = [
+  // All staff
+  { id: "r1",  text: "Clock in and review schedule",              role: "All",     priority: "high" },
+  { id: "r2",  text: "Check daily announcements",                 role: "All",     priority: "med"  },
+  // Opening / Manager
+  { id: "r3",  text: "Count and balance cash drawer",             role: "Manager", priority: "high" },
+  { id: "r4",  text: "Check RepairQ for overnight tickets",       role: "Manager", priority: "high" },
+  { id: "r5",  text: "Place display devices in cases",            role: "Manager", priority: "high" },
+  { id: "r6",  text: "Turn on store equipment",                   role: "Manager", priority: "high" },
+  { id: "r7",  text: "Clean display case glass",                  role: "Manager", priority: "med"  },
+  { id: "r8",  text: "Put sidewalk sign out",                     role: "Manager", priority: "med"  },
+  { id: "r9",  text: "Check MobileSentrix for backorders",        role: "Manager", priority: "low"  },
+  { id: "r10", text: "Post daily promo on social media",          role: "Manager", priority: "med"  },
+  // Sales
+  { id: "r11", text: "Restock accessories and display items",     role: "Sales",   priority: "med"  },
+  { id: "r12", text: "Wipe down display phones",                  role: "Sales",   priority: "med"  },
+  { id: "r13", text: "Follow up on pending customer quotes",      role: "Sales",   priority: "high" },
+  { id: "r14", text: "Check ZAGG inventory levels",               role: "Sales",   priority: "low"  },
+  // Techs
+  { id: "r15", text: "Review repair queue for overdue tickets",   role: "Techs",   priority: "high" },
+  { id: "r16", text: "Clean and organize workbench",              role: "Techs",   priority: "high" },
+  { id: "r17", text: "Verify parts in stock for today's repairs", role: "Techs",   priority: "high" },
+  { id: "r18", text: "Pre-test all incoming devices",             role: "Techs",   priority: "high" },
+  { id: "r19", text: "Mark completed repairs Ready for Pickup",   role: "Techs",   priority: "med"  },
+  { id: "r20", text: "Call customers with completed repairs",     role: "Techs",   priority: "med"  },
+  { id: "r21", text: "Tin soldering tips before shutdown",        role: "Techs",   priority: "low"  },
 ];
+
+const getTodayKey = () => new Date().toISOString().split("T")[0]; // "2026-07-09"
+
+const getTaskState = () => {
+  try {
+    const saved = localStorage.getItem("cpr_tasks");
+    if (!saved) return { date: "", done: [], custom: [] };
+    return JSON.parse(saved);
+  } catch { return { date: "", done: [], custom: [] }; }
+};
+
+const saveTaskState = (state) => {
+  try { localStorage.setItem("cpr_tasks", JSON.stringify(state)); } catch {}
+};
+
+const TASKS = []; // kept for dashboard compatibility
 const SOPS = [
   {
     id: 10,
@@ -1366,52 +1402,141 @@ const RepairsView = () => (
 );
 
 // ── DAILY TASKS ───────────────────────────────────────────────────────────
-const TasksView = () => {
-  const [tasks, setTasks] = useState(TASKS);
+const TasksView = ({ currentUser }) => {
+  const priColor = { high: C.accent, med: C.gold, low: C.textMuted };
+
+  // Load state, reset if it's a new day
+  const initState = () => {
+    const saved = getTaskState();
+    const today = getTodayKey();
+    if (saved.date !== today) {
+      const fresh = { date: today, done: [], custom: [] };
+      saveTaskState(fresh);
+      return fresh;
+    }
+    return saved;
+  };
+
+  const [state, setState] = useState(initState);
   const [newTask, setNewTask] = useState("");
-  const toggle = id => setTasks(ts => ts.map(t => t.id === id ? { ...t, done: !t.done } : t));
-  const add = () => {
+  const [newPriority, setNewPriority] = useState("med");
+
+  const updateState = (next) => { setState(next); saveTaskState(next); };
+
+  // Filter recurring tasks by role
+  const roleMap = {
+    "Owner":      ["All", "Manager", "Sales", "Techs"],
+    "Tech/Sales": ["All", "Sales", "Techs"],
+    "Tech":       ["All", "Techs"],
+    "Sales":      ["All", "Sales"],
+  };
+  const allowedRoles = roleMap[currentUser?.role] || ["All"];
+  const myRecurring = RECURRING_TASKS.filter(t => allowedRoles.includes(t.role));
+
+  const toggleRecurring = (id) => {
+    const done = state.done.includes(id)
+      ? state.done.filter(d => d !== id)
+      : [...state.done, id];
+    updateState({ ...state, done });
+  };
+
+  const addCustom = () => {
     if (!newTask.trim()) return;
-    setTasks(ts => [...ts, { id: Date.now(), text: newTask, assignee: "All", done: false, priority: "med" }]);
+    const custom = [...state.custom, { id: `c${Date.now()}`, text: newTask, priority: newPriority }];
+    updateState({ ...state, custom });
     setNewTask("");
   };
-  const priColor = { high: C.accent, med: C.gold, low: C.textMuted };
-  const open = tasks.filter(t => !t.done);
-  const done = tasks.filter(t => t.done);
+
+  const toggleCustom = (id) => {
+    const done = state.done.includes(id)
+      ? state.done.filter(d => d !== id)
+      : [...state.done, id];
+    updateState({ ...state, done });
+  };
+
+  const deleteCustom = (id) => {
+    const custom = state.custom.filter(t => t.id !== id);
+    const done = state.done.filter(d => d !== id);
+    updateState({ ...state, custom, done });
+  };
+
+  const allTasks = [
+    ...myRecurring.map(t => ({ ...t, recurring: true })),
+    ...state.custom.map(t => ({ ...t, recurring: false, role: "Custom" })),
+  ];
+  const open = allTasks.filter(t => !state.done.includes(t.id));
+  const done = allTasks.filter(t => state.done.includes(t.id));
+  const pct = allTasks.length ? Math.round((done.length / allTasks.length) * 100) : 0;
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Daily Tasks</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>{open.length} remaining · {done.length} complete</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>{open.length} remaining · {done.length} complete · resets at midnight</div>
       </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <input value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === "Enter" && add()} placeholder="Add a task…"
-          style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
-        <button onClick={add} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer" }}>Add</button>
-      </div>
-      <div style={{ marginBottom: 12, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Open</div>
-      {open.map(t => (
-        <div key={t.id} onClick={() => toggle(t.id)}
-          style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8, cursor: "pointer" }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
-          onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-          <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${priColor[t.priority]}`, flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ color: C.text, fontSize: 14 }}>{t.text}</div>
-            <div style={{ color: C.textMuted, fontSize: 11 }}>{t.assignee}</div>
-          </div>
-          <Tag color={priColor[t.priority]}>{t.priority}</Tag>
+
+      {/* Progress bar */}
+      <Card style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <span style={{ color: C.textDim, fontSize: 13 }}>Today's Progress</span>
+          <span style={{ color: pct === 100 ? C.green : C.teal, fontWeight: 700 }}>{pct}%</span>
         </div>
-      ))}
+        <div style={{ background: C.border, borderRadius: 4, height: 8, overflow: "hidden" }}>
+          <div style={{ width: `${pct}%`, background: pct === 100 ? C.green : C.teal, height: "100%", borderRadius: 4, transition: "width .4s" }} />
+        </div>
+        {pct === 100 && <div style={{ color: C.green, fontSize: 12, marginTop: 8, textAlign: "center", fontWeight: 600 }}>🎉 All tasks complete!</div>}
+      </Card>
+
+      {/* Add custom task — owners and managers only */}
+      {(currentUser?.role === "Owner" || currentUser?.role === "Tech/Sales") && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          <input value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustom()} placeholder="Add a one-off task…"
+            style={{ flex: 1, minWidth: 180, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
+          <select value={newPriority} onChange={e => setNewPriority(e.target.value)}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 13, outline: "none" }}>
+            <option value="high">High</option>
+            <option value="med">Med</option>
+            <option value="low">Low</option>
+          </select>
+          <button onClick={addCustom} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer" }}>Add</button>
+        </div>
+      )}
+
+      {/* Open tasks */}
+      {open.length > 0 && <>
+        <div style={{ marginBottom: 10, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>To Do — {open.length}</div>
+        {open.map(t => (
+          <div key={t.id}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8 }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = priColor[t.priority]}
+            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+            <div onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)}
+              style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${priColor[t.priority]}`, flexShrink: 0, cursor: "pointer" }} />
+            <div onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)} style={{ flex: 1, cursor: "pointer" }}>
+              <div style={{ color: C.text, fontSize: 14 }}>{t.text}</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>{t.role} {!t.recurring ? "· Custom" : ""}</div>
+            </div>
+            <Tag color={priColor[t.priority]}>{t.priority}</Tag>
+            {!t.recurring && (
+              <button onClick={() => deleteCustom(t.id)}
+                style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px" }}>×</button>
+            )}
+          </div>
+        ))}
+      </>}
+
+      {/* Completed tasks */}
       {done.length > 0 && <>
-        <div style={{ margin: "20px 0 12px", color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Completed</div>
+        <div style={{ margin: "20px 0 10px", color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Completed — {done.length}</div>
         {done.map(t => (
-          <div key={t.id} onClick={() => toggle(t.id)}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8, cursor: "pointer", opacity: 0.55 }}>
+          <div key={t.id}
+            onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8, cursor: "pointer", opacity: 0.5 }}>
             <div style={{ width: 20, height: 20, borderRadius: 6, background: C.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Icon d={Icons.check} size={12} stroke="#fff" />
             </div>
             <div style={{ flex: 1, color: C.textMuted, fontSize: 14, textDecoration: "line-through" }}>{t.text}</div>
+            <Tag color={C.green}>done</Tag>
           </div>
         ))}
       </>}
