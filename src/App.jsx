@@ -93,14 +93,101 @@ const TASKS = [
   { id: 7, text: "Clean workbench stations", assignee: "Techs", done: false, priority: "low" },
 ];
 const SOPS = [
-  { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1" },
-  { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28" },
-  { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20" },
-  { id: 4, title: "Opening Store Procedure", category: "Operations", updated: "Apr 15" },
-  { id: 5, title: "Closing Store Procedure", category: "Operations", updated: "Apr 15" },
-  { id: 6, title: "RepairQ Ticket Creation Guide", category: "POS", updated: "Mar 30" },
-  { id: 7, title: "Handling Warranty Claims", category: "Sales", updated: "Jun 5" },
-  { id: 8, title: "Customer Complaint Escalation", category: "Operations", updated: "May 10" },
+  { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
+  { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
+  { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
+  { id: 4, title: "Opening Store Procedure", category: "Operations", updated: "Apr 15", content: "" },
+  { id: 5, title: "Closing Store Procedure", category: "Operations", updated: "Apr 15", content: "" },
+  { id: 6, title: "RepairQ Ticket Creation Guide", category: "POS", updated: "Mar 30", content: "" },
+  { id: 7, title: "Handling Warranty Claims", category: "Sales", updated: "Jun 5", content: "" },
+  { id: 8, title: "Customer Complaint Escalation", category: "Operations", updated: "May 10", content: "" },
+  {
+    id: 9,
+    title: "ZAGG Screen Protectors",
+    category: "Sales",
+    updated: "Jul 9",
+    content: `ZAGG SOP — Store-Level Employee Guide
+
+FIELD GUIDE LINK
+https://sites.google.com/zaggfranchise.com/field-guide/getting-started/frequently-used-forms-and-links
+
+ISOD LOGIN
+Username: CPR1661
+Password: 9Pbwo5-a0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GLASS OPTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DEFENCE — Advanced Clarity and Scratch Protection | MSRP $19.99
+• Edge-to-edge impact and shatter protection
+• Precision surface finishing for increased scratch resistance
+• Military grade components (originally for helicopter blades)
+• Thinner, more touch-sensitive package
+• High gloss glass-like surface finish
+• Stain resistant (cosmetics, cleaning supplies, food)
+• Can be cut for any device on ZAGG on Demand
+• Blank sizes: Wearable, Smartphone & Tablet
+• Thickness: 0.15mm
+
+ELITE — Advanced Self-Healing & Superior Impact Protection | MSRP $29.99
+• Superior impact & scratch protection
+• Anti-microbial treatment — inhibits odor-causing bacteria
+• Premium glass-like feel and clarity
+• Advanced touch sensitivity
+• Advanced self-healing via Nano-Memory Technology
+• Military grade components
+• Can be cut for any device with On Demand
+• Blank sizes: Wearable, Smartphone & Tablet
+• Thickness: 0.18mm
+
+ELITE MATTE — Anti-Glare & Matte Feel | MSRP $29.99
+• Same as Elite plus reduced glare
+• Matte finish reduces direct light reflection
+• Velvet smooth premium matte feel
+• Can be cut for any device on ISOD
+• Blank sizes: Wearable, Smartphone & Tablet
+• Thickness: 0.18mm
+
+REINFORCE — Shatterproof, Glass-Like Surface | MSRP $39.99
+• 100% recycled PET material
+• Ultimate scratch protection
+• Smooth glass-like surface, superior durability
+• Shatterproof — will not chip or shatter unlike glass
+• Smudge resistant
+• Available for flat devices only
+• Small blank size only — requires special cutting blade
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROTECT BETTER CASE TRADE-IN PROGRAM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Program Link: https://docs.google.com/presentation/d/18znFKjw5uLyvngjLWOeptwtGPqLIJhXIktGFqPC9NFw/edit
+
+• Customers may trade in their current case for credit toward Gear4 (Preferred Partner Only)
+• Cases must be for the same generation of phone
+• Effective 11/11/22 — TBD
+• Coupon #ProtectBetter must be used and visible on receipt
+• New Gear4 sale must be visible on receipt
+• Receipt must be taped to traded-in case and sent with warranty product to receive credit
+• Traded-in case must match same generation as case being sold
+• iFrogz cases are NOT eligible — only trades toward new Gear4 cases
+• Any case, any brand can be traded in toward new Gear4 case
+• All Gear4 phone cases are eligible — not limited to iPhone
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WARRANTY PROCESS IN REPAIRQ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Navigate to Tickets → + Repair Ticket (use Repair ticket to capture customer info)
+2. Capture customer contact information
+3. Capture device details
+4. Add ZAGG Labor SKU: "InvisibleShield Warranty - Professional Installation Service"
+   • Price: $12 for glass / $12 for ISOD
+5. Bundle the appropriate inventoried screen protector catalog item to the labor SKU
+   • This decreases inventory of glass consumed
+   • Customer is charged $12 for glass or $10 for ISOD`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
@@ -480,12 +567,44 @@ const BuyPhonesView = () => {
 const SOPView = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [selected, setSelected] = useState(null);
   const cats = ["All", "Repair", "Sales", "Operations", "POS"];
   const filtered = SOPS.filter(s =>
     (filter === "All" || s.category === filter) &&
-    s.title.toLowerCase().includes(search.toLowerCase())
+    (s.title.toLowerCase().includes(search.toLowerCase()) ||
+     (s.content && s.content.toLowerCase().includes(search.toLowerCase())))
   );
   const catColor = { Repair: C.accent, Sales: C.teal, Operations: C.gold, POS: C.blue };
+
+  if (selected) return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={() => setSelected(null)}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "7px 14px", color: C.textDim, fontSize: 13, cursor: "pointer" }}>
+          ← Back
+        </button>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: C.text, margin: 0 }}>{selected.title}</h2>
+          <div style={{ color: C.textMuted, fontSize: 12 }}>Updated {selected.updated}</div>
+        </div>
+        <Tag color={catColor[selected.category] || C.textMuted}>{selected.category}</Tag>
+      </div>
+      {selected.content ? (
+        <Card>
+          <pre style={{ color: C.text, fontSize: 13, lineHeight: 1.8, whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
+            {selected.content}
+          </pre>
+        </Card>
+      ) : (
+        <Card>
+          <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
+            No content uploaded yet for this SOP.
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
@@ -495,7 +614,7 @@ const SOPView = () => {
       <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search SOPs…"
           style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {cats.map(c => (
             <button key={c} onClick={() => setFilter(c)}
               style={{ background: filter === c ? C.accent : C.surface, color: filter === c ? "#fff" : C.textDim, border: `1px solid ${filter === c ? C.accent : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
@@ -509,17 +628,20 @@ const SOPView = () => {
           <div key={s.id}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
             onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
-            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
+            onClick={() => setSelected(s)}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <Icon d={Icons.sop} size={16} stroke={catColor[s.category] || C.textMuted} />
               <div>
                 <div style={{ color: C.text, fontWeight: 600, fontSize: 14 }}>{s.title}</div>
-                <div style={{ color: C.textMuted, fontSize: 12, marginTop: 2 }}>Updated {s.updated}</div>
+                <div style={{ color: C.textMuted, fontSize: 12, marginTop: 2 }}>Updated {s.updated} {s.content ? "" : "· No content yet"}</div>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <Tag color={catColor[s.category] || C.textMuted}>{s.category}</Tag>
-              <button style={{ background: C.accentDim, color: C.accent, border: "none", borderRadius: 6, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>View</button>
+              <button style={{ background: s.content ? C.accentDim : C.surface, color: s.content ? C.accent : C.textMuted, border: "none", borderRadius: 6, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>
+                {s.content ? "View" : "Empty"}
+              </button>
             </div>
           </div>
         ))}
