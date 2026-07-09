@@ -304,11 +304,14 @@ const BuyPhonesView = () => {
       if (tab.samsung) {
         const skipValues = ["not buying", "ask", "#num!", "-", "", "new", "a", "b", "c", "d", "doa"];
         let lastUnlockedPrice = "";
+        console.log("Samsung rows total:", rows.length);
+        console.log("First 15 rows:", JSON.stringify(rows.slice(0, 15)));
         // Use ALL rows, let logic find unlocked/carrier locked by content
-        rows.forEach(row => {
+        rows.forEach((row, idx) => {
           const model = (row[1] || "").toString().trim();
           const condition = (row[2] || "").toString().trim().toLowerCase();
           const price = (row[4] || "").toString().trim();
+          if (model || condition) console.log(`Row ${idx}: model="${model}" condition="${condition}" price="${price}"`);
 
           if (condition === "unlocked") {
             lastUnlockedPrice = skipValues.some(s => price.toLowerCase().includes(s)) ? "NOT BUYING" : price;
@@ -319,6 +322,7 @@ const BuyPhonesView = () => {
             lastUnlockedPrice = "";
           }
         });
+        console.log("Samsung parsed results:", parsed.length, JSON.stringify(parsed.slice(0,4)));
       } else {
         parsed = rows.slice(tab.startRow)
           .map(row => ({
