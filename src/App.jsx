@@ -545,6 +545,40 @@ TECHNICIAN END OF DAY CHECKLIST
 
 Each technician is responsible for leaving their workstation clean, organized, and fully prepared for the next business day. A clean bench, accurate repair documentation, and an organized repair queue are essential to maintaining efficiency and delivering an exceptional customer experience.`
   },
+  {
+    id: 15,
+    title: "Technician Start of Shift SOP",
+    category: "Repair",
+    updated: "Jul 9",
+    content: `TECHNICIAN START OF SHIFT SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WORKSTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Ensure your repair bench is clean, organized, and stocked with the tools and supplies needed for the day
+• Remove unnecessary parts, tools, trash, and completed repairs from your workspace
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIR QUEUE REVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before beginning repairs:
+• Review the Repair Queue
+• Identify any overdue or past-due repairs
+• Update estimated completion and pickup times as needed
+• Review all repairs currently scheduled for the day
+• Prioritize repairs based on due date, customer commitments, and management direction
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PREPARE FOR REPAIRS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Gather parts and tools for scheduled repairs
+• Verify required parts are in stock before beginning work
+• Organize your repair workflow to maximize efficiency throughout the day`
+  },
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
