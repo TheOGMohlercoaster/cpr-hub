@@ -29,6 +29,25 @@ const Icons = {
   warn: "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01",
 };
 
+// ── Employees & Auth ─────────────────────────────────────────────────────
+const EMPLOYEES = [
+  { id: 1, name: "Jason Mohler",    pin: "1111", role: "Owner" },
+  { id: 2, name: "Cindy Leek",      pin: "2222", role: "Owner" },
+  { id: 3, name: "Aliyah Mohler",   pin: "3333", role: "Owner" },
+  { id: 4, name: "Nate Williams",   pin: "4444", role: "Tech/Sales" },
+  { id: 5, name: "Alex Smith",      pin: "5555", role: "Tech" },
+  { id: 6, name: "Galen Chandler",  pin: "6666", role: "Sales" },
+  { id: 7, name: "Dillon Greene",   pin: "7777", role: "Sales" },
+];
+
+// What each role can see
+const ROLE_ACCESS = {
+  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks"],
+  "Tech":       ["dashboard","sop","repairs","tasks"],
+  "Sales":      ["dashboard","buyphones","sop","sales","tasks"],
+};
+
 // ── Color tokens ─────────────────────────────────────────────────────────
 const C = {
   bg: "#0F1117",
@@ -756,12 +775,134 @@ const VIEWS = {
   settings: SettingsView,
 };
 
+// ── LOGIN SCREEN ─────────────────────────────────────────────────────────
+const LoginScreen = ({ onLogin }) => {
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  const handleEmployeeSelect = (emp) => {
+    setSelectedEmployee(emp);
+    setPin("");
+    setError("");
+  };
+
+  const handlePinPress = (digit) => {
+    if (pin.length >= 4) return;
+    const newPin = pin + digit;
+    setPin(newPin);
+    if (newPin.length === 4) {
+      if (newPin === selectedEmployee.pin) {
+        onLogin(selectedEmployee);
+      } else {
+        setError("Incorrect PIN. Try again.");
+        setTimeout(() => { setPin(""); setError(""); }, 1000);
+      }
+    }
+  };
+
+  const handleClear = () => { setPin(""); setError(""); };
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ marginBottom: 32, textAlign: "center" }}>
+        <div style={{ width: 56, height: 56, background: C.accent, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+          <Icon d={Icons.phone} size={28} stroke="#fff" />
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: C.text }}>CPR Hub</div>
+        <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4 }}>Select your name to sign in</div>
+      </div>
+
+      {!selectedEmployee ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", maxWidth: 400 }}>
+          {EMPLOYEES.map(emp => (
+            <div key={emp.id} onClick={() => handleEmployeeSelect(emp)}
+              style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 14px", cursor: "pointer", textAlign: "center" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.surface; }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+                <span style={{ color: C.accent, fontWeight: 800, fontSize: 16 }}>{emp.name.charAt(0)}</span>
+              </div>
+              <div style={{ color: C.text, fontWeight: 600, fontSize: 13 }}>{emp.name}</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>{emp.role}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ width: "100%", maxWidth: 300, textAlign: "center" }}>
+          <div onClick={() => setSelectedEmployee(null)} style={{ color: C.textMuted, fontSize: 13, cursor: "pointer", marginBottom: 20 }}>← Back</div>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px" }}>
+            <span style={{ color: C.accent, fontWeight: 800, fontSize: 24 }}>{selectedEmployee.name.charAt(0)}</span>
+          </div>
+          <div style={{ color: C.text, fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{selectedEmployee.name}</div>
+          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 24 }}>{selectedEmployee.role}</div>
+
+          {/* PIN dots */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 8 }}>
+            {[0,1,2,3].map(i => (
+              <div key={i} style={{ width: 16, height: 16, borderRadius: "50%", background: pin.length > i ? C.accent : C.border, transition: "background .15s" }} />
+            ))}
+          </div>
+          {error && <div style={{ color: C.red, fontSize: 12, marginBottom: 8 }}>{error}</div>}
+          {!error && <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 24 }}>Enter your PIN</div>}
+
+          {/* PIN pad */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+            {["1","2","3","4","5","6","7","8","9"].map(d => (
+              <button key={d} onClick={() => handlePinPress(d)}
+                style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px", fontSize: 20, fontWeight: 700, color: C.text, cursor: "pointer" }}
+                onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                onMouseLeave={e => e.currentTarget.style.background = C.surface}>
+                {d}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <button onClick={handleClear}
+              style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px", fontSize: 13, fontWeight: 600, color: C.textMuted, cursor: "pointer" }}>
+              Clear
+            </button>
+            <button onClick={() => handlePinPress("0")}
+              style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px", fontSize: 20, fontWeight: 700, color: C.text, cursor: "pointer" }}
+              onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+              onMouseLeave={e => e.currentTarget.style.background = C.surface}>
+              0
+            </button>
+            <button onClick={() => setPin(p => p.slice(0,-1))}
+              style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px", fontSize: 13, fontWeight: 600, color: C.textMuted, cursor: "pointer" }}>
+              ⌫
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── ROOT APP ──────────────────────────────────────────────────────────────
 export default function App() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [view, setView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [role, setRole] = useState("Owner");
   const ViewComponent = VIEWS[view] || DashboardView;
+
+  const handleLogin = (employee) => {
+    setCurrentUser(employee);
+    setView("dashboard");
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setView("dashboard");
+  };
+
+  if (!currentUser) return <LoginScreen onLogin={handleLogin} />;
+
+  const allowedNav = NAV.filter(n => ROLE_ACCESS[currentUser.role]?.includes(n.id));
+  // Make sure current view is allowed, else reset
+  if (!ROLE_ACCESS[currentUser.role]?.includes(view)) {
+    setView("dashboard");
+  }
 
   return (
     <div style={{ display: "flex", height: "100vh", background: C.bg, fontFamily: "'Inter', -apple-system, sans-serif", color: C.text, overflow: "hidden" }}>
@@ -779,7 +920,7 @@ export default function App() {
         </div>
         {/* Nav */}
         <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto" }}>
-          {NAV.map(n => {
+          {allowedNav.map(n => {
             const active = view === n.id;
             return (
               <div key={n.id} onClick={() => setView(n.id)}
@@ -794,13 +935,15 @@ export default function App() {
         </nav>
         {/* Bottom */}
         <div style={{ padding: "10px 8px", borderTop: `1px solid ${C.border}` }}>
-          <div onClick={() => setView("settings")}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", color: C.textDim }}
-            onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-            <Icon d={Icons.settings} size={16} stroke={C.textDim} />
-            {sidebarOpen && <span style={{ fontSize: 13 }}>Settings</span>}
-          </div>
+          {currentUser.role === "Owner" && (
+            <div onClick={() => setView("settings")}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", color: C.textDim }}
+              onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <Icon d={Icons.settings} size={16} stroke={C.textDim} />
+              {sidebarOpen && <span style={{ fontSize: 13 }}>Settings</span>}
+            </div>
+          )}
           <button onClick={() => setSidebarOpen(o => !o)}
             style={{ width: "100%", marginTop: 4, background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 11, padding: "6px", borderRadius: 6, textAlign: "center" }}>
             {sidebarOpen ? "← Collapse" : "→"}
@@ -820,19 +963,22 @@ export default function App() {
               <Icon d={Icons.bell} size={18} stroke={C.textMuted} />
               <div style={{ position: "absolute", top: -2, right: -2, width: 7, height: 7, background: C.accent, borderRadius: "50%" }} />
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {["Owner", "Manager", "Tech", "Sales"].map(r => (
-                <button key={r} onClick={() => setRole(r)}
-                  style={{ background: role === r ? C.accent : C.surface, color: role === r ? "#fff" : C.textMuted, border: `1px solid ${role === r ? C.accent : C.border}`, borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
-                  {r}
-                </button>
-              ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ background: C.accentDim, borderRadius: 8, padding: "4px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ color: C.accent, fontWeight: 700, fontSize: 13 }}>{currentUser.name}</span>
+                <span style={{ color: C.textMuted, fontSize: 11 }}>{currentUser.role}</span>
+              </div>
+              <button onClick={handleLogout}
+                style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", color: C.textMuted, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <Icon d={Icons.logout} size={13} stroke={C.textMuted} />
+                {sidebarOpen && "Sign Out"}
+              </button>
             </div>
           </div>
         </div>
         {/* Content */}
         <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
-          <ViewComponent setView={setView} />
+          <ViewComponent setView={setView} currentUser={currentUser} />
         </div>
       </div>
     </div>
