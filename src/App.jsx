@@ -427,7 +427,7 @@ Employees who fail to comply with the dress code may be asked to correct the iss
     title: "Store Opening Procedure",
     category: "Operations",
     updated: "Jul 9",
-    content: `STORE OPENING PROCEDURE
+    content: `OPENING PROCEDURE SOP
 Store-Level Employee Guide | CPR Cell Phone Repair
 
 Opening employee must arrive and have store open at least 30 minutes prior to business hours.
@@ -443,7 +443,7 @@ CASH HANDLING
 STORE SETUP
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• Remove all electronic devices (phones, tablets, watches, laptops, gaming consoles, etc.) from secure storage and place in appropriate display cases
+• Remove all electronic devices (phones, tablets, smart watches, laptops, gaming consoles, etc.) from secure storage and place in appropriate display cases
 • Wipe down every display device — remove fingerprints, dust, and smudges
 • Verify all merchandise is displayed neatly and securely
 
@@ -471,6 +471,14 @@ Before opening doors:
 • Ensure sales floor is clean and free of dirt or debris
 • Straighten merchandise and displays
 • Verify store is clean, organized, and ready to welcome customers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UNLOCK FRONT DOOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• If customers are waiting outside before opening time and everything is done, open early to accommodate them
+• Take sidewalk sign out to the curb
+• Welcome customers!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TECHNICIAN OPENING RESPONSIBILITIES
