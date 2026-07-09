@@ -419,6 +419,132 @@ GENERAL APPEARANCE STANDARDS
 
 Employees who fail to comply with the dress code may be asked to correct the issue before beginning work.`
   },
+  {
+    id: 13,
+    title: "Technician End of Shift SOP",
+    category: "Repair",
+    updated: "Jul 9",
+    content: `TECHNICIAN END OF SHIFT SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIR QUEUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before clocking out:
+• Review all assigned repair tickets
+• Ensure every repair ticket has accurate and up-to-date notes
+• Verify there are no past-due repair tickets without customer communication
+• Update estimated completion and pickup times as needed
+• Confirm all repair statuses accurately reflect the current stage of the repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPLETED REPAIRS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Ensure all completed repairs are properly labeled
+• Place completed devices in the designated pickup location
+• Verify completed devices are connected to chargers when applicable
+• If you are off the next day and have a repair due for pickup, notify the scheduled technician
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WORKSTATION ORGANIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before leaving:
+• Clean and organize your repair bench
+• Remove all leftover parts, screws, adhesive backing, packaging, trash, dirt, and debris
+• Return all tools and equipment to their designated locations
+• Ensure your workstation is clean and ready for the next business day
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BATTERY & RECYCLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Verify all recycled lithium-ion batteries are placed in the designated battery storage container
+• Ensure batteries are stored safely and in accordance with company safety procedures
+• Empty the recycled parts bin if it is full and dispose of contents according to company procedures
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECHNICIAN CLOSING CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Repair queue reviewed
+☐ No past-due tickets without updated pickup times or customer communication
+☐ Repair tickets updated with current notes and statuses
+☐ Completed repairs labeled and placed in designated pickup area
+☐ Completed devices charging (when applicable)
+☐ Workbench cleaned and organized
+☐ All tools returned to proper locations
+☐ Leftover parts, adhesive, packaging, and debris removed
+☐ Recycled batteries stored properly
+☐ Recycled parts bin emptied if full
+
+Each technician is responsible for leaving their workstation clean, organized, and fully prepared for the next business day.`
+  },
+  {
+    id: 14,
+    title: "Technician End of Day SOP",
+    category: "Repair",
+    updated: "Jul 9",
+    content: `TECHNICIAN END OF DAY SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIR QUEUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before clocking out:
+• Review all assigned repair tickets
+• Ensure every repair ticket has accurate and up-to-date notes
+• Verify there are no past-due repair tickets without customer communication
+• Update estimated completion and pickup times as needed
+• Confirm all repair statuses accurately reflect the current stage of the repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPLETED REPAIRS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Ensure all completed repairs are properly labeled
+• Place completed devices in the designated pickup location
+• Verify completed devices are connected to chargers when applicable
+• If you are off the next day and have a repair due for pickup, notify the scheduled technician
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WORKSTATION ORGANIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before leaving:
+• Clean and organize your repair bench
+• Remove all leftover parts, screws, adhesive backing, packaging, trash, dirt, and debris
+• Return all tools and equipment to their designated locations
+• Ensure your workstation is clean and ready for the next business day
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BATTERY & RECYCLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Verify all recycled lithium-ion batteries are placed in the designated battery storage container
+• Ensure batteries are stored safely and in accordance with company safety procedures
+• Empty the recycled parts bin if it is full and dispose of contents according to company procedures
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECHNICIAN END OF DAY CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Repair queue reviewed
+☐ No past-due tickets without updated pickup times or customer communication
+☐ Repair tickets updated with current notes and statuses
+☐ Completed repairs labeled and placed in designated pickup area
+☐ Completed devices charging (when applicable)
+☐ Workbench cleaned and organized
+☐ All tools returned to proper locations
+☐ Leftover parts, adhesive, packaging, and debris removed
+☐ Recycled batteries stored properly
+☐ Recycled parts bin emptied if full
+
+Each technician is responsible for leaving their workstation clean, organized, and fully prepared for the next business day. A clean bench, accurate repair documentation, and an organized repair queue are essential to maintaining efficiency and delivering an exceptional customer experience.`
+  },
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
