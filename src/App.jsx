@@ -303,26 +303,27 @@ const BuyPhonesView = () => {
       let parsed = [];
       if (tab.samsung) {
         const skipValues = ["not buying", "ask", "#num!", "-", "", "new", "a", "b", "c", "d", "doa"];
+        let lastModel = "";
         let lastUnlockedPrice = "";
-        console.log("Samsung rows total:", rows.length);
-        console.log("First 15 rows:", JSON.stringify(rows.slice(0, 15)));
-        // Use ALL rows, let logic find unlocked/carrier locked by content
-        rows.forEach((row, idx) => {
+        rows.forEach((row) => {
           const model = (row[1] || "").toString().trim();
           const condition = (row[2] || "").toString().trim().toLowerCase();
           const price = (row[4] || "").toString().trim();
-          if (model || condition) console.log(`Row ${idx}: model="${model}" condition="${condition}" price="${price}"`);
+          const isValidPrice = (p) => p && !skipValues.some(s => p.toLowerCase().includes(s));
 
-          if (condition === "unlocked") {
-            lastUnlockedPrice = skipValues.some(s => price.toLowerCase().includes(s)) ? "NOT BUYING" : price;
-          } else if (model && model.length > 2 && condition.includes("carrier")) {
-            const carrierPrice = skipValues.some(s => price.toLowerCase().includes(s)) ? "NOT BUYING" : price;
-            parsed.push({ model, condition: "Unlocked", atlasPrice: lastUnlockedPrice || "NOT BUYING" });
-            parsed.push({ model, condition: "Carrier Locked", atlasPrice: carrierPrice });
+          if (condition === "unlocked" && model) {
+            // Model name is on the unlocked row — save it
+            lastModel = model;
+            lastUnlockedPrice = isValidPrice(price) ? price : "NOT BUYING";
+            parsed.push({ model: lastModel, condition: "Unlocked", atlasPrice: lastUnlockedPrice });
+          } else if (condition.includes("carrier") && lastModel) {
+            // Carrier locked row has no model — use lastModel
+            const carrierPrice = isValidPrice(price) ? price : "NOT BUYING";
+            parsed.push({ model: lastModel, condition: "Carrier Locked", atlasPrice: carrierPrice });
+            lastModel = "";
             lastUnlockedPrice = "";
           }
         });
-        console.log("Samsung parsed results:", parsed.length, JSON.stringify(parsed.slice(0,4)));
       } else {
         parsed = rows.slice(tab.startRow)
           .map(row => ({
