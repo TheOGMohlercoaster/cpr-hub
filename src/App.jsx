@@ -352,6 +352,29 @@ EMPLOYEE DISCOUNTS
 • Most phones: $25 to $50 below retail
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MULTI REPAIR DISCOUNTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• If more than one repair is done, we can typically discount $50
+  (Only when both repairs are $130+ above part cost)
+
+• If the customer is going to walk, ask management or owners if we can do better
+  — most of the time we can
+
+From Management — How to price multi-repairs:
+  Start with the highest repair cost at full price, then price the cheaper
+  repair at double its part cost (minimum $20 additional).
+
+  Example — iPhone 12 Screen + Charge Port:
+  • Screen: $169.99
+  • Charge port retail: $119.99 / part cost: $8.00
+  • Instead of $16 (double cost), offer charge port for an additional $50
+  • Total: $219.99 + tax
+
+  For additional repairs beyond two:
+  • Price each additional repair at double its part cost, starting at $20 minimum
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 IMPORTANT NOTES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
