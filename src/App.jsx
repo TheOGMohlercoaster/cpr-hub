@@ -272,7 +272,7 @@ const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
 // startRow is 0-indexed (row 12 = index 11, row 11 = index 10, row 6 = index 5, etc)
 const TABS = [
   { label: "iPhone Used",  modelCol: 1, priceCol: 3, startRow: 11 },
-  { label: "Samsung",      modelCol: 1, priceCol: 4, startRow: 10 },
+  { label: "Samsung",      modelCol: 1, priceCol: 4, startRow: 11, conditionCol: 2, samsung: true },
   { label: "Google Pixel", modelCol: 0, priceCol: 2, startRow: 1  },
   { label: "iPad Used",    modelCol: 1, priceCol: 3, startRow: 11 },
   { label: "Apple Watch",  modelCol: 1, priceCol: 4, startRow: 5  },
@@ -300,21 +300,52 @@ const BuyPhonesView = () => {
       const data = await res.json();
       const rows = data.values || [];
       // Use startRow to skip header/empty rows, pull modelCol and priceCol directly
-      const parsed = rows.slice(tab.startRow)
-        .map(row => ({
-          model: (row[tab.modelCol] || "").toString().trim(),
-          atlasPrice: (row[tab.priceCol] || "").toString().trim(),
-          condition: tab.conditionCol !== undefined ? (row[tab.conditionCol] || "").toString().trim() : "",
-        }))
-        .filter(r => {
-          if (!r.model || r.model.length < 2) return false;
-          // Skip header/label rows that have no price
-          if (!r.atlasPrice || r.atlasPrice === "" || r.atlasPrice === "-") return false;
-          // Skip rows where price is NOT BUYING, ASK, #NUM etc
-          const skipPrices = ["not buying", "ask", "#num", "new", "a", "b", "c", "d", "doa"];
-          if (skipPrices.includes(r.atlasPrice.toLowerCase())) return false;
-          return true;
+      let parsed = [];
+      if (tab.samsung) {
+        // Samsung has a unique structure:
+        // - Row with "Unlocked" in col C (no model in col B)
+        // - Row below with model in col B and "Carrier Locked" in col C
+        // We pair them up by tracking the last seen unlocked price
+        const skipValues = ["not buying", "ask", "#num!", "-", "", "new", "a", "b", "c", "d", "doa"];
+        let lastModel = "";
+        let lastUnlockedPrice = "";
+        const dataRows = rows.slice(tab.startRow);
+        dataRows.forEach(row => {
+          const model = (row[1] || "").toString().trim();
+          const condition = (row[2] || "").toString().trim().toLowerCase();
+          const price = (row[4] || "").toString().trim(); // col E = A grade price
+
+          if (condition === "unlocked") {
+            // Store unlocked price, will use when we find the model name
+            lastUnlockedPrice = skipValues.includes(price.toLowerCase()) ? "NOT BUYING" : price;
+          } else if (model && model.length > 2 && condition.includes("carrier")) {
+            // This row has the model name and carrier locked price
+            lastModel = model;
+            const carrierPrice = skipValues.includes(price.toLowerCase()) ? "NOT BUYING" : price;
+            // Add unlocked row
+            if (lastUnlockedPrice) {
+              parsed.push({ model: lastModel, condition: "Unlocked", atlasPrice: lastUnlockedPrice });
+            }
+            // Add carrier locked row
+            parsed.push({ model: lastModel, condition: "Carrier Locked", atlasPrice: carrierPrice });
+            lastUnlockedPrice = "";
+          }
         });
+      } else {
+        parsed = rows.slice(tab.startRow)
+          .map(row => ({
+            model: (row[tab.modelCol] || "").toString().trim(),
+            atlasPrice: (row[tab.priceCol] || "").toString().trim(),
+            condition: "",
+          }))
+          .filter(r => {
+            if (!r.model || r.model.length < 2) return false;
+            if (!r.atlasPrice || r.atlasPrice === "" || r.atlasPrice === "-") return false;
+            const skipPrices = ["not buying", "ask", "#num", "new", "a", "b", "c", "d", "doa"];
+            if (skipPrices.includes(r.atlasPrice.toLowerCase())) return false;
+            return true;
+          });
+      }
       setPhones(parsed);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
