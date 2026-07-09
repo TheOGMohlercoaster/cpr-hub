@@ -617,7 +617,7 @@ const TABS = [
 
 const BuyPhonesView = () => {
   const [search, setSearch] = useState("");
-  const [margin, setMargin] = useState(8);
+  const [margin, setMargin] = useState(20);
   const [phones, setPhones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
