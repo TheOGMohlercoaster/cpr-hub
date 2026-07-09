@@ -93,6 +93,235 @@ const TASKS = [
   { id: 7, text: "Clean workbench stations", assignee: "Techs", done: false, priority: "low" },
 ];
 const SOPS = [
+  {
+    id: 10,
+    title: "Technician Standards SOP",
+    category: "Repair",
+    updated: "Jul 9",
+    content: `TECHNICIAN STANDARDS SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. WORKSTATION CLEANLINESS & ORGANIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+During the Day
+• Work areas must remain organized while performing repairs
+• Clean and organize your work area after every repair
+• Tools must be returned to their designated place after use
+• Loose screws or parts should never be left on the bench
+
+End of Shift
+• Desk must be completely cleaned and organized
+• Remove debris, parts, adhesive scraps, and trash
+• Return tools and equipment to their proper location
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. REPAIR SCHEDULING & TIME MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Standard repairs should be scheduled in 30-minute intervals
+• Complex repairs may require additional time
+• Do not overbook repairs if you are already behind
+
+If Running Behind
+• Communicate with other technicians as soon as possible
+• Do not wait until the repair is 5 minutes from being due
+• Ask for assistance early
+
+Customer Communication
+• If a repair will take longer than expected, contact the customer immediately
+• Inform them of the delay and provide a new completion estimate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. REPAIR TICKET & DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pre-Repair (REQUIRED before starting any repair)
+✔ Complete Pre-Test Form
+✔ Document all device conditions and issues
+✔ Record findings on repair ticket
+✔ Note any existing damage
+
+During Repair — Record on ticket:
+• Repair performed
+• Parts used
+• Additional observations
+• Unexpected issues discovered
+
+Post-Repair
+✔ Complete Post-Test Form
+✔ Document results of testing
+✔ Add final repair notes to ticket
+✔ Mark ticket Ready for Pickup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. DEVICE TESTING REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pre-Test must check:
+• Power • Display • Touch functionality • Cameras
+• Speakers • Microphones • Charging • Buttons
+• Face ID / Touch ID (when applicable)
+
+Post-Test must confirm:
+• All replaced parts function correctly
+• Device operates normally
+• No additional damage occurred during repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. REPAIR QUALITY STANDARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• All screws removed during repair must be reinstalled
+• No screws or components should be missing
+• Avoid forgetting shields, brackets, or internal components
+• All devices must leave in same or better condition than received
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. DEVICE CLEANING & FINAL PREPARATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before returning device to customer:
+• Clean device thoroughly
+• Remove fingerprints, dust, and debris
+• Wipe screen clean
+• Plug device in to charge if possible
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. ADHESIVE REPLACEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Required steps when opening a device:
+1. Remove all old adhesive
+2. Clean frame or back glass with isopropyl alcohol
+3. Remove any residue or debris
+4. Install new adhesive
+
+• Adhesive must be added to repair ticket OR removed from inventory
+• No device should be sealed without new adhesive
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. SOLDERING WORKSTATION STANDARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+End of Day:
+• Clean ESD mat
+• Clean microscope stand and work area
+• Remove all flux residue and solder splatter
+
+Equipment Care:
+• Soldering tips must be tinned with solder to prevent corrosion
+• Clean microscope lenses if dirty
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. PARTS & REPAIR TRACKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• All parts used must be attached to repair ticket and logged in inventory
+• All accessories brought in with device must stay with repair ticket until pickup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. REPAIR QUEUE MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• No repairs should be past due
+• Orange tickets (past due) must be updated with new pickup date
+• Once finished: mark Ready for Pickup, call customer, charge device
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. REPAIR RESEARCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If unfamiliar with a repair, before starting:
+• Check CPR Knowledge Hub
+• Check iFixit
+• Research online
+• Identify potential risks or fragile components
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. BENCH FEE POLICY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• $50 minimum bench fee applies for diagnostic work
+• May be adjusted based on time spent, complexity, and work performed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. DRESS CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Monday – Friday
+• Company-issued CPR collared polo (clean and presentable)
+• Slacks or dress pants
+• Closed-toe tennis shoes or dress shoes
+
+Weekend
+• Company-issued CPR t-shirt
+• Clean jeans (no holes, rips, or excessive wear)
+• Closed-toe tennis shoes or dress shoes
+
+General
+• Maintain good personal hygiene and neat appearance
+• No hats/hoodies without management approval
+• No offensive language, graphics, or competing logos on clothing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. WRITE-UP TRIGGERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Immediate Write-Up
+• Missing screws or parts after repair
+• Failure to complete pre or post tests
+• Failure to document repairs properly
+• Device returned in worse condition
+• Excessively messy workstation
+• Not reinstalling adhesive when required
+
+Performance Write-Up
+• Repeated late repairs without communication
+• Multiple overdue tickets
+• Failure to clean workstation regularly
+• Not contacting customers about delays
+
+Serious Write-Up
+• Careless damage to customer devices
+• Repeated avoidable mistakes
+• Ignoring repair procedures
+• Improper documentation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. DAILY CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Beginning of Shift
+✔ Review repair queue
+✔ Identify upcoming repairs
+✔ Ensure tools are ready
+✔ Ensure workstation is clean
+
+During the Day
+✔ Pre-test every device
+✔ Complete repair notes
+✔ Complete post-test
+✔ Clean workstation after each repair
+✔ Monitor queue for overdue tickets
+✔ Communicate delays early
+
+After Each Repair
+✔ Reinstall all screws and parts
+✔ Replace adhesive if device was opened
+✔ Clean device
+✔ Plug device in if possible
+✔ Attach parts to ticket
+✔ Mark repair Ready for Pickup
+
+End of Shift
+✔ Clean workstation
+✔ Organize tools
+✔ Dispose of debris and trash
+✔ Clean soldering workstation (if used)
+✔ Ensure no open repairs are overdue`
+  },
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
