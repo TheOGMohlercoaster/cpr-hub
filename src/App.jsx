@@ -524,7 +524,113 @@ OPENING READINESS CHECKLIST
 
 The goal is for every customer to walk into a clean, organized, fully operational store the moment the doors open.`
   },
-  { id: 5, title: "Closing Store Procedure", category: "Operations", updated: "Apr 15", content: "" },
+  {
+    id: 5,
+    title: "Store Closing Procedure",
+    category: "Operations",
+    updated: "Jul 9",
+    content: `STORE CLOSING PROCEDURE SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+No employee should leave until all closing tasks have been completed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECURE THE STORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Turn the OPEN sign off
+• Bring the exterior sidewalk sign inside
+• Lock the front entrance door after the last customer has exited
+• Remove all electronic devices (phones, tablets, smart watches, laptops, gaming consoles, etc.) from display cases and securely store in the security cage
+• Board and lock the back door
+• Arm the security system
+• Verify the front door is locked before leaving
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CASH HANDLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Count and balance all cash drawers
+• Report any cash discrepancies to management immediately
+• Prepare the bank deposit
+• Place the deposit bag in the secure drop box
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLEANING & ORGANIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Vacuum the front showroom and back work area
+• Empty all trash cans and take trash to the designated dumpster
+• Clean and organize the front display island
+• Clean and organize the back work island
+• Clean all display case glass and entrance door glass
+• Restock accessories and merchandise for the next business day
+• Place all handheld display phones on their charging bases
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EQUIPMENT SHUTDOWN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Turn off or secure the following:
+• Display TVs
+• Customer and technician monitors
+• Security monitor system (back room)
+• All computers
+• Display cabinet lighting (unplug)
+• Air compressor
+• Powered tools on the back work island
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TWO-MINUTE FINAL WALKTHROUGH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before arming the security system, verify:
+• No customers or unauthorized individuals remain inside
+• All repair devices have been properly secured
+• All display electronics removed from cases and secured in storage cage
+• All cash drawers, deposits, and company assets are secured
+• All computers, TVs, monitors, lights, compressors, and powered tools are off
+• All trash removed and work areas clean and organized
+• Front and back doors are locked and secure
+• Back door has been boarded
+• No water running and no safety hazards exist
+• Security alarm has been armed successfully
+• Front door is locked after exiting the building
+
+Never rush the final walkthrough — it prevents theft, equipment damage, safety issues, and unnecessary alarm calls.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL CLOSING CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ OPEN sign turned off
+☐ Sidewalk sign brought inside
+☐ Front door locked
+☐ Cash drawers counted and balanced
+☐ Deposit completed and placed in drop box
+☐ Front showroom vacuumed
+☐ Back work area vacuumed
+☐ All trash removed
+☐ Electronic devices secured in cage
+☐ Front display island cleaned and organized
+☐ Back work island cleaned and organized
+☐ Display case glass cleaned
+☐ Entrance door glass cleaned
+☐ Accessories restocked
+☐ Display phones placed on charging bases
+☐ Monitors turned off
+☐ Display TVs turned off
+☐ Security monitors turned off
+☐ All computers shut down
+☐ Display cabinet lights unplugged
+☐ Air compressor turned off
+☐ Powered tools turned off
+☐ Back door boarded and locked
+☐ Security system armed
+☐ Final check completed and all doors locked
+
+Failure to complete any portion of the closing procedure may result in disciplinary action.`
+  },
   { id: 6, title: "RepairQ Ticket Creation Guide", category: "POS", updated: "Mar 30", content: "" },
   { id: 7, title: "Handling Warranty Claims", category: "Sales", updated: "Jun 5", content: "" },
   { id: 8, title: "Customer Complaint Escalation", category: "Operations", updated: "May 10", content: "" },
