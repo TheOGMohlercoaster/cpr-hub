@@ -422,7 +422,100 @@ Employees who fail to comply with the dress code may be asked to correct the iss
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
-  { id: 4, title: "Opening Store Procedure", category: "Operations", updated: "Apr 15", content: "" },
+  {
+    id: 4,
+    title: "Store Opening Procedure",
+    category: "Operations",
+    updated: "Jul 9",
+    content: `STORE OPENING PROCEDURE
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+Opening employee must arrive and have store open at least 30 minutes prior to business hours.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CASH HANDLING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Count and balance all cash registers
+• Report any discrepancies to management immediately
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Remove all electronic devices (phones, tablets, watches, laptops, gaming consoles, etc.) from secure storage and place in appropriate display cases
+• Wipe down every display device — remove fingerprints, dust, and smudges
+• Verify all merchandise is displayed neatly and securely
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POWER UP THE STORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Turn on the following:
+• Display case lighting
+• Front showroom lights
+• Back room lights
+• Track lighting
+• Air compressor
+• Display TVs
+• Security monitor system (back room)
+• Dehydrator
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLEANING & PRESENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before opening doors:
+• Clean all display case glass
+• Wipe down the center display island
+• Ensure sales floor is clean and free of dirt or debris
+• Straighten merchandise and displays
+• Verify store is clean, organized, and ready to welcome customers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECHNICIAN OPENING RESPONSIBILITIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Workstation
+• Ensure repair bench is clean, organized, and stocked with tools and supplies
+• Remove unnecessary parts, tools, trash, and completed repairs from workspace
+
+Repair Queue Review
+• Review the Repair Queue
+• Identify any overdue or past-due repairs
+• Update estimated completion and pickup times as needed
+• Review all repairs scheduled for the day
+• Prioritize by due date, customer commitments, and management direction
+
+Prepare for Repairs
+• Gather parts and tools for scheduled repairs
+• Verify required parts are in stock before beginning work
+• Organize repair workflow to maximize efficiency
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPENING READINESS CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Registers counted and balanced
+☐ All display devices placed in cases
+☐ Display devices cleaned
+☐ Display case lights on
+☐ Front and back lights on
+☐ Track lights on
+☐ Compressor on
+☐ Display TVs on
+☐ Security monitors on
+☐ Dehydrator on
+☐ Display case glass cleaned
+☐ Center island cleaned
+☐ Floors clean
+☐ Store organized and presentable
+☐ Technician workstations clean
+☐ Repair queue reviewed
+☐ Technicians prepared for scheduled repairs
+
+The goal is for every customer to walk into a clean, organized, fully operational store the moment the doors open.`
+  },
   { id: 5, title: "Closing Store Procedure", category: "Operations", updated: "Apr 15", content: "" },
   { id: 6, title: "RepairQ Ticket Creation Guide", category: "POS", updated: "Mar 30", content: "" },
   { id: 7, title: "Handling Warranty Claims", category: "Sales", updated: "Jun 5", content: "" },
