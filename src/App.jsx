@@ -382,6 +382,43 @@ IMPORTANT NOTES
 • Always verify military or student status before applying discount
 • Employee discounts require manager or owner approval first`
   },
+  {
+    id: 12,
+    title: "Dress Code SOP",
+    category: "Operations",
+    updated: "Jul 9",
+    content: `DRESS CODE SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MONDAY – FRIDAY ATTIRE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Company-issued CPR collared polo shirt must be worn and kept clean and presentable
+• Slacks or dress pants are required
+• Clothing must be free of stains, excessive wrinkles, tears, or holes
+• Closed-toe tennis shoes or dress shoes are required
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WEEKEND ATTIRE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Company-issued CPR t-shirt may be worn
+• Clean jeans are permitted — no holes, rips, fraying, or excessive wear
+• Closed-toe tennis shoes or dress shoes are required
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GENERAL APPEARANCE STANDARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Maintain good personal hygiene and a neat, professional appearance at all times
+• Clothing should fit appropriately — not excessively tight, baggy, or revealing
+• Hats, hoodies, or non-company branded outerwear may only be worn with management approval
+• Clothing displaying offensive language, inappropriate graphics, or competing business logos is prohibited
+• Management reserves the right to determine whether attire meets company standards and may require employees to change
+
+Employees who fail to comply with the dress code may be asked to correct the issue before beginning work.`
+  },
   { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
   { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
