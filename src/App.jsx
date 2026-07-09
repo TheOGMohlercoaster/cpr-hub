@@ -314,12 +314,18 @@ const BuyPhonesView = () => {
           if (condition === "unlocked" && model) {
             // Model name is on the unlocked row — save it
             lastModel = model;
-            lastUnlockedPrice = isValidPrice(price) ? price : "NOT BUYING";
-            parsed.push({ model: lastModel, condition: "Unlocked", atlasPrice: lastUnlockedPrice });
+            lastUnlockedPrice = isValidPrice(price) ? price : "";
+            // Only add unlocked row if it has a real price
+            if (lastUnlockedPrice) {
+              parsed.push({ model: lastModel, condition: "Unlocked", atlasPrice: lastUnlockedPrice });
+            }
           } else if (condition.includes("carrier") && lastModel) {
             // Carrier locked row has no model — use lastModel
-            const carrierPrice = isValidPrice(price) ? price : "NOT BUYING";
-            parsed.push({ model: lastModel, condition: "Carrier Locked", atlasPrice: carrierPrice });
+            const carrierPrice = isValidPrice(price) ? price : "";
+            // Only add carrier locked row if it has a real price
+            if (carrierPrice) {
+              parsed.push({ model: lastModel, condition: "Carrier Locked", atlasPrice: carrierPrice });
+            }
             lastModel = "";
             lastUnlockedPrice = "";
           }
