@@ -1789,7 +1789,7 @@ const SettingsView = () => {
 };
 
 // ── SPECIAL ORDERS ───────────────────────────────────────────────────────
-const SO_SHEET_ID = "1hZ8rtgp-W89sHyJ4UfsOxfW3Uoyj12ncI6yZTJDIGqo";
+const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
@@ -1805,7 +1805,7 @@ const SpecialOrdersView = ({ currentUser }) => {
     setLoading(true);
     setError(null);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}/values/Sheet1!A:T?key=${SHEETS_API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}/values/${encodeURIComponent("June 2026")}!A:T?key=${SHEETS_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
