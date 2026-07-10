@@ -1788,21 +1788,6 @@ const SettingsView = () => {
   );
 };
 
-// ── VIEWS MAP ─────────────────────────────────────────────────────────────
-const VIEWS = {
-  dashboard: DashboardView,
-  pricing: PricingView,
-  buyphones: BuyPhonesView,
-  sop: SOPView,
-  sales: SalesView,
-  repairs: RepairsView,
-  tasks: TasksView,
-  pos: POSView,
-  crm: CRMView,
-  orders: SpecialOrdersView,
-  settings: SettingsView,
-};
-
 // ── SPECIAL ORDERS ───────────────────────────────────────────────────────
 const SO_SHEET_ID = "1hZ8rtgp-W89sHyJ4UfsOxfW3Uoyj12ncI6yZTJDIGqo";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
@@ -1977,6 +1962,21 @@ const SpecialOrdersView = ({ currentUser }) => {
       )}
     </div>
   );
+};
+
+// ── VIEWS MAP ─────────────────────────────────────────────────────────────
+const VIEWS = {
+  dashboard: DashboardView,
+  pricing: PricingView,
+  buyphones: BuyPhonesView,
+  sop: SOPView,
+  sales: SalesView,
+  repairs: RepairsView,
+  tasks: TasksView,
+  pos: POSView,
+  crm: CRMView,
+  orders: SpecialOrdersView,
+  settings: SettingsView,
 };
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
