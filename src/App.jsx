@@ -42,10 +42,10 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks"],
-  "Tech":       ["dashboard","sop","repairs","tasks"],
-  "Sales":      ["dashboard","buyphones","sop","sales","tasks"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders"],
+  "Tech":       ["dashboard","sop","repairs","tasks","orders"],
+  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders"],
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
@@ -881,6 +881,7 @@ const NAV = [
   { id: "tasks", label: "Daily Tasks", icon: "tasks" },
   { id: "pos", label: "RepairQ / POS", icon: "pos" },
   { id: "crm", label: "Creatio CRM", icon: "crm" },
+  { id: "orders", label: "Special Orders", icon: "dollar" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
@@ -1798,7 +1799,184 @@ const VIEWS = {
   tasks: TasksView,
   pos: POSView,
   crm: CRMView,
+  orders: SpecialOrdersView,
   settings: SettingsView,
+};
+
+// ── SPECIAL ORDERS ───────────────────────────────────────────────────────
+const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
+const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
+const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
+
+const SpecialOrdersView = ({ currentUser }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+  const isOwner = currentUser?.role === "Owner";
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}/values/Sheet1!A:T?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const rows = data.values || [];
+      if (rows.length < 2) { setOrders([]); setLoading(false); return; }
+      const parsed = rows.slice(1).map((row, i) => ({
+        id: i,
+        timestamp:    row[0]  || "",
+        customer:     row[1]  || "",
+        phone:        row[2]  || "",
+        make:         row[3]  || "",
+        model:        row[4]  || "",
+        problem:      row[5]  || "",
+        parts:        row[6]  || "",
+        promised:     row[7]  || "",
+        supplier:     row[8]  || "",
+        paid:         row[9]  || "",
+        deviceLeft:   row[10] || "",
+        partNumber:   row[11] || "",
+        quoted:       row[12] || "",
+        rep:          row[13] || "",
+        color:        row[14] || "",
+        itemOrdered:  row[15] || "",
+        expectedDelivery: row[16] || "",
+        partIn:       row[17] || "",
+        customerCalled: row[18] || "",
+      })).filter(r => r.customer);
+      setOrders(parsed);
+    } catch (e) {
+      setError(`Could not load orders: ${e.message}`);
+    }
+    setLoading(false);
+  };
+
+  const [mounted, setMounted] = useState(false);
+  if (!mounted) { setMounted(true); fetchOrders(); }
+
+  const isOverdue = (order) => {
+    if (!order.promised || order.partIn) return false;
+    const promised = new Date(order.promised);
+    return promised < new Date();
+  };
+
+  const filters = ["All", "Part Not In", "Part In", "Overdue"];
+  const filtered = orders.filter(o => {
+    const matchSearch = !search ||
+      o.customer.toLowerCase().includes(search.toLowerCase()) ||
+      o.make.toLowerCase().includes(search.toLowerCase()) ||
+      o.model.toLowerCase().includes(search.toLowerCase()) ||
+      o.parts.toLowerCase().includes(search.toLowerCase()) ||
+      o.rep.toLowerCase().includes(search.toLowerCase());
+    const matchFilter =
+      filter === "All" ? true :
+      filter === "Part In" ? !!o.partIn :
+      filter === "Part Not In" ? !o.partIn :
+      filter === "Overdue" ? isOverdue(o) : true;
+    return matchSearch && matchFilter;
+  });
+
+  const partInCount = orders.filter(o => o.partIn).length;
+  const pendingCount = orders.filter(o => !o.partIn).length;
+  const overdueCount = orders.filter(o => isOverdue(o)).length;
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Special Orders</h2>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Live from Google Sheets · {orders.length} total orders</div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <StatCard label="Pending" value={pendingCount} color={C.gold} icon="tasks" />
+        <StatCard label="Part In" value={partInCount} color={C.green} />
+        <StatCard label="Overdue" value={overdueCount} color={C.accent} icon="warn" />
+      </div>
+
+      {/* Controls */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customer, device, part, rep…"
+          style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
+        <div style={{ display: "flex", gap: 6 }}>
+          {filters.map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              style={{ background: filter === f ? C.accent : C.surface, color: filter === f ? "#fff" : C.textDim, border: `1px solid ${filter === f ? C.accent : C.border}`, borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+              {f}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => window.open(SO_FORM_URL, "_blank")}
+          style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "9px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+          + New Order
+        </button>
+        <button onClick={fetchOrders}
+          style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", fontSize: 13, cursor: "pointer" }}>
+          ↻
+        </button>
+      </div>
+
+      {loading && (
+        <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>⏳ Loading orders...</div>
+      )}
+      {error && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "14px 18px", color: C.red, marginBottom: 16 }}>{error}</div>
+      )}
+
+      {!loading && !error && (
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{filtered.length} orders</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ color: C.textMuted, textAlign: "left" }}>
+                {["Status","Customer","Phone","Device","Parts Needed","Promised","Supplier","Quoted","Rep", isOwner ? "Part #" : null, "Expected","Part In","Called"].filter(Boolean).map((h, i) => (
+                  <th key={i} style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((o, i) => {
+                const overdue = isOverdue(o);
+                const rowBg = overdue && !o.partIn ? C.redDim : "transparent";
+                return (
+                  <tr key={i} style={{ borderBottom: `1px solid ${C.border}22`, background: rowBg }}
+                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                    onMouseLeave={e => e.currentTarget.style.background = rowBg}>
+                    <td style={{ padding: "10px 10px" }}>
+                      {o.partIn
+                        ? <Tag color={C.green}>Part In</Tag>
+                        : overdue
+                        ? <Tag color={C.accent}>Overdue</Tag>
+                        : <Tag color={C.gold}>Pending</Tag>}
+                    </td>
+                    <td style={{ padding: "10px 10px", color: C.text, fontWeight: 600, whiteSpace: "nowrap" }}>{o.customer}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.phone}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.make} {o.model}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim, maxWidth: 180 }}>{o.parts}</td>
+                    <td style={{ padding: "10px 10px", color: overdue && !o.partIn ? C.accent : C.textDim, whiteSpace: "nowrap", fontWeight: overdue ? 700 : 400 }}>{o.promised}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim }}>{o.supplier}</td>
+                    <td style={{ padding: "10px 10px", color: C.teal, fontWeight: 600 }}>{o.quoted}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim }}>{o.rep}</td>
+                    {isOwner && <td style={{ padding: "10px 10px", color: C.textMuted, fontSize: 11 }}>{o.partNumber}</td>}
+                    <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.expectedDelivery}</td>
+                    <td style={{ padding: "10px 10px" }}>{o.partIn ? <Tag color={C.green}>✓ {o.partIn}</Tag> : <Tag color={C.border}>—</Tag>}</td>
+                    <td style={{ padding: "10px 10px" }}>{o.customerCalled ? <Tag color={C.teal}>✓</Tag> : <Tag color={C.border}>—</Tag>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {filtered.length === 0 && (
+            <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>No orders match your search</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
