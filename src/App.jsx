@@ -974,64 +974,157 @@ const DashboardView = ({ setView }) => {
   );
 };
 
-// ── REPAIR PRICING ────────────────────────────────────────────────────────
+// ── REPAIR PRICING (MOBILESENTRIX LIVE) ──────────────────────────────────
+const MS_BASE_URL = "https://www.cpr.parts";
+
+const getMSCredentials = () => {
+  try {
+    const saved = localStorage.getItem("cpr_ms_creds");
+    return saved ? JSON.parse(saved) : { consumerKey: "", consumerSecret: "", accessToken: "", accessTokenSecret: "" };
+  } catch { return { consumerKey: "", consumerSecret: "", accessToken: "", accessTokenSecret: "" }; }
+};
+
 const PricingView = () => {
-  const [parts, setParts] = useState(REPAIR_PARTS);
-  const [markup, setMarkup] = useState(55);
   const [search, setSearch] = useState("");
-  const filtered = parts.filter(p => p.part.toLowerCase().includes(search.toLowerCase()));
+  const [markup, setMarkup] = useState(55);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searched, setSearched] = useState(false);
+  const [creds] = useState(getMSCredentials());
+  const hasCredentials = creds.accessToken && creds.accessTokenSecret;
+
+  const searchParts = async () => {
+    if (!search.trim()) return;
+    if (!hasCredentials) { setError("Enter your MobileSentrix credentials in Settings first."); return; }
+    setLoading(true);
+    setError(null);
+    setSearched(true);
+    try {
+      const url = `${MS_BASE_URL}/api/rest/searchproduct?q=${encodeURIComponent(search)}&max_results=20&start_index=1`;
+      const authHeader = `OAuth oauth_consumer_key="${creds.consumerKey}",oauth_token="${creds.accessToken}",oauth_signature_method="HMAC-SHA1",oauth_version="1.0"`;
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": authHeader,
+          "Content-Type": "application/json",
+        }
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const data = await res.json();
+      const items = data?.data?.items || data?.items || data?.products || [];
+      setResults(items);
+    } catch (e) {
+      setError(`Could not connect to MobileSentrix: ${e.message}. Check your credentials in Settings.`);
+    }
+    setLoading(false);
+  };
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Repair Pricing</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>MobileSentrix supplier cost + your markup</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Search MobileSentrix live parts + add your markup</div>
       </div>
-      <IntegrationBanner name="MobileSentrix" description="Connect your API key in Settings to pull live pricing automatically." />
-      <div style={{ display: "flex", gap: 12, marginBottom: 18, alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: 1, minWidth: 200 }}>
-          <Icon d={Icons.search} size={14} stroke={C.textMuted} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search parts…"
-            style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px 9px 32px", color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+
+      {!hasCredentials && (
+        <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+          <Icon d={Icons.warn} size={16} stroke={C.gold} />
+          <span style={{ color: C.gold, fontSize: 13 }}>
+            <strong>MobileSentrix not connected</strong> — go to Settings → Integrations to add your credentials
+          </span>
         </div>
+      )}
+
+      {/* Search bar */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && searchParts()}
+          placeholder="Search parts (e.g. iPhone 15 Pro screen, Samsung S24 battery)…"
+          style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", color: C.text, fontSize: 14, outline: "none" }}
+        />
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px" }}>
-          <span style={{ color: C.textMuted, fontSize: 13 }}>Default markup</span>
-          <input type="number" value={markup} onChange={e => setMarkup(+e.target.value)} style={{ width: 50, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
+          <span style={{ color: C.textMuted, fontSize: 13 }}>Markup</span>
+          <input type="number" value={markup} onChange={e => setMarkup(+e.target.value)}
+            style={{ width: 50, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
           <span style={{ color: C.textMuted, fontSize: 13 }}>%</span>
         </div>
+        <button onClick={searchParts}
+          style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+          Search
+        </button>
       </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-          <thead>
-            <tr style={{ color: C.textMuted, textAlign: "left" }}>
-              {["Part / Service", "Supplier Cost", "Your Price", "Margin %", ""].map((h, i) => (
-                <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, letterSpacing: 0.5 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p, i) => {
-              const price = +(p.supplier * (1 + markup / 100)).toFixed(2);
-              return (
-                <tr key={i} style={{ borderBottom: `1px solid ${C.border}11` }}
-                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <td style={{ padding: "12px 12px", color: C.text, fontWeight: 500 }}>{p.part}</td>
-                  <td style={{ padding: "12px 12px", color: C.textDim }}>${p.supplier.toFixed(2)}</td>
-                  <td style={{ padding: "12px 12px", color: C.teal, fontWeight: 700 }}>${price.toFixed(2)}</td>
-                  <td style={{ padding: "12px 12px" }}><Tag color={markup >= 80 ? C.green : C.gold}>{markup}%</Tag></td>
-                  <td style={{ padding: "12px 12px" }}>
-                    <button style={{ background: C.accentDim, color: C.accent, border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Edit</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
-        <button style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ Add Part</button>
-        <button style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 18px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Import CSV</button>
-      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
+          <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
+          Searching MobileSentrix...
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "14px 18px", color: C.red, marginBottom: 16 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Results */}
+      {!loading && !error && results.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{results.length} parts found</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ color: C.textMuted, textAlign: "left" }}>
+                {["Part", "SKU", "Cost", "Your Price", "In Stock"].map((h, i) => (
+                  <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((p, i) => {
+                const cost = parseFloat(p.price || p.cost || 0);
+                const yourPrice = +(cost * (1 + markup / 100)).toFixed(2);
+                const inStock = p.is_in_stock || p.stock_status || p.qty > 0;
+                return (
+                  <tr key={i}
+                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    style={{ borderBottom: `1px solid ${C.border}22` }}>
+                    <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600, maxWidth: 300 }}>{p.name || p.title || "—"}</td>
+                    <td style={{ padding: "10px 12px", color: C.textMuted, fontSize: 11 }}>{p.sku || "—"}</td>
+                    <td style={{ padding: "10px 12px", color: C.textDim }}>${cost.toFixed(2)}</td>
+                    <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>${yourPrice.toFixed(2)}</td>
+                    <td style={{ padding: "10px 12px" }}>
+                      <Tag color={inStock ? C.green : C.red}>{inStock ? "In Stock" : "Out"}</Tag>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && !error && searched && results.length === 0 && (
+        <Card>
+          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
+            No parts found for "{search}" — try a different search term
+          </div>
+        </Card>
+      )}
+
+      {!searched && !loading && (
+        <Card>
+          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
+            <Icon d={Icons.search} size={32} stroke={C.border} />
+            <div style={{ marginTop: 12, fontWeight: 600, color: C.textDim }}>Search MobileSentrix parts</div>
+            <div style={{ fontSize: 12, marginTop: 6 }}>Type a part name above and hit Search or Enter</div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
@@ -1595,37 +1688,93 @@ const CRMView = () => (
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────
 const SettingsView = () => {
-  const integrations = [
-    { name: "MobileSentrix", desc: "Parts pricing API", status: "disconnected", color: C.accent },
-    { name: "Atlas (Phone Buying)", desc: "Scraper for used phone prices", status: "disconnected", color: C.gold },
-    { name: "RepairQ", desc: "POS — tickets, claims, sales", status: "disconnected", color: C.teal },
-    { name: "Creatio CRM", desc: "Leads and conversions", status: "disconnected", color: C.blue },
-  ];
+  const [msCreds, setMsCreds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cpr_ms_creds") || "{}"); } catch { return {}; }
+  });
+  const [msSaved, setMsSaved] = useState(false);
+
+  const saveMsCreds = () => {
+    try {
+      localStorage.setItem("cpr_ms_creds", JSON.stringify(msCreds));
+      setMsSaved(true);
+      setTimeout(() => setMsSaved(false), 2000);
+    } catch {}
+  };
+
+  const isConnected = !!(msCreds.accessToken && msCreds.accessTokenSecret);
+
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Settings</h2>
         <div style={{ color: C.textMuted, fontSize: 13 }}>Integrations, store info, user roles</div>
       </div>
-      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Integrations</div>
+
+      {/* MobileSentrix */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>MobileSentrix Integration</div>
+      <Card style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 10, height: 10, borderRadius: "50%", background: isConnected ? C.green : C.border }} />
+          <span style={{ color: isConnected ? C.green : C.textMuted, fontWeight: 600, fontSize: 13 }}>
+            {isConnected ? "Connected" : "Not Connected"}
+          </span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {[
+            ["Consumer Key", "consumerKey", "Your Consumer Key"],
+            ["Consumer Secret", "consumerSecret", "Your Consumer Secret"],
+            ["Access Token", "accessToken", "oauth_token from login URL"],
+            ["Access Token Secret", "accessTokenSecret", "oauth_token_secret from login URL"],
+          ].map(([label, key, placeholder]) => (
+            <div key={key}>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>{label}</div>
+              <input
+                type="password"
+                value={msCreds[key] || ""}
+                onChange={e => setMsCreds(c => ({ ...c, [key]: e.target.value }))}
+                placeholder={placeholder}
+                style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={saveMsCreds}
+            style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+            Save Credentials
+          </button>
+          {msSaved && <span style={{ color: C.green, fontSize: 13, fontWeight: 600 }}>✓ Saved!</span>}
+        </div>
+        <div style={{ marginTop: 12, color: C.textMuted, fontSize: 11 }}>
+          Credentials are stored locally on this device only and never sent anywhere except MobileSentrix.
+        </div>
+      </Card>
+
+      {/* Other integrations */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Other Integrations</div>
       <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
-        {integrations.map((int, i) => (
+        {[
+          { name: "RepairQ", desc: "POS — tickets, claims, sales", color: C.teal },
+          { name: "Creatio CRM", desc: "Leads and conversions", color: C.blue },
+        ].map((int, i) => (
           <Card key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: int.status === "connected" ? C.green : C.border }} />
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.border }} />
               <div>
                 <div style={{ color: C.text, fontWeight: 600 }}>{int.name}</div>
                 <div style={{ color: C.textMuted, fontSize: 12 }}>{int.desc}</div>
               </div>
             </div>
-            <button style={{ background: int.color + "22", color: int.color, border: `1px solid ${int.color}44`, borderRadius: 8, padding: "6px 16px", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>Connect</button>
+            <button style={{ background: int.color + "22", color: int.color, border: `1px solid ${int.color}44`, borderRadius: 8, padding: "6px 16px", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>Pending</button>
           </Card>
         ))}
       </div>
+
+      {/* Store Info */}
       <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Store Info</div>
       <Card>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          {[["Store Name", "CPR Cell Phones"], ["Owner", "Your Name"], ["Location", "Your City, State"], ["RepairQ Account", "—"]].map(([l, v], i) => (
+          {[["Store Name", "CPR Cell Phone Repair"], ["Owner", "Jason Mohler"], ["Location", "Springfield, MO"], ["RepairQ Account", "—"]].map(([l, v], i) => (
             <div key={i}>
               <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>{l}</div>
               <input defaultValue={v} style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
