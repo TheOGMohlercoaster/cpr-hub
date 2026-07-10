@@ -1794,8 +1794,8 @@ const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFa
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
-  const MONTHS = ["July 2026", "June 2026"];
-  const [activeMonth, setActiveMonth] = useState("July 2026");
+  const MONTHS = ["Current", "June 2026"];
+  const [activeMonth, setActiveMonth] = useState("Current");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1813,27 +1813,30 @@ const SpecialOrdersView = ({ currentUser }) => {
       const data = await res.json();
       const rows = data.values || [];
       if (rows.length < 2) { setOrders([]); setLoading(false); return; }
+      // Map columns dynamically using headers
+      const headers = rows[0].map(h => h.toLowerCase().trim());
+      const col = (name) => headers.findIndex(h => h.includes(name.toLowerCase()));
       const parsed = rows.slice(1).map((row, i) => ({
         id: i,
-        timestamp:    row[0]  || "",
-        customer:     row[1]  || "",
-        phone:        row[2]  || "",
-        make:         row[3]  || "",
-        model:        row[4]  || "",
-        problem:      row[5]  || "",
-        parts:        row[6]  || "",
-        promised:     row[7]  || "",
-        supplier:     row[8]  || "",
-        paid:         row[9]  || "",
-        deviceLeft:   row[10] || "",
-        partNumber:   row[11] || "",
-        quoted:       row[12] || "",
-        rep:          row[13] || "",
-        color:        row[14] || "",
-        itemOrdered:  row[15] || "",
-        expectedDelivery: row[16] || "",
-        partIn:       row[17] || "",
-        customerCalled: row[18] || "",
+        timestamp:       row[col("timestamp")]    || "",
+        customer:        row[col("customer name")] || "",
+        phone:           row[col("phone")]         || "",
+        make:            row[col("device make")]   || "",
+        model:           row[col("device model")]  || "",
+        problem:         row[col("problem")]       || "",
+        parts:           row[col("part")]          || "",
+        color:           row[col("color")]         || "",
+        promised:        row[col("date promised")] || "",
+        supplier:        row[col("supplier")]      || "",
+        paid:            row[col("paid")]          || "",
+        deviceLeft:      row[col("device left")]   || "",
+        partNumber:      row[col("part number")]   || "",
+        quoted:          row[col("quoted")]        || "",
+        rep:             row[col("rep")]           || "",
+        itemOrdered:     row[col("item ordered")]  || "",
+        expectedDelivery:row[col("expected")]      || "",
+        partIn:          row[col("part in")]       || "",
+        customerCalled:  row[col("customer called")] || "",
       })).filter(r => r.customer);
       setOrders(parsed);
     } catch (e) {
