@@ -975,7 +975,8 @@ const DashboardView = ({ setView }) => {
   );
 };
 
-// ── REPAIR PRICING (MOBILESENTRIX LIVE) ──────────────────────────────────
+// ── REPAIR PRICING (GOOGLE SHEETS LIVE) ──────────────────────────────────
+const PRICING_SHEET_ID = "17qLyjLfiPl3uzUP3nQ-OWARLxBEX0cOIAT8_SrqQwiE";
 const MS_BASE_URL = "https://www.cpr.parts";
 
 const getMSCredentials = () => {
@@ -987,144 +988,124 @@ const getMSCredentials = () => {
 
 const PricingView = () => {
   const [search, setSearch] = useState("");
-  const [markup, setMarkup] = useState(55);
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [allPrices, setAllPrices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searched, setSearched] = useState(false);
-  const [creds] = useState(getMSCredentials());
-  const hasCredentials = creds.accessToken && creds.accessTokenSecret;
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const searchParts = async () => {
-    if (!search.trim()) return;
-    if (!hasCredentials) { setError("Enter your MobileSentrix credentials in Settings first."); return; }
+  const fetchPricing = async () => {
     setLoading(true);
     setError(null);
-    setSearched(true);
     try {
-      const url = `${MS_BASE_URL}/api/rest/searchproduct?q=${encodeURIComponent(search)}&max_results=20&start_index=1`;
-      const authHeader = `OAuth oauth_consumer_key="${creds.consumerKey}",oauth_token="${creds.accessToken}",oauth_signature_method="HMAC-SHA1",oauth_version="1.0"`;
-      const res = await fetch(url, {
-        headers: {
-          "Authorization": authHeader,
-          "Content-Type": "application/json",
-        }
-      });
-      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${PRICING_SHEET_ID}/values/${encodeURIComponent("Repair Prices")}!A:E?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const items = data?.data?.items || data?.items || data?.products || [];
-      setResults(items);
+      const rows = data.values || [];
+      // Skip first 2 header rows, parse remaining
+      const parsed = rows.slice(2).map((row, i) => ({
+        id: i,
+        brand:    (row[0] || "").trim(),
+        model:    (row[1] || "").trim(),
+        modelNum: (row[2] || "").trim(),
+        repair:   (row[3] || "").trim(),
+        price:    (row[4] || "").trim(),
+      })).filter(r => r.repair && r.price && r.price !== "" && r.model !== "");
+      setAllPrices(parsed);
+      setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
-      setError(`Could not connect to MobileSentrix: ${e.message}. Check your credentials in Settings.`);
+      setError(`Could not load pricing: ${e.message}`);
     }
     setLoading(false);
   };
+
+  const [mounted, setMounted] = useState(false);
+  if (!mounted) { setMounted(true); fetchPricing(); }
+
+  const filtered = allPrices.filter(p => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return p.model.toLowerCase().includes(q) ||
+           p.repair.toLowerCase().includes(q) ||
+           p.brand.toLowerCase().includes(q) ||
+           p.modelNum.toLowerCase().includes(q);
+  });
 
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Repair Pricing</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Search MobileSentrix live parts + add your markup</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>
+          Live from your pricing sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
+        </div>
       </div>
 
-      {!hasCredentials && (
-        <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-          <Icon d={Icons.warn} size={16} stroke={C.gold} />
-          <span style={{ color: C.gold, fontSize: 13 }}>
-            <strong>MobileSentrix not connected</strong> — go to Settings → Integrations to add your credentials
-          </span>
-        </div>
-      )}
-
-      {/* Search bar */}
+      {/* Search */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && searchParts()}
-          placeholder="Search parts (e.g. iPhone 15 Pro screen, Samsung S24 battery)…"
+          placeholder="Search by model, repair type, or brand… (e.g. iPhone 14, battery, Samsung)"
           style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", color: C.text, fontSize: 14, outline: "none" }}
         />
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 14px" }}>
-          <span style={{ color: C.textMuted, fontSize: 13 }}>Markup</span>
-          <input type="number" value={markup} onChange={e => setMarkup(+e.target.value)}
-            style={{ width: 50, background: "transparent", border: "none", color: C.accent, fontWeight: 700, fontSize: 14, outline: "none", textAlign: "center" }} />
-          <span style={{ color: C.textMuted, fontSize: 13 }}>%</span>
-        </div>
-        <button onClick={searchParts}
-          style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
-          Search
+        <button onClick={fetchPricing}
+          style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 13, cursor: "pointer" }}>
+          ↻ Refresh
         </button>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div style={{ textAlign: "center", padding: "40px", color: C.textMuted }}>
           <div style={{ fontSize: 24, marginBottom: 8 }}>⏳</div>
-          Searching MobileSentrix...
+          Loading pricing...
         </div>
       )}
 
-      {/* Error */}
       {error && (
         <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "14px 18px", color: C.red, marginBottom: 16 }}>
           {error}
         </div>
       )}
 
-      {/* Results */}
-      {!loading && !error && results.length > 0 && (
+      {!loading && !error && (
         <div style={{ overflowX: "auto" }}>
-          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>{results.length} parts found</div>
+          <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>
+            {filtered.length} repairs found {search ? `for "${search}"` : ""}
+          </div>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ color: C.textMuted, textAlign: "left" }}>
-                {["Part", "SKU", "Cost", "Your Price", "In Stock"].map((h, i) => (
+                {["Brand", "Model", "Model #", "Repair", "Price"].map((h, i) => (
                   <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {results.map((p, i) => {
-                const cost = parseFloat(p.price || p.cost || 0);
-                const yourPrice = +(cost * (1 + markup / 100)).toFixed(2);
-                const inStock = p.is_in_stock || p.stock_status || p.qty > 0;
-                return (
-                  <tr key={i}
-                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
-                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                    style={{ borderBottom: `1px solid ${C.border}22` }}>
-                    <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600, maxWidth: 300 }}>{p.name || p.title || "—"}</td>
-                    <td style={{ padding: "10px 12px", color: C.textMuted, fontSize: 11 }}>{p.sku || "—"}</td>
-                    <td style={{ padding: "10px 12px", color: C.textDim }}>${cost.toFixed(2)}</td>
-                    <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>${yourPrice.toFixed(2)}</td>
-                    <td style={{ padding: "10px 12px" }}>
-                      <Tag color={inStock ? C.green : C.red}>{inStock ? "In Stock" : "Out"}</Tag>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filtered.slice(0, 200).map((p, i) => (
+                <tr key={i}
+                  onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  style={{ borderBottom: `1px solid ${C.border}22` }}>
+                  <td style={{ padding: "10px 12px", color: C.textDim }}>{p.brand}</td>
+                  <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600 }}>{p.model}</td>
+                  <td style={{ padding: "10px 12px", color: C.textMuted, fontSize: 11 }}>{p.modelNum}</td>
+                  <td style={{ padding: "10px 12px", color: C.textDim }}>{p.repair}</td>
+                  <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{p.price}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
+          {filtered.length > 200 && (
+            <div style={{ color: C.textMuted, fontSize: 12, padding: "10px", textAlign: "center" }}>
+              Showing 200 of {filtered.length} — use search to narrow results
+            </div>
+          )}
+          {filtered.length === 0 && search && (
+            <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
+              No repairs found for "{search}"
+            </div>
+          )}
         </div>
-      )}
-
-      {!loading && !error && searched && results.length === 0 && (
-        <Card>
-          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
-            No parts found for "{search}" — try a different search term
-          </div>
-        </Card>
-      )}
-
-      {!searched && !loading && (
-        <Card>
-          <div style={{ textAlign: "center", padding: "30px", color: C.textMuted }}>
-            <Icon d={Icons.search} size={32} stroke={C.border} />
-            <div style={{ marginTop: 12, fontWeight: 600, color: C.textDim }}>Search MobileSentrix parts</div>
-            <div style={{ fontSize: 12, marginTop: 6 }}>Type a part name above and hit Search or Enter</div>
-          </div>
-        </Card>
       )}
     </div>
   );
