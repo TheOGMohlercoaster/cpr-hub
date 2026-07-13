@@ -997,7 +997,7 @@ const PricingView = () => {
     setLoading(true);
     setError(null);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${PRICING_SHEET_ID}/values/${encodeURIComponent("Repair Prices")}!A:E?key=${SHEETS_API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${PRICING_SHEET_ID}/values/${encodeURIComponent("Repair Prices")}!A:F?key=${SHEETS_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -1009,8 +1009,9 @@ const PricingView = () => {
         model:    (row[1] || "").trim(),
         modelNum: (row[2] || "").trim(),
         repair:   (row[3] || "").trim(),
-        price:    (row[4] || "").trim(),
-      })).filter(r => r.repair && r.price && r.price !== "" && r.model !== "");
+        amPrice:  (row[4] || "").trim(),
+        oemPrice: (row[5] || "").trim(),
+      })).filter(r => r.repair && r.model !== "" && (r.amPrice || r.oemPrice));
       setAllPrices(parsed);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (e) {
@@ -1075,7 +1076,7 @@ const PricingView = () => {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ color: C.textMuted, textAlign: "left" }}>
-                {["Brand", "Model", "Model #", "Repair", "Price"].map((h, i) => (
+                {["Brand", "Model", "Model #", "Repair", "AM Price", "OEM Price"].map((h, i) => (
                   <th key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
@@ -1090,7 +1091,8 @@ const PricingView = () => {
                   <td style={{ padding: "10px 12px", color: C.text, fontWeight: 600 }}>{p.model}</td>
                   <td style={{ padding: "10px 12px", color: C.textMuted, fontSize: 11 }}>{p.modelNum}</td>
                   <td style={{ padding: "10px 12px", color: C.textDim }}>{p.repair}</td>
-                  <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{p.price}</td>
+                  <td style={{ padding: "10px 12px", color: C.teal, fontWeight: 700 }}>{p.amPrice || "—"}</td>
+                  <td style={{ padding: "10px 12px", color: C.gold, fontWeight: 700 }}>{p.oemPrice || "—"}</td>
                 </tr>
               ))}
             </tbody>
