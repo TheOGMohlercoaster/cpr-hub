@@ -10,7 +10,22 @@ export default async function handler(req, res) {
 
   try {
     const url = `https://www.cpr.parts/api/rest/searchproduct?q=${encodeURIComponent(query)}&max_results=20&start_index=1`;
-    const authHeader = `OAuth oauth_consumer_key="${consumer_key}",oauth_token="${access_token}",oauth_signature_method="PLAINTEXT",oauth_version="1.0a",oauth_signature="${consumer_secret}&${access_token_secret}"`;
+    
+    // OAuth 1.0a with PLAINTEXT signature method
+    const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const signature = `${encodeURIComponent(consumer_secret)}&${encodeURIComponent(access_token_secret)}`;
+    
+    const authHeader = [
+      'OAuth',
+      `oauth_consumer_key="${encodeURIComponent(consumer_key)}"`,
+      `oauth_token="${encodeURIComponent(access_token)}"`,
+      `oauth_signature_method="PLAINTEXT"`,
+      `oauth_signature="${signature}"`,
+      `oauth_timestamp="${timestamp}"`,
+      `oauth_nonce="${nonce}"`,
+      `oauth_version="1.0a"`,
+    ].join(', ');
     
     const response = await fetch(url, {
       headers: {
@@ -19,8 +34,13 @@ export default async function handler(req, res) {
       }
     });
 
-    const data = await response.json();
-    res.status(200).json(data);
+    const text = await response.text();
+    try {
+      const data = JSON.parse(text);
+      res.status(200).json(data);
+    } catch {
+      res.status(200).json({ raw: text });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
