@@ -1792,6 +1792,98 @@ const CRMView = () => (
   </div>
 );
 
+// ── PIN MANAGEMENT ───────────────────────────────────────────────────────
+// Load saved PINs from localStorage, fall back to defaults
+const getSavedPins = () => {
+  try {
+    const saved = localStorage.getItem("cpr_pins");
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+};
+
+const savePins = (pins) => {
+  try { localStorage.setItem("cpr_pins", JSON.stringify(pins)); } catch {}
+};
+
+// Get effective PIN for an employee (saved or default)
+const getPin = (employee) => {
+  const saved = getSavedPins();
+  return saved[employee.id] || employee.pin;
+};
+
+const PinEditor = ({ employee }) => {
+  const [editing, setEditing] = useState(false);
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const currentPin = getPin(employee);
+
+  const savePin = () => {
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setError("PIN must be exactly 4 digits"); return;
+    }
+    if (newPin !== confirmPin) {
+      setError("PINs don't match"); return;
+    }
+    const pins = getSavedPins();
+    pins[employee.id] = newPin;
+    savePins(pins);
+    setSaved(true);
+    setEditing(false);
+    setNewPin("");
+    setConfirmPin("");
+    setError("");
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const roleColor = { Owner: C.accent, "Tech/Sales": C.teal, Tech: C.blue, Sales: C.gold };
+
+  return (
+    <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: (roleColor[employee.role] || C.accent) + "22", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: roleColor[employee.role] || C.accent, fontWeight: 800, fontSize: 14 }}>{employee.name.charAt(0)}</span>
+          </div>
+          <div>
+            <div style={{ color: C.text, fontWeight: 600, fontSize: 13 }}>{employee.name}</div>
+            <div style={{ color: C.textMuted, fontSize: 11 }}>{employee.role} · PIN: {"●".repeat(4)}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {saved && <span style={{ color: C.green, fontSize: 12, fontWeight: 600 }}>✓ Saved!</span>}
+          <button onClick={() => { setEditing(!editing); setError(""); setNewPin(""); setConfirmPin(""); }}
+            style={{ background: editing ? C.surface : C.accentDim, color: editing ? C.textMuted : C.accent, border: `1px solid ${editing ? C.border : C.accent + "44"}`, borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {editing ? "Cancel" : "Change PIN"}
+          </button>
+        </div>
+      </div>
+      {editing && (
+        <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>New PIN</div>
+            <input type="password" maxLength={4} value={newPin} onChange={e => { setNewPin(e.target.value.replace(/\D/g, '')); setError(""); }}
+              placeholder="4 digits"
+              style={{ width: "100%", background: C.surface, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box", letterSpacing: 4 }} />
+          </div>
+          <div>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Confirm PIN</div>
+            <input type="password" maxLength={4} value={confirmPin} onChange={e => { setConfirmPin(e.target.value.replace(/\D/g, '')); setError(""); }}
+              placeholder="4 digits"
+              style={{ width: "100%", background: C.surface, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box", letterSpacing: 4 }} />
+          </div>
+          {error && <div style={{ color: C.red, fontSize: 12, gridColumn: "1/-1" }}>{error}</div>}
+          <button onClick={savePin}
+            style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontWeight: 700, cursor: "pointer", fontSize: 13, gridColumn: "1/-1" }}>
+            Save PIN
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── SETTINGS ──────────────────────────────────────────────────────────────
 const SettingsView = () => {
   const [msCreds, setMsCreds] = useState(() => {
@@ -1875,6 +1967,17 @@ const SettingsView = () => {
           </Card>
         ))}
       </div>
+
+      {/* PIN Management */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Employee PINs</div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Click an employee to change their PIN. PINs must be 4 digits.</div>
+        <div style={{ display: "grid", gap: 10 }}>
+          {EMPLOYEES.map(emp => (
+            <PinEditor key={emp.id} employee={emp} />
+          ))}
+        </div>
+      </Card>
 
       {/* Store Info */}
       <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Store Info</div>
@@ -2116,7 +2219,8 @@ const LoginScreen = ({ onLogin }) => {
     const newPin = pin + digit;
     setPin(newPin);
     if (newPin.length === 4) {
-      if (newPin === selectedEmployee.pin) {
+      const correctPin = getPin(selectedEmployee);
+      if (newPin === correctPin) {
         onLogin(selectedEmployee);
       } else {
         setError("Incorrect PIN. Try again.");
