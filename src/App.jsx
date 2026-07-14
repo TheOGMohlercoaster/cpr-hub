@@ -128,6 +128,17 @@ const saveTaskState = (state) => {
 };
 
 const TASKS = []; // kept for dashboard compatibility
+
+// ── Announcements helpers ─────────────────────────────────────────────────
+const getAnnouncements = () => {
+  try {
+    const saved = localStorage.getItem("cpr_announcements");
+    return saved ? JSON.parse(saved) : { pinned: null, feed: [] };
+  } catch { return { pinned: null, feed: [] }; }
+};
+const saveAnnouncements = (data) => {
+  try { localStorage.setItem("cpr_announcements", JSON.stringify(data)); } catch {}
+};
 const SOPS = [
   {
     id: 10,
@@ -920,10 +931,45 @@ const StatCard = ({ label, value, sub, color = C.accent, icon }) => (
 );
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
-const DashboardView = ({ setView }) => {
+const DashboardView = ({ setView, currentUser }) => {
   const totalSales = TODAY_SALES.reduce((a, e) => a + e.sales, 0);
   const totalRepairs = REPAIR_TOTALS.reduce((a, e) => a + e.completed, 0);
   const tasksLeft = TASKS.filter(t => !t.done).length;
+  const canPost = currentUser?.role === "Owner" || currentUser?.role === "Tech/Sales";
+
+  const [announcements, setAnnouncements] = useState(getAnnouncements);
+  const [newPost, setNewPost] = useState("");
+  const [newPinned, setNewPinned] = useState("");
+  const [showPinnedEdit, setShowPinnedEdit] = useState(false);
+  const [showNewPost, setShowNewPost] = useState(false);
+
+  const updateAnnouncements = (data) => { setAnnouncements(data); saveAnnouncements(data); };
+
+  const addPost = () => {
+    if (!newPost.trim()) return;
+    const post = {
+      id: Date.now(),
+      text: newPost,
+      author: currentUser?.name || "Staff",
+      time: new Date().toLocaleString(),
+    };
+    updateAnnouncements({ ...announcements, feed: [post, ...announcements.feed] });
+    setNewPost("");
+    setShowNewPost(false);
+  };
+
+  const savePinned = () => {
+    updateAnnouncements({ ...announcements, pinned: newPinned.trim() || null });
+    setShowPinnedEdit(false);
+    setNewPinned("");
+  };
+
+  const deletePost = (id) => {
+    updateAnnouncements({ ...announcements, feed: announcements.feed.filter(p => p.id !== id) });
+  };
+
+  const clearPinned = () => updateAnnouncements({ ...announcements, pinned: null });
+
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -950,6 +996,82 @@ const DashboardView = ({ setView }) => {
           </div>
         ))}
       </div>
+      {/* Announcements */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>📢 Announcements</div>
+          {canPost && (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { setShowPinnedEdit(true); setNewPinned(announcements.pinned || ""); }}
+                style={{ background: C.goldDim, color: C.gold, border: `1px solid ${C.gold}44`, borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                📌 Pin
+              </button>
+              <button onClick={() => setShowNewPost(true)}
+                style={{ background: C.accentDim, color: C.accent, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                + Post
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pinned message */}
+        {announcements.pinned && (
+          <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: "12px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>📌</span>
+              <span style={{ color: C.gold, fontWeight: 600, fontSize: 14 }}>{announcements.pinned}</span>
+            </div>
+            {canPost && (
+              <button onClick={clearPinned} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px" }}>×</button>
+            )}
+          </div>
+        )}
+
+        {/* Pinned edit form */}
+        {showPinnedEdit && (
+          <div style={{ background: C.surface, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>📌 Pinned Announcement</div>
+            <input value={newPinned} onChange={e => setNewPinned(e.target.value)} placeholder="Type a pinned message…"
+              style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 8 }} />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={savePinned} style={{ background: C.gold, color: "#000", border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>Save</button>
+              <button onClick={() => setShowPinnedEdit(false)} style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* New post form */}
+        {showNewPost && (
+          <div style={{ background: C.surface, border: `1px solid ${C.accent}44`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 8 }}>New Announcement</div>
+            <input value={newPost} onChange={e => setNewPost(e.target.value)} onKeyDown={e => e.key === "Enter" && addPost()} placeholder="Type an announcement…"
+              style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box", marginBottom: 8 }} />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={addPost} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 12 }}>Post</button>
+              <button onClick={() => setShowNewPost(false)} style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "7px 16px", cursor: "pointer", fontSize: 12 }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Feed */}
+        {announcements.feed.length === 0 && !announcements.pinned && (
+          <div style={{ color: C.textMuted, fontSize: 13, textAlign: "center", padding: "16px", background: C.surface, borderRadius: 10, border: `1px solid ${C.border}` }}>
+            No announcements yet {canPost ? "— click Post to add one" : ""}
+          </div>
+        )}
+        {announcements.feed.map(post => (
+          <div key={post.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ color: C.text, fontSize: 14, marginBottom: 4 }}>{post.text}</div>
+              <div style={{ color: C.textMuted, fontSize: 11 }}>{post.author} · {post.time}</div>
+            </div>
+            {canPost && (
+              <button onClick={() => deletePost(post.id)} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>×</button>
+            )}
+          </div>
+        ))}
+      </div>
+
       {/* Top tech + top sales */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
         <Card>
