@@ -2562,12 +2562,19 @@ const ScheduleView = ({ currentUser }) => {
                           draggable={canEdit}
                           onDragStart={() => setDraggedShift({ shift, empId: emp.id, date: dateStr })}
                           onDragEnd={() => setDraggedShift(null)}
-                          onDragOver={e => e.preventDefault()}
-                          onDrop={() => {
+                          onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                          onDrop={e => {
+                            e.preventDefault();
                             if (draggedShift && !(draggedShift.empId === emp.id && draggedShift.date === dateStr)) {
-                              saveShift(emp.id, dateStr, { ...draggedShift.shift });
-                              deleteShift(draggedShift.empId, draggedShift.date);
+                              const ds = draggedShift;
                               setDraggedShift(null);
+                              setTimeout(() => {
+                                const next = { ...loadSchedule(weekStart) };
+                                next[`${emp.id}_${dateStr}`] = { ...ds.shift };
+                                delete next[`${ds.empId}_${ds.date}`];
+                                saveSchedule(weekStart, next);
+                                setSchedule({ ...next });
+                              }, 0);
                             }
                           }}
                           onClick={() => {
@@ -2601,13 +2608,20 @@ const ScheduleView = ({ currentUser }) => {
                       ) : (
                         canEdit && (
                           <div
-                            onDragOver={e => e.preventDefault()}
-                            onDrop={() => {
+                            onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+                            onDrop={e => {
+                              e.preventDefault();
                               if (draggedShift) {
-                                // Move shift here
-                                saveShift(emp.id, dateStr, { ...draggedShift.shift });
-                                deleteShift(draggedShift.empId, draggedShift.date);
+                                const ds = draggedShift;
                                 setDraggedShift(null);
+                                // Use setTimeout to avoid state conflict
+                                setTimeout(() => {
+                                  const next = { ...loadSchedule(weekStart) };
+                                  next[`${emp.id}_${dateStr}`] = { ...ds.shift };
+                                  delete next[`${ds.empId}_${ds.date}`];
+                                  saveSchedule(weekStart, next);
+                                  setSchedule({ ...next });
+                                }, 0);
                               }
                             }}
                             onClick={() => {
