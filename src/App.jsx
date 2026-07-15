@@ -2440,24 +2440,19 @@ const ScheduleView = ({ currentUser }) => {
   const publishAndEmail = () => {
     // Build email content
     const weekLabel = `${formatDay(days[0])} - ${formatDay(days[6])}`;
-    let body = `Schedule for ${weekLabel}
-
-`;
+    let body = `Schedule for ${weekLabel}\n\n`;
 
     SCHEDULE_EMPLOYEES.forEach(emp => {
       const empShifts = days.filter(d => getShift(emp.id, formatDate(d)));
       if (empShifts.length === 0) return;
-      body += `${emp.name}:
-`;
+      body += `${emp.name}:\n`;
       empShifts.forEach(d => {
         const shift = getShift(emp.id, formatDate(d));
         body += `  ${formatDay(d)}: ${shift.start} - ${shift.end}`;
         if (shift.notes) body += ` (${shift.notes})`;
-        body += "
-";
+        body += "\n";
       });
-      body += "
-";
+      body += "\n";
     });
 
     const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
