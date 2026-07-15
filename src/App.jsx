@@ -2291,22 +2291,6 @@ const SpecialOrdersView = ({ currentUser }) => {
   );
 };
 
-// ── VIEWS MAP ─────────────────────────────────────────────────────────────
-const VIEWS = {
-  dashboard: DashboardView,
-  pricing: PricingView,
-  buyphones: BuyPhonesView,
-  sop: SOPView,
-  sales: SalesView,
-  repairs: RepairsView,
-  tasks: TasksView,
-  pos: POSView,
-  crm: CRMView,
-  orders: SpecialOrdersView,
-  schedule: ScheduleView,
-  settings: SettingsView,
-};
-
 // ── SCHEDULE MAKER ───────────────────────────────────────────────────────
 const SCHEDULE_EMPLOYEES = [
   { id: 1, name: "Jason Mohler",   color: "#FF4D1C", email: "jmohler@wirelesstrendz.net" },
@@ -2597,6 +2581,22 @@ const ScheduleView = ({ currentUser }) => {
       )}
     </div>
   );
+};
+
+// ── VIEWS MAP ─────────────────────────────────────────────────────────────
+const VIEWS = {
+  dashboard: DashboardView,
+  pricing: PricingView,
+  buyphones: BuyPhonesView,
+  sop: SOPView,
+  sales: SalesView,
+  repairs: RepairsView,
+  tasks: TasksView,
+  pos: POSView,
+  crm: CRMView,
+  orders: SpecialOrdersView,
+  schedule: ScheduleView,
+  settings: SettingsView,
 };
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
