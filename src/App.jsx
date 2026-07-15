@@ -2294,8 +2294,8 @@ const SpecialOrdersView = ({ currentUser }) => {
 // ── SCHEDULE MAKER ───────────────────────────────────────────────────────
 const SCHEDULE_EMPLOYEES = [
   { id: 1, name: "Jason Mohler",   color: "#FF4D1C", email: "jmohler@wirelesstrendz.net" },
-  { id: 2, name: "Cindy Leek",     color: "#00C9A7", email: "" },
-  { id: 3, name: "Aliyah Mohler",  color: "#3B82F6", email: "" },
+  { id: 2, name: "Cindy Leek",     color: "#00C9A7", email: "cleek@cpr-stores.com" },
+  { id: 3, name: "Aliyah Mohler",  color: "#3B82F6", email: "aliyah.mohler@wirelesstrendz.net" },
   { id: 4, name: "Nate Williams",  color: "#FFB547", email: "nathanielwilliams1483@gmail.com" },
   { id: 5, name: "Alex Smith",     color: "#A855F7", email: "alex@wirelesstrendz.net" },
   { id: 6, name: "Galen Chandler", color: "#22C55E", email: "gchandler@cpr-stores.com" },
