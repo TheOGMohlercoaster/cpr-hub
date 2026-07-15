@@ -2435,7 +2435,27 @@ const ScheduleView = ({ currentUser }) => {
     const next = new Date(weekStart);
     next.setDate(next.getDate() + dir * 7);
     setWeekStart(next);
-    setSchedule(loadSchedule(next));
+    const nextSchedule = loadSchedule(next);
+    // If next week is empty and we're going forward, copy current week
+    if (dir === 1 && Object.keys(nextSchedule).length === 0) {
+      const currentSchedule = loadSchedule(weekStart);
+      if (Object.keys(currentSchedule).length > 0) {
+        // Remap dates: shift each key's date forward by 7 days
+        const copied = {};
+        Object.entries(currentSchedule).forEach(([key, shift]) => {
+          const [empId, date] = key.split("_");
+          const oldDate = new Date(date);
+          oldDate.setDate(oldDate.getDate() + 7);
+          const newDate = oldDate.toISOString().split("T")[0];
+          copied[`${empId}_${newDate}`] = { ...shift };
+        });
+        saveSchedule(next, copied);
+        setSchedule(copied);
+        setPublished(false);
+        return;
+      }
+    }
+    setSchedule(nextSchedule);
     setPublished(false);
   };
 
