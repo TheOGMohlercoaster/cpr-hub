@@ -2019,7 +2019,7 @@ const TodaySchedule = () => {
       return;
     }
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${encodeURIComponent("Schedules - South")}!A:Q?key=${SHEETS_API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:Q?key=${SHEETS_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
