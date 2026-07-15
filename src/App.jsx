@@ -2599,17 +2599,13 @@ const ScheduleView = ({ currentUser }) => {
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24, width: 500, maxWidth: "90vw", maxHeight: "80vh", display: "flex", flexDirection: "column" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ fontWeight: 800, fontSize: 16, color: C.text, marginBottom: 4 }}>📧 Email Schedule</div>
-            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 16 }}>Click "Copy & Open Gmail" — it copies the schedule and opens Gmail. Then paste (Ctrl+V) into the email body and add your recipients.</div>
+            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 16 }}>Click the button to copy the schedule, then paste it (Ctrl+V) into any email or message app.</div>
 
-            {/* Gmail and Copy buttons */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-              <button onClick={() => { copyToClipboard(); window.open("https://mail.google.com/mail/#compose", "_blank"); }}
-                style={{ flex: 1, background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-                📨 Copy & Open Gmail
-              </button>
+            {/* Copy button */}
+            <div style={{ marginBottom: 16 }}>
               <button onClick={copyToClipboard}
-                style={{ flex: 1, background: copied ? C.greenDim : C.accentDim, color: copied ? C.green : C.accent, border: `1px solid ${copied ? C.green : C.accent}44`, borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-                {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
+                style={{ width: "100%", background: copied ? C.greenDim : C.accent, color: copied ? C.green : "#fff", border: `1px solid ${copied ? C.green : C.accent}`, borderRadius: 8, padding: "12px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                {copied ? "✓ Copied! Paste into your email (Ctrl+V)" : "📋 Copy Schedule to Clipboard"}
               </button>
             </div>
 
