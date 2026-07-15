@@ -1072,6 +1072,9 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
+      {/* Today's Schedule */}
+      <TodaySchedule />
+
       {/* Top tech + top sales */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
         <Card>
@@ -1996,9 +1999,101 @@ const SettingsView = () => {
   );
 };
 
+// ── TODAY'S SCHEDULE ─────────────────────────────────────────────────────
+const TodaySchedule = () => {
+  const [shifts, setShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0]; // "2026-07-15"
+  const todayLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+  const fetchSchedule = async () => {
+    setLoading(true);
+    setError(null);
+    if (!SCHEDULE_SHEET_ID) {
+      setLoading(false);
+      setError("no_sheet");
+      return;
+    }
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${encodeURIComponent("Schedules - South")}!A:Q?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const rows = data.values || [];
+      if (rows.length < 2) { setShifts([]); setLoading(false); return; }
+      const headers = rows[0];
+      const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+      const parsed = rows.slice(1).map(row => ({
+        firstName:  row[col("First Name")]  || "",
+        lastName:   row[col("Last Name")]   || "",
+        date:       row[col("Shift Start Date")] || "",
+        startTime:  row[col("Shift Start Time")] || "",
+        endTime:    row[col("Shift End Time")]   || "",
+        hours:      row[col("Scheduled Hours")]  || "",
+        notes:      row[col("Notes")]            || "",
+        status:     row[col("Status")]           || "",
+      })).filter(r => r.date === todayStr && r.firstName);
+      setShifts(parsed);
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  if (!mounted) { setMounted(true); fetchSchedule(); }
+
+  if (error === "no_sheet") return null; // hide if no sheet configured yet
+
+  return (
+    <Card style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div>
+          <div style={{ fontWeight: 700, color: C.text, fontSize: 15 }}>📅 Today's Schedule</div>
+          <div style={{ color: C.textMuted, fontSize: 12, marginTop: 2 }}>{todayLabel}</div>
+        </div>
+        <button onClick={fetchSchedule} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 18 }}>↻</button>
+      </div>
+
+      {loading && <div style={{ color: C.textMuted, fontSize: 13, textAlign: "center", padding: "10px" }}>Loading schedule...</div>}
+      {error && error !== "no_sheet" && <div style={{ color: C.red, fontSize: 13 }}>{error}</div>}
+
+      {!loading && !error && shifts.length === 0 && (
+        <div style={{ color: C.textMuted, fontSize: 13, textAlign: "center", padding: "10px" }}>No shifts scheduled for today</div>
+      )}
+
+      {!loading && shifts.length > 0 && (
+        <div style={{ display: "grid", gap: 8 }}>
+          {shifts.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((s, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 12px", background: C.bg, borderRadius: 8, border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ color: C.accent, fontWeight: 800, fontSize: 13 }}>{s.firstName.charAt(0)}</span>
+                </div>
+                <div>
+                  <div style={{ color: C.text, fontWeight: 600, fontSize: 13 }}>{s.firstName} {s.lastName}</div>
+                  {s.notes && <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>📝 {s.notes}</div>}
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ color: C.teal, fontWeight: 700, fontSize: 13 }}>{s.startTime} – {s.endTime}</div>
+                <div style={{ color: C.textMuted, fontSize: 11 }}>{s.hours} hrs</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+};
+
 // ── SPECIAL ORDERS ───────────────────────────────────────────────────────
 const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
+const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
