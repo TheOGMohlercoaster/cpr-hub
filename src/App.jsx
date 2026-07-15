@@ -42,10 +42,10 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders"],
-  "Tech":       ["dashboard","sop","repairs","tasks","orders"],
-  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","schedule","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders","schedule"],
+  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule"],
+  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders","schedule"],
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
@@ -893,6 +893,7 @@ const NAV = [
   { id: "pos", label: "RepairQ / POS", icon: "pos" },
   { id: "crm", label: "Creatio CRM", icon: "crm" },
   { id: "orders", label: "Special Orders", icon: "dollar" },
+  { id: "schedule", label: "Schedule", icon: "tasks" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
@@ -2010,44 +2011,46 @@ const TodaySchedule = () => {
   const todayStr = today.toISOString().split("T")[0]; // "2026-07-15"
   const todayLabel = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
-  const fetchSchedule = async () => {
+  const fetchSchedule = () => {
     setLoading(true);
     setError(null);
-    if (!SCHEDULE_SHEET_ID) {
-      setLoading(false);
-      setError("no_sheet");
-      return;
-    }
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:Q?key=${SHEETS_API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const rows = data.values || [];
-      if (rows.length < 2) { setShifts([]); setLoading(false); return; }
-      const headers = rows[0];
-      const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
-      const firstNameIdx = col("first name");
-      const lastNameIdx = col("last name");
-      const dateIdx = col("shift start date");
-      const startIdx = col("shift start time");
-      const endIdx = col("shift end time");
-      const hoursIdx = col("scheduled hours");
-      const notesIdx = col("notes");
-      const parsed = rows.slice(1).map(row => ({
-        firstName:  row[firstNameIdx]  || "",
-        lastName:   row[lastNameIdx]   || "",
-        date:       row[dateIdx]       || "",
-        startTime:  row[startIdx]      || "",
-        endTime:    row[endIdx]        || "",
-        hours:      row[hoursIdx]      || "",
-        notes:      row[notesIdx]      || "",
-      })).filter(r => r.date === todayStr && r.firstName);
-      setShifts(parsed);
+      // First try to read from Schedule Maker (localStorage)
+      const saved = localStorage.getItem("cpr_today_shifts");
+      if (saved) {
+        const todayShifts = JSON.parse(saved);
+        if (todayShifts.length > 0) {
+          setShifts(todayShifts);
+          setLoading(false);
+          return;
+        }
+      }
+      // Fall back to Google Sheet if no schedule maker data
+      if (!SCHEDULE_SHEET_ID) { setLoading(false); setError("no_sheet"); return; }
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:Q?key=${SHEETS_API_KEY}`)
+        .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+        .then(data => {
+          const rows = data.values || [];
+          if (rows.length < 2) { setShifts([]); setLoading(false); return; }
+          const headers = rows[0];
+          const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+          const parsed = rows.slice(1).map(row => ({
+            firstName:  row[col("first name")]  || "",
+            lastName:   row[col("last name")]   || "",
+            date:       row[col("shift start date")] || "",
+            startTime:  row[col("shift start time")] || "",
+            endTime:    row[col("shift end time")]   || "",
+            hours:      row[col("scheduled hours")]  || "",
+            notes:      row[col("notes")]            || "",
+          })).filter(r => r.date === todayStr && r.firstName);
+          setShifts(parsed);
+          setLoading(false);
+        })
+        .catch(e => { setError(e.message); setLoading(false); });
     } catch (e) {
       setError(e.message);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!mounted) { setMounted(true); fetchSchedule(); }
@@ -2300,7 +2303,300 @@ const VIEWS = {
   pos: POSView,
   crm: CRMView,
   orders: SpecialOrdersView,
+  schedule: ScheduleView,
   settings: SettingsView,
+};
+
+// ── SCHEDULE MAKER ───────────────────────────────────────────────────────
+const SCHEDULE_EMPLOYEES = [
+  { id: 1, name: "Jason Mohler",   color: "#FF4D1C", email: "jmohler@wirelesstrendz.net" },
+  { id: 2, name: "Cindy Leek",     color: "#00C9A7", email: "" },
+  { id: 3, name: "Aliyah Mohler",  color: "#3B82F6", email: "" },
+  { id: 4, name: "Nate Williams",  color: "#FFB547", email: "nathanielwilliams1483@gmail.com" },
+  { id: 5, name: "Alex Smith",     color: "#A855F7", email: "alex@wirelesstrendz.net" },
+  { id: 6, name: "Galen Chandler", color: "#22C55E", email: "gchandler@cpr-stores.com" },
+  { id: 7, name: "Dillon Greene",  color: "#EF4444", email: "DGreene1@cpr-stores.com" },
+];
+
+const getWeekStart = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  return new Date(d.setDate(diff));
+};
+
+const getWeekDays = (weekStart) => {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+};
+
+const formatDate = (date) => date.toISOString().split("T")[0];
+const formatDay = (date) => date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+const getScheduleKey = (weekStart) => `cpr_schedule_${formatDate(weekStart)}`;
+
+const loadSchedule = (weekStart) => {
+  try {
+    const saved = localStorage.getItem(getScheduleKey(weekStart));
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+};
+
+const saveSchedule = (weekStart, schedule) => {
+  try { localStorage.setItem(getScheduleKey(weekStart), JSON.stringify(schedule)); } catch {}
+};
+
+const ShiftModal = ({ day, employee, existing, onSave, onDelete, onClose }) => {
+  const [start, setStart] = useState(existing?.start || "9:00 AM");
+  const [end, setEnd] = useState(existing?.end || "5:00 PM");
+  const [notes, setNotes] = useState(existing?.notes || "");
+
+  const timeOptions = [];
+  for (let h = 6; h <= 22; h++) {
+    for (let m of [0, 30]) {
+      const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      const ampm = h < 12 ? "AM" : "PM";
+      const label = `${hour}:${m === 0 ? "00" : "30"} ${ampm}`;
+      timeOptions.push(label);
+    }
+  }
+
+  return (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
+      onClick={onClose}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24, width: 340, maxWidth: "90vw" }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ fontWeight: 800, fontSize: 16, color: C.text, marginBottom: 4 }}>{employee.name}</div>
+        <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>{formatDay(day)}</div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Start Time</div>
+            <select value={start} onChange={e => setStart(e.target.value)}
+              style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", color: C.text, fontSize: 13, outline: "none" }}>
+              {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>End Time</div>
+            <select value={end} onChange={e => setEnd(e.target.value)}
+              style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", color: C.text, fontSize: 13, outline: "none" }}>
+              {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Notes (optional)</div>
+          <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes for this shift…"
+            style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => onSave({ start, end, notes })}
+            style={{ flex: 1, background: employee.color, color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+            Save Shift
+          </button>
+          {existing && (
+            <button onClick={onDelete}
+              style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "10px 14px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+              Delete
+            </button>
+          )}
+          <button onClick={onClose}
+            style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", fontSize: 13 }}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ScheduleView = ({ currentUser }) => {
+  const canEdit = currentUser?.role === "Owner";
+  const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
+  const [schedule, setSchedule] = useState(() => loadSchedule(getWeekStart(new Date())));
+  const [modal, setModal] = useState(null); // { day, employee }
+  const [published, setPublished] = useState(false);
+
+  const days = getWeekDays(weekStart);
+  const today = formatDate(new Date());
+
+  const updateSchedule = (newSchedule) => {
+    setSchedule(newSchedule);
+    saveSchedule(weekStart, newSchedule);
+  };
+
+  const getShift = (empId, date) => schedule[`${empId}_${date}`] || null;
+
+  const saveShift = (empId, date, shift) => {
+    updateSchedule({ ...schedule, [`${empId}_${date}`]: shift });
+    setModal(null);
+  };
+
+  const deleteShift = (empId, date) => {
+    const next = { ...schedule };
+    delete next[`${empId}_${date}`];
+    updateSchedule(next);
+    setModal(null);
+  };
+
+  const changeWeek = (dir) => {
+    const next = new Date(weekStart);
+    next.setDate(next.getDate() + dir * 7);
+    setWeekStart(next);
+    setSchedule(loadSchedule(next));
+    setPublished(false);
+  };
+
+  const publishAndEmail = () => {
+    // Build email content
+    const weekLabel = `${formatDay(days[0])} - ${formatDay(days[6])}`;
+    let body = `Schedule for ${weekLabel}
+
+`;
+
+    SCHEDULE_EMPLOYEES.forEach(emp => {
+      const empShifts = days.filter(d => getShift(emp.id, formatDate(d)));
+      if (empShifts.length === 0) return;
+      body += `${emp.name}:
+`;
+      empShifts.forEach(d => {
+        const shift = getShift(emp.id, formatDate(d));
+        body += `  ${formatDay(d)}: ${shift.start} - ${shift.end}`;
+        if (shift.notes) body += ` (${shift.notes})`;
+        body += "
+";
+      });
+      body += "
+";
+    });
+
+    const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
+    const subject = `Work Schedule: ${weekLabel}`;
+    window.location.href = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setPublished(true);
+  };
+
+  // Update TodaySchedule data in localStorage so dashboard can read it
+  const todayShifts = SCHEDULE_EMPLOYEES.flatMap(emp => {
+    const shift = getShift(emp.id, today);
+    if (!shift) return [];
+    return [{ firstName: emp.name.split(" ")[0], lastName: emp.name.split(" ")[1] || "", startTime: shift.start, endTime: shift.end, hours: "", notes: shift.notes, date: today, color: emp.color }];
+  });
+  try { localStorage.setItem("cpr_today_shifts", JSON.stringify(todayShifts)); } catch {}
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Schedule</h2>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>
+          {formatDay(days[0])} — {formatDay(days[6])}
+        </div>
+      </div>
+
+      {/* Week navigation */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <button onClick={() => changeWeek(-1)}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", color: C.textDim, cursor: "pointer", fontSize: 13 }}>
+          ← Prev Week
+        </button>
+        <button onClick={() => { setWeekStart(getWeekStart(new Date())); setSchedule(loadSchedule(getWeekStart(new Date()))); }}
+          style={{ background: C.accentDim, color: C.accent, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
+          This Week
+        </button>
+        <button onClick={() => changeWeek(1)}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", color: C.textDim, cursor: "pointer", fontSize: 13 }}>
+          Next Week →
+        </button>
+      </div>
+
+      {/* Schedule grid */}
+      <div style={{ overflowX: "auto", marginBottom: 20 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+          <thead>
+            <tr>
+              <th style={{ padding: "8px 12px", textAlign: "left", color: C.textMuted, fontSize: 12, fontWeight: 600, borderBottom: `1px solid ${C.border}`, minWidth: 120 }}>Employee</th>
+              {days.map((d, i) => {
+                const isToday = formatDate(d) === today;
+                return (
+                  <th key={i} style={{ padding: "8px 10px", textAlign: "center", color: isToday ? C.accent : C.textMuted, fontSize: 12, fontWeight: isToday ? 800 : 600, borderBottom: `1px solid ${C.border}`, background: isToday ? C.accentDim : "transparent", minWidth: 100 }}>
+                    {d.toLocaleDateString("en-US", { weekday: "short" })}<br />
+                    <span style={{ fontSize: 11 }}>{d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {SCHEDULE_EMPLOYEES.map(emp => (
+              <tr key={emp.id}>
+                <td style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}22` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: emp.color, flexShrink: 0 }} />
+                    <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{emp.name.split(" ")[0]}</span>
+                  </div>
+                </td>
+                {days.map((d, i) => {
+                  const dateStr = formatDate(d);
+                  const shift = getShift(emp.id, dateStr);
+                  const isToday = dateStr === today;
+                  return (
+                    <td key={i} style={{ padding: "6px", borderBottom: `1px solid ${C.border}22`, background: isToday ? C.accentDim + "44" : "transparent", textAlign: "center" }}>
+                      {shift ? (
+                        <div onClick={() => canEdit && setModal({ day: d, employee: emp })}
+                          style={{ background: emp.color + "22", border: `1px solid ${emp.color}66`, borderRadius: 6, padding: "4px 6px", cursor: canEdit ? "pointer" : "default" }}>
+                          <div style={{ color: emp.color, fontSize: 11, fontWeight: 700 }}>{shift.start}</div>
+                          <div style={{ color: emp.color, fontSize: 11 }}>{shift.end}</div>
+                          {shift.notes && <div style={{ color: C.textMuted, fontSize: 10, marginTop: 2 }}>📝</div>}
+                        </div>
+                      ) : (
+                        canEdit && (
+                          <div onClick={() => setModal({ day: d, employee: emp })}
+                            style={{ border: `1px dashed ${C.border}`, borderRadius: 6, padding: "8px 4px", cursor: "pointer", color: C.textMuted, fontSize: 18 }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = emp.color}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                            +
+                          </div>
+                        )
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Publish button */}
+      {canEdit && (
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={publishAndEmail}
+            style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            📧 Publish & Email Staff
+          </button>
+          {published && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Email opened!</span>}
+        </div>
+      )}
+
+      {/* Shift modal */}
+      {modal && (
+        <ShiftModal
+          day={modal.day}
+          employee={modal.employee}
+          existing={getShift(modal.employee.id, formatDate(modal.day))}
+          onSave={(shift) => saveShift(modal.employee.id, formatDate(modal.day), shift)}
+          onDelete={() => deleteShift(modal.employee.id, formatDate(modal.day))}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </div>
+  );
 };
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
