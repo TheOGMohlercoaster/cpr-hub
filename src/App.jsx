@@ -2437,11 +2437,14 @@ const ScheduleView = ({ currentUser }) => {
     setPublished(false);
   };
 
-  const publishAndEmail = () => {
-    // Build email content
-    const weekLabel = `${formatDay(days[0])} - ${formatDay(days[6])}`;
-    let body = `Schedule for ${weekLabel}\n\n`;
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailBody, setEmailBody] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [copied, setCopied] = useState(false);
 
+  const buildEmailContent = () => {
+    const weekLabel = `${formatDay(days[0])} - ${formatDay(days[6])}`;
+    let body = `Work Schedule: ${weekLabel}\n\n`;
     SCHEDULE_EMPLOYEES.forEach(emp => {
       const empShifts = days.filter(d => getShift(emp.id, formatDate(d)));
       if (empShifts.length === 0) return;
@@ -2454,11 +2457,33 @@ const ScheduleView = ({ currentUser }) => {
       });
       body += "\n";
     });
+    return { body, subject: `Work Schedule: ${weekLabel}` };
+  };
 
-    const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
-    const subject = `Work Schedule: ${weekLabel}`;
-    window.location.href = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const publishAndEmail = () => {
+    const { body, subject } = buildEmailContent();
+    setEmailBody(body);
+    setEmailSubject(subject);
+    setShowEmailModal(true);
     setPublished(true);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(emailBody).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const openGmail = () => {
+    const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(emails)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    window.open(gmailUrl, "_blank");
+  };
+
+  const openMailto = () => {
+    const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
+    window.open(`mailto:${emails}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`);
   };
 
   // Update TodaySchedule data in localStorage so dashboard can read it
@@ -2559,7 +2584,41 @@ const ScheduleView = ({ currentUser }) => {
             style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
             📧 Publish & Email Staff
           </button>
-          {published && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Email opened!</span>}
+          {published && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Schedule ready!</span>}
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.7)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setShowEmailModal(false)}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24, width: 500, maxWidth: "90vw", maxHeight: "80vh", display: "flex", flexDirection: "column" }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: C.text, marginBottom: 4 }}>📧 Email Schedule</div>
+            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 16 }}>Choose how to send the schedule to your team</div>
+
+            {/* Gmail and Copy buttons */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+              <button onClick={openGmail}
+                style={{ flex: 1, background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+                📨 Open in Gmail
+              </button>
+              <button onClick={copyToClipboard}
+                style={{ flex: 1, background: copied ? C.greenDim : C.accentDim, color: copied ? C.green : C.accent, border: `1px solid ${copied ? C.green : C.accent}44`, borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+                {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
+              </button>
+            </div>
+
+            {/* Preview */}
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.8 }}>Preview</div>
+            <textarea readOnly value={emailBody}
+              style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px", color: C.text, fontSize: 12, outline: "none", resize: "none", minHeight: 200, fontFamily: "monospace", lineHeight: 1.6 }} />
+
+            <button onClick={() => setShowEmailModal(false)}
+              style={{ marginTop: 12, background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px", cursor: "pointer", fontSize: 13 }}>
+              Close
+            </button>
+          </div>
         </div>
       )}
 
