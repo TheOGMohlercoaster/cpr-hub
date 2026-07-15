@@ -2103,6 +2103,8 @@ const TodaySchedule = () => {
 const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
 const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
+const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSFNwL5OkvCCFK2ZiSoEsWE2_3HOFJrxo0q5muYh3_DdFvcC1e-xYPYxAakaC3QEMD/exec";
+const SCHEDULE_WRITE_SHEET_ID = "1kmP_9w85gdfV-ngK27LSF0EwA3aSMrEuTvNZbAa4Jhs";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
@@ -2412,6 +2414,52 @@ const ScheduleView = ({ currentUser }) => {
   const days = getWeekDays(weekStart);
   const today = formatDate(new Date());
 
+  // Load from shared Google Sheet on mount (for employees on other devices)
+  const [loadedFromSheet, setLoadedFromSheet] = useState(false);
+  if (!loadedFromSheet) {
+    setLoadedFromSheet(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_WRITE_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        const rows = data.values || [];
+        if (rows.length < 2) return;
+        // Build schedule from sheet data
+        const sheetSchedule = {};
+        rows.slice(1).forEach(row => {
+          const [empId, , date, start, end, notes] = row;
+          if (empId && date && start) {
+            sheetSchedule[`${empId}_${date}`] = { start, end: end || "", notes: notes || "" };
+          }
+        });
+        if (Object.keys(sheetSchedule).length > 0) {
+          // Save to localStorage for each week
+          const weeks = {};
+          Object.keys(sheetSchedule).forEach(key => {
+            const date = key.split("_")[1];
+            if (date) {
+              const ws = formatDate(getWeekStart(new Date(date + "T12:00:00")));
+              if (!weeks[ws]) weeks[ws] = {};
+              weeks[ws][key] = sheetSchedule[key];
+            }
+          });
+          Object.entries(weeks).forEach(([ws, s]) => {
+            saveSchedule(new Date(ws), s);
+          });
+          // Update current view
+          const currentWeekSchedule = sheetSchedule;
+          const filtered = {};
+          Object.entries(currentWeekSchedule).forEach(([k, v]) => {
+            const date = k.split("_")[1];
+            if (date && days.some(d => formatDate(d) === date)) {
+              filtered[k] = v;
+            }
+          });
+          if (Object.keys(filtered).length > 0) setSchedule(filtered);
+        }
+      })
+      .catch(() => {});
+  }
+
   const updateSchedule = (newSchedule) => {
     setSchedule(newSchedule);
     saveSchedule(weekStart, newSchedule);
@@ -2482,10 +2530,34 @@ const ScheduleView = ({ currentUser }) => {
     return { body, subject: `Work Schedule: ${weekLabel}` };
   };
 
-  const publishAndEmail = () => {
+  const publishAndEmail = async () => {
     const { body, subject } = buildEmailContent();
     setEmailBody(body);
     setEmailSubject(subject);
+
+    // Sync schedule to Google Sheets for all devices
+    try {
+      const rows = [["empId", "empName", "date", "start", "end", "notes"]];
+      SCHEDULE_EMPLOYEES.forEach(emp => {
+        days.forEach(d => {
+          const dateStr = formatDate(d);
+          const shift = schedule[`${emp.id}_${dateStr}`];
+          if (shift) {
+            rows.push([emp.id, emp.name, dateStr, shift.start, shift.end, shift.notes || ""]);
+          }
+        });
+      });
+      // Also add next 4 weeks of schedule data
+      await fetch(SCHEDULE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ rows }),
+        mode: "no-cors",
+      });
+    } catch (e) {
+      console.error("Schedule sync error:", e);
+    }
+
     setShowEmailModal(true);
     setPublished(true);
   };
