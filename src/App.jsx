@@ -2027,15 +2027,21 @@ const TodaySchedule = () => {
       if (rows.length < 2) { setShifts([]); setLoading(false); return; }
       const headers = rows[0];
       const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+      const firstNameIdx = col("first name");
+      const lastNameIdx = col("last name");
+      const dateIdx = col("shift start date");
+      const startIdx = col("shift start time");
+      const endIdx = col("shift end time");
+      const hoursIdx = col("scheduled hours");
+      const notesIdx = col("notes");
       const parsed = rows.slice(1).map(row => ({
-        firstName:  row[col("First Name")]  || "",
-        lastName:   row[col("Last Name")]   || "",
-        date:       row[col("Shift Start Date")] || "",
-        startTime:  row[col("Shift Start Time")] || "",
-        endTime:    row[col("Shift End Time")]   || "",
-        hours:      row[col("Scheduled Hours")]  || "",
-        notes:      row[col("Notes")]            || "",
-        status:     row[col("Status")]           || "",
+        firstName:  row[firstNameIdx]  || "",
+        lastName:   row[lastNameIdx]   || "",
+        date:       row[dateIdx]       || "",
+        startTime:  row[startIdx]      || "",
+        endTime:    row[endIdx]        || "",
+        hours:      row[hoursIdx]      || "",
+        notes:      row[notesIdx]      || "",
       })).filter(r => r.date === todayStr && r.firstName);
       setShifts(parsed);
     } catch (e) {
