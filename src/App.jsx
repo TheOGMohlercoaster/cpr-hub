@@ -2406,6 +2406,8 @@ const ScheduleView = ({ currentUser }) => {
   const [schedule, setSchedule] = useState(() => loadSchedule(getWeekStart(new Date())));
   const [modal, setModal] = useState(null); // { day, employee }
   const [published, setPublished] = useState(false);
+  const [copiedShift, setCopiedShift] = useState(null); // { shift, empId, date }
+  const [draggedShift, setDraggedShift] = useState(null); // { shift, empId, date }
 
   const days = getWeekDays(weekStart);
   const today = formatDate(new Date());
@@ -2556,19 +2558,78 @@ const ScheduleView = ({ currentUser }) => {
                   return (
                     <td key={i} style={{ padding: "6px", borderBottom: `1px solid ${C.border}22`, background: isToday ? C.accentDim + "44" : "transparent", textAlign: "center" }}>
                       {shift ? (
-                        <div onClick={() => canEdit && setModal({ day: d, employee: emp })}
-                          style={{ background: emp.color + "22", border: `1px solid ${emp.color}66`, borderRadius: 6, padding: "4px 6px", cursor: canEdit ? "pointer" : "default" }}>
+                        <div
+                          draggable={canEdit}
+                          onDragStart={() => setDraggedShift({ shift, empId: emp.id, date: dateStr })}
+                          onDragEnd={() => setDraggedShift(null)}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={() => {
+                            if (draggedShift && !(draggedShift.empId === emp.id && draggedShift.date === dateStr)) {
+                              saveShift(emp.id, dateStr, { ...draggedShift.shift });
+                              deleteShift(draggedShift.empId, draggedShift.date);
+                              setDraggedShift(null);
+                            }
+                          }}
+                          onClick={() => {
+                            if (!canEdit) return;
+                            if (copiedShift) {
+                              // Paste copied shift here
+                              saveShift(emp.id, dateStr, { ...copiedShift.shift });
+                              setCopiedShift(null);
+                            } else {
+                              setModal({ day: d, employee: emp });
+                            }
+                          }}
+                          onContextMenu={e => {
+                            e.preventDefault();
+                            if (canEdit) setCopiedShift({ shift, empId: emp.id, date: dateStr });
+                          }}
+                          style={{
+                            background: copiedShift?.empId === emp.id && copiedShift?.date === dateStr ? emp.color + "44" : emp.color + "22",
+                            border: `1px solid ${emp.color}${copiedShift?.empId === emp.id && copiedShift?.date === dateStr ? "ff" : "66"}`,
+                            borderRadius: 6, padding: "4px 6px",
+                            cursor: canEdit ? (copiedShift ? "copy" : "grab") : "default",
+                            opacity: draggedShift?.empId === emp.id && draggedShift?.date === dateStr ? 0.4 : 1,
+                          }}>
                           <div style={{ color: emp.color, fontSize: 11, fontWeight: 700 }}>{shift.start}</div>
                           <div style={{ color: emp.color, fontSize: 11 }}>{shift.end}</div>
-                          {shift.notes && <div style={{ color: C.textMuted, fontSize: 10, marginTop: 2 }}>📝</div>}
+                          <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+                            {shift.notes && <span style={{ fontSize: 9 }}>📝</span>}
+                            {canEdit && <span style={{ fontSize: 9, color: C.textMuted }}>⠿</span>}
+                          </div>
                         </div>
                       ) : (
                         canEdit && (
-                          <div onClick={() => setModal({ day: d, employee: emp })}
-                            style={{ border: `1px dashed ${C.border}`, borderRadius: 6, padding: "8px 4px", cursor: "pointer", color: C.textMuted, fontSize: 18 }}
-                            onMouseEnter={e => e.currentTarget.style.borderColor = emp.color}
-                            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                            +
+                          <div
+                            onDragOver={e => e.preventDefault()}
+                            onDrop={() => {
+                              if (draggedShift) {
+                                // Move shift here
+                                saveShift(emp.id, dateStr, { ...draggedShift.shift });
+                                deleteShift(draggedShift.empId, draggedShift.date);
+                                setDraggedShift(null);
+                              }
+                            }}
+                            onClick={() => {
+                              if (copiedShift) {
+                                // Paste copied shift
+                                saveShift(emp.id, dateStr, { ...copiedShift.shift });
+                                setCopiedShift(null);
+                              } else {
+                                setModal({ day: d, employee: emp });
+                              }
+                            }}
+                            style={{
+                              border: `1px dashed ${copiedShift || draggedShift ? emp.color : C.border}`,
+                              borderRadius: 6, padding: "8px 4px",
+                              cursor: copiedShift || draggedShift ? "copy" : "pointer",
+                              color: copiedShift || draggedShift ? emp.color : C.textMuted,
+                              fontSize: 18,
+                              background: copiedShift || draggedShift ? emp.color + "11" : "transparent",
+                            }}
+                            onMouseEnter={e => { if (!copiedShift && !draggedShift) e.currentTarget.style.borderColor = emp.color; }}
+                            onMouseLeave={e => { if (!copiedShift && !draggedShift) e.currentTarget.style.borderColor = C.border; }}>
+                            {copiedShift || draggedShift ? "📋" : "+"}
                           </div>
                         )
                       )}
@@ -2580,6 +2641,26 @@ const ScheduleView = ({ currentUser }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Copy mode banner */}
+      {copiedShift && (
+        <div style={{ background: C.tealDim, border: `1px solid ${C.teal}44`, borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ color: C.teal, fontSize: 13, fontWeight: 600 }}>
+            📋 Shift copied — click any empty cell to paste
+          </span>
+          <button onClick={() => setCopiedShift(null)}
+            style={{ background: "transparent", border: "none", color: C.teal, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>
+            ✕ Cancel
+          </button>
+        </div>
+      )}
+
+      {/* Instructions */}
+      {canEdit && !copiedShift && !draggedShift && (
+        <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 12 }}>
+          💡 <strong>Drag</strong> a shift to move it · <strong>Right-click</strong> a shift to copy it · Click an empty cell to paste
+        </div>
+      )}
 
       {/* Publish button */}
       {canEdit && (
