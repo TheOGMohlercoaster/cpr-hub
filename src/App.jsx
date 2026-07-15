@@ -2477,8 +2477,12 @@ const ScheduleView = ({ currentUser }) => {
 
   const openGmail = () => {
     const emails = SCHEDULE_EMPLOYEES.map(e => e.email).filter(Boolean).join(",");
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(emails)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    // Open Gmail compose — body is copied to clipboard first since URL body has length limits
+    navigator.clipboard.writeText(emailBody).catch(() => {});
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emails)}&su=${encodeURIComponent(emailSubject)}`;
     window.open(gmailUrl, "_blank");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
   };
 
   const openMailto = () => {
@@ -2595,13 +2599,13 @@ const ScheduleView = ({ currentUser }) => {
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 24, width: 500, maxWidth: "90vw", maxHeight: "80vh", display: "flex", flexDirection: "column" }}
             onClick={e => e.stopPropagation()}>
             <div style={{ fontWeight: 800, fontSize: 16, color: C.text, marginBottom: 4 }}>📧 Email Schedule</div>
-            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 16 }}>Choose how to send the schedule to your team</div>
+            <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 16 }}>Click "Copy & Open Gmail" — it copies the schedule and opens Gmail. Then paste (Ctrl+V) into the email body and add your recipients.</div>
 
             {/* Gmail and Copy buttons */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-              <button onClick={openGmail}
+              <button onClick={() => { copyToClipboard(); window.open("https://mail.google.com/mail/#compose", "_blank"); }}
                 style={{ flex: 1, background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-                📨 Open in Gmail
+                📨 Copy & Open Gmail
               </button>
               <button onClick={copyToClipboard}
                 style={{ flex: 1, background: copied ? C.greenDim : C.accentDim, color: copied ? C.green : C.accent, border: `1px solid ${copied ? C.green : C.accent}44`, borderRadius: 8, padding: "10px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
