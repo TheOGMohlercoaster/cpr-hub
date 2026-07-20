@@ -1001,14 +1001,14 @@ const DashboardView = ({ setView, currentUser }) => {
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {[
-          { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: C.accent },
-          { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: C.blue },
-          { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: C.blue },
-          { name: "Device Care", url: "https://devicecarenow.com/cpr", color: C.teal },
-          { name: "CPR Support", url: "https://cpr.creatio.com", color: C.gold },
-          { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: C.green },
-          { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: C.teal },
-          { name: "Email", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office", color: C.textMuted },
+          { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: "#FF4D1C" },
+          { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: "#3B82F6" },
+          { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: "#3B82F6" },
+          { name: "Device Care", url: "https://devicecarenow.com/cpr", color: "#00C9A7" },
+          { name: "CPR Support", url: "https://cpr.creatio.com", color: "#FFB547" },
+          { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: "#22C55E" },
+          { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: "#00C9A7" },
+          { name: "Email", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office", color: "#6B7280" },
         ].map(link => (
           <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
             style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
