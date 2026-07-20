@@ -42,10 +42,10 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","schedule","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders","schedule"],
-  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule"],
-  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders","schedule"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","schedule","links","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders","schedule","links"],
+  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule","links"],
+  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders","schedule","links"],
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
@@ -894,6 +894,7 @@ const NAV = [
   { id: "crm", label: "Creatio CRM", icon: "crm" },
   { id: "orders", label: "Special Orders", icon: "dollar" },
   { id: "schedule", label: "Schedule", icon: "tasks" },
+  { id: "links", label: "Quick Links", icon: "trend" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
@@ -997,6 +998,26 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         ))}
       </div>
+      {/* Claims & Quick Links Bar */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {[
+          { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: C.accent },
+          { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: C.blue },
+          { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: C.blue },
+          { name: "Device Care", url: "https://devicecarenow.com/cpr", color: C.teal },
+          { name: "CPR Support", url: "https://cpr.creatio.com", color: C.gold },
+          { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: C.green },
+          { name: "Email", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office", color: C.textMuted },
+        ].map(link => (
+          <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
+            style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
+            onMouseEnter={e => e.currentTarget.style.background = link.color + "30"}
+            onMouseLeave={e => e.currentTarget.style.background = link.color + "18"}>
+            {link.name} ↗
+          </a>
+        ))}
+      </div>
+
       {/* Announcements */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -1165,6 +1186,25 @@ const PricingView = () => {
         <div style={{ color: C.textMuted, fontSize: 13 }}>
           Live from your pricing sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
+      </div>
+
+      {/* Parts Quick Links */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {[
+          { name: "CPR Parts", url: "https://www.cpr.parts" },
+          { name: "PLP", url: "https://www.phonelcdparts.com" },
+          { name: "Injured Gadgets", url: "https://www.injuredgadgets.com" },
+          { name: "Laptop Screens", url: "https://www.laptopscreens.com" },
+          { name: "eBay", url: "https://www.ebay.com" },
+          { name: "Amazon", url: "https://www.amazon.com" },
+        ].map(link => (
+          <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
+            style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: C.accent, textDecoration: "none" }}
+            onMouseEnter={e => e.currentTarget.style.background = C.accent + "30"}
+            onMouseLeave={e => e.currentTarget.style.background = C.accentDim}>
+            {link.name} ↗
+          </a>
+        ))}
       </div>
 
       {/* Search */}
@@ -1343,6 +1383,25 @@ const BuyPhonesView = () => {
         <div style={{ color: C.textMuted, fontSize: 13 }}>
           Live Atlas pricing · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
+      </div>
+
+      {/* Phone Buying Quick Links */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {[
+          { name: "Sickw", url: "https://sickw.com" },
+          { name: "T-Mobile BYOB", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
+          { name: "Verizon BYOB", url: "https://www.verizon.com/bring-your-own-device/test" },
+          { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
+          { name: "Hyla", url: "https://hylaasp.hylamobile.com/grading-scale/#mobile-devices-and-tablets" },
+          { name: "Digicircle", url: "https://www.digicircle.com/index.php" },
+        ].map(link => (
+          <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
+            style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: C.gold, textDecoration: "none" }}
+            onMouseEnter={e => e.currentTarget.style.background = C.gold + "30"}
+            onMouseLeave={e => e.currentTarget.style.background = C.goldDim}>
+            {link.name} ↗
+          </a>
+        ))}
       </div>
 
       {/* Tabs */}
@@ -2837,7 +2896,130 @@ const VIEWS = {
   crm: CRMView,
   orders: SpecialOrdersView,
   schedule: ScheduleView,
+  links: QuickLinksView,
   settings: SettingsView,
+};
+
+// ── QUICK LINKS ──────────────────────────────────────────────────────────
+const LINK_CATEGORIES = [
+  {
+    name: "Parts",
+    color: C.accent,
+    icon: "🔧",
+    links: [
+      { name: "MobileSentrix", url: "https://www.cpr.parts" },
+      { name: "PLP", url: "https://www.phonelcdparts.com" },
+      { name: "iFixit", url: "https://www.ifixit.com" },
+      { name: "Injured Gadgets", url: "https://www.injuredgadgets.com" },
+      { name: "Laptop Screens", url: "https://www.laptopscreens.com" },
+      { name: "Digikey", url: "https://www.digikey.com" },
+      { name: "eBay", url: "https://www.ebay.com" },
+      { name: "Amazon", url: "https://www.amazon.com" },
+    ]
+  },
+  {
+    name: "Accessories",
+    color: C.teal,
+    icon: "🎒",
+    links: [
+      { name: "Voicecomm / CPR Accessories", url: "https://www.cpraccessories.com/login.php?statusset=normal" },
+      { name: "ZAGG B2B", url: "https://b2b.zagg.com/login.php" },
+      { name: "Rokform Dealer", url: "https://dealer.rokform.com/" },
+      { name: "eBay", url: "https://www.ebay.com" },
+      { name: "Amazon", url: "https://www.amazon.com" },
+    ]
+  },
+  {
+    name: "Phone Buying",
+    color: C.gold,
+    icon: "📱",
+    links: [
+      { name: "Atlas", url: "https://docs.google.com/spreadsheets/d/1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw" },
+      { name: "Hyla", url: "https://hylaasp.hylamobile.com/grading-scale/#mobile-devices-and-tablets" },
+      { name: "Digicircle", url: "https://www.digicircle.com/index.php" },
+      { name: "Sickw", url: "https://sickw.com" },
+      { name: "eBay", url: "https://www.ebay.com" },
+      { name: "T-Mobile BYOB", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
+      { name: "Verizon BYOB", url: "https://www.verizon.com/bring-your-own-device/test" },
+      { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
+    ]
+  },
+  {
+    name: "HR & Admin",
+    color: C.blue,
+    icon: "👥",
+    links: [
+      { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login" },
+      { name: "When I Work", url: "https://app.wheniwork.com" },
+      { name: "CPR Support / Creatio", url: "https://cpr.creatio.com" },
+      { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/" },
+      { name: "Email / Outlook", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office" },
+    ]
+  },
+  {
+    name: "Claims",
+    color: C.green,
+    icon: "📋",
+    links: [
+      { name: "T-Mobile Claims", url: "https://mytmoclaim.com/" },
+      { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile" },
+      { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile" },
+      { name: "Device Care", url: "https://devicecarenow.com/cpr" },
+    ]
+  },
+];
+
+const LinkCard = ({ link, color }) => (
+  <a href={link.url} target="_blank" rel="noopener noreferrer"
+    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, textDecoration: "none", transition: "all .15s" }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = color + "11"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg; }}>
+    <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0 }} />
+    <span style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{link.name}</span>
+    <span style={{ color: C.textMuted, fontSize: 11, marginLeft: "auto" }}>↗</span>
+  </a>
+);
+
+const QuickLinksView = () => {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const cats = ["All", ...LINK_CATEGORIES.map(c => c.name)];
+  const displayed = activeCategory === "All" ? LINK_CATEGORIES : LINK_CATEGORIES.filter(c => c.name === activeCategory);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Quick Links</h2>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>All your commonly used sites in one place</div>
+      </div>
+
+      {/* Category filter */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+        {cats.map(c => (
+          <button key={c} onClick={() => setActiveCategory(c)}
+            style={{ background: activeCategory === c ? C.accent : C.surface, color: activeCategory === c ? "#fff" : C.textDim, border: `1px solid ${activeCategory === c ? C.accent : C.border}`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      {/* Link categories */}
+      <div style={{ display: "grid", gap: 20 }}>
+        {displayed.map(cat => (
+          <Card key={cat.name}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <span style={{ fontSize: 18 }}>{cat.icon}</span>
+              <span style={{ fontWeight: 700, fontSize: 15, color: cat.color }}>{cat.name}</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+              {cat.links.map(link => (
+                <LinkCard key={link.name} link={link} color={cat.color} />
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
