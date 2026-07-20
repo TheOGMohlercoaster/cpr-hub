@@ -1007,6 +1007,7 @@ const DashboardView = ({ setView, currentUser }) => {
           { name: "Device Care", url: "https://devicecarenow.com/cpr", color: C.teal },
           { name: "CPR Support", url: "https://cpr.creatio.com", color: C.gold },
           { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: C.green },
+          { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: C.teal },
           { name: "Email", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office", color: C.textMuted },
         ].map(link => (
           <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
@@ -1394,6 +1395,7 @@ const BuyPhonesView = () => {
           { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
           { name: "Hyla", url: "https://hylaasp.hylamobile.com/grading-scale/#mobile-devices-and-tablets" },
           { name: "Digicircle", url: "https://www.digicircle.com/index.php" },
+          { name: "EcoATM", url: "https://www.ecoatm.com/pages/sell" },
         ].map(link => (
           <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
             style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: C.gold, textDecoration: "none" }}
@@ -2904,7 +2906,7 @@ const VIEWS = {
 const LINK_CATEGORIES = [
   {
     name: "Parts",
-    color: C.accent,
+    color: "#FF4D1C",
     icon: "🔧",
     links: [
       { name: "MobileSentrix", url: "https://www.cpr.parts" },
@@ -2919,7 +2921,7 @@ const LINK_CATEGORIES = [
   },
   {
     name: "Accessories",
-    color: C.teal,
+    color: "#00C9A7",
     icon: "🎒",
     links: [
       { name: "Voicecomm / CPR Accessories", url: "https://www.cpraccessories.com/login.php?statusset=normal" },
@@ -2931,7 +2933,7 @@ const LINK_CATEGORIES = [
   },
   {
     name: "Phone Buying",
-    color: C.gold,
+    color: "#FFB547",
     icon: "📱",
     links: [
       { name: "Atlas", url: "https://docs.google.com/spreadsheets/d/1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw" },
@@ -2942,11 +2944,12 @@ const LINK_CATEGORIES = [
       { name: "T-Mobile BYOB", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
       { name: "Verizon BYOB", url: "https://www.verizon.com/bring-your-own-device/test" },
       { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
+      { name: "EcoATM", url: "https://www.ecoatm.com/pages/sell" },
     ]
   },
   {
     name: "HR & Admin",
-    color: C.blue,
+    color: "#3B82F6",
     icon: "👥",
     links: [
       { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login" },
@@ -2958,7 +2961,7 @@ const LINK_CATEGORIES = [
   },
   {
     name: "Claims",
-    color: C.green,
+    color: "#22C55E",
     icon: "📋",
     links: [
       { name: "T-Mobile Claims", url: "https://mytmoclaim.com/" },
