@@ -1390,9 +1390,9 @@ const BuyPhonesView = () => {
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {[
           { name: "Sickw", url: "https://sickw.com" },
-          { name: "T-Mobile BYOB", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
-          { name: "Verizon BYOB", url: "https://www.verizon.com/bring-your-own-device/test" },
-          { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
+          { name: "T-Mobile BYOD", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
+          { name: "Verizon BYOD", url: "https://www.verizon.com/bring-your-own-device/test" },
+          { name: "AT&T BYOD", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
           { name: "Hyla", url: "https://hylaasp.hylamobile.com/grading-scale/#mobile-devices-and-tablets" },
           { name: "Digicircle", url: "https://www.digicircle.com/index.php" },
           { name: "EcoATM", url: "https://www.ecoatm.com/pages/sell" },
@@ -2885,24 +2885,6 @@ const ScheduleView = ({ currentUser }) => {
   );
 };
 
-// ── VIEWS MAP ─────────────────────────────────────────────────────────────
-const VIEWS = {
-  dashboard: DashboardView,
-  pricing: PricingView,
-  buyphones: BuyPhonesView,
-  sop: SOPView,
-  sales: SalesView,
-  repairs: RepairsView,
-  tasks: TasksView,
-  pos: POSView,
-  crm: CRMView,
-  orders: SpecialOrdersView,
-  schedule: ScheduleView,
-  links: QuickLinksView,
-  settings: SettingsView,
-};
-
-// ── QUICK LINKS ──────────────────────────────────────────────────────────
 const LINK_CATEGORIES = [
   {
     name: "Parts",
@@ -2941,9 +2923,9 @@ const LINK_CATEGORIES = [
       { name: "Digicircle", url: "https://www.digicircle.com/index.php" },
       { name: "Sickw", url: "https://sickw.com" },
       { name: "eBay", url: "https://www.ebay.com" },
-      { name: "T-Mobile BYOB", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
-      { name: "Verizon BYOB", url: "https://www.verizon.com/bring-your-own-device/test" },
-      { name: "AT&T BYOB", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
+      { name: "T-Mobile BYOD", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
+      { name: "Verizon BYOD", url: "https://www.verizon.com/bring-your-own-device/test" },
+      { name: "AT&T BYOD", url: "https://www.att.com/buy/byod/identify?devicetype=phone" },
       { name: "EcoATM", url: "https://www.ecoatm.com/pages/sell" },
     ]
   },
@@ -2982,6 +2964,25 @@ const LinkCard = ({ link, color }) => (
     <span style={{ color: C.textMuted, fontSize: 11, marginLeft: "auto" }}>↗</span>
   </a>
 );
+
+─────────────────────────────────────────────────────────────
+const VIEWS = {
+  dashboard: DashboardView,// ── VIEWS MAP
+  pricing: PricingView,
+  buyphones: BuyPhonesView,
+  sop: SOPView,
+  sales: SalesView,
+  repairs: RepairsView,
+  tasks: TasksView,
+  pos: POSView,
+  crm: CRMView,
+  orders: SpecialOrdersView,
+  schedule: ScheduleView,
+  links: QuickLinksView,
+  settings: SettingsView,
+};
+
+// ── QUICK LINKS ──────────────────────────────────────────────────────────
 
 const QuickLinksView = () => {
   const [activeCategory, setActiveCategory] = useState("All");
