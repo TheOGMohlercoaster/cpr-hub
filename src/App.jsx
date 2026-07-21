@@ -1133,7 +1133,8 @@ const DashboardView = ({ setView, currentUser }) => {
           <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🔧 Top Tech — {salesMonth}</div>
           {salesData.length > 0
             ? [...salesData].sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5).map((e, i) => {
-                const name = e.name ? (e.name.split(", ")[1] || e.name).split(" ")[0] : "";
+                const nameParts = (e.name || "").split(", ");
+                const name = nameParts.length > 1 ? nameParts[1] : nameParts[0];
                 return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
                     <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {name}</span>
@@ -1153,7 +1154,8 @@ const DashboardView = ({ setView, currentUser }) => {
           <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>💰 Top Sales — {salesMonth}</div>
           {salesData.length > 0
             ? [...salesData].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5).map((e, i) => {
-                const name = e.name ? (e.name.split(", ")[1] || e.name).split(" ")[0] : "";
+                const nameParts = (e.name || "").split(", ");
+                const name = nameParts.length > 1 ? nameParts[1] : nameParts[0];
                 return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
                     <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {name}</span>
