@@ -1006,12 +1006,12 @@ const DashboardView = ({ setView, currentUser }) => {
         <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 4 }}>Friday, June 12, 2026</div>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0 }}>Good morning, CPR Team 👋</h1>
       </div>
-      {/* Stat row */}
+      {/* Stat row - Monthly totals */}
       <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
-        <StatCard label="Today's Sales" value={`$${totalSales.toLocaleString()}`} sub="3 reps active" color={C.teal} icon="sales" />
-        <StatCard label="Repairs Done" value={totalRepairs} sub="Today" color={C.accent} icon="repairs" />
-        <StatCard label="Tasks Pending" value={tasksLeft} sub={`${TASKS.length - tasksLeft} complete`} color={C.gold} icon="tasks" />
-        <StatCard label="Open Claims" value="4" sub="RepairQ" color={C.blue} icon="pos" />
+        <StatCard label="Monthly Sales" value={salesData.length > 0 ? `$${totalSalesAmt.toLocaleString()}` : "—"} sub={salesMonth} color={C.teal} icon="sales" />
+        <StatCard label="Repair Units" value={salesData.length > 0 ? totalRepairUnits : "—"} sub={salesMonth} color={C.accent} icon="repairs" />
+        <StatCard label="Accessory Sales" value={salesData.length > 0 ? `$${totalAccessory.toLocaleString()}` : "—"} sub={salesMonth} color={C.gold} icon="dollar" />
+        <StatCard label="Device Sales" value={salesData.length > 0 ? `$${totalDevices.toLocaleString()}` : "—"} sub={salesMonth} color={C.blue} icon="phone" />
       </div>
       {/* Quick access grid */}
       <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Quick Access</div>
@@ -1026,19 +1026,6 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         ))}
       </div>
-      {/* Monthly Sales Stats */}
-      {salesData.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>📊 {salesMonth} Totals</div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <StatCard label="Monthly Sales" value={`$${totalSalesAmt.toLocaleString()}`} color={C.teal} icon="sales" />
-            <StatCard label="Repair Units" value={totalRepairUnits} color={C.accent} icon="repairs" />
-            <StatCard label="Accessory Sales" value={`$${totalAccessory.toLocaleString()}`} color={C.gold} />
-            <StatCard label="Device Sales" value={`$${totalDevices.toLocaleString()}`} color={C.blue} />
-          </div>
-        </div>
-      )}
-
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {[
