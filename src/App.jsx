@@ -2194,25 +2194,26 @@ const SpecialOrdersView = ({ currentUser }) => {
       const col = (name) => headers.findIndex(h => h.includes(name.toLowerCase()));
       const parsed = rows.slice(1).map((row, i) => ({
         id: i,
-        timestamp:       row[col("timestamp")]    || "",
-        customer:        row[col("customer name")] || "",
-        phone:           row[col("phone")]         || "",
-        make:            row[col("device make")]   || "",
-        model:           row[col("device model")]  || "",
-        problem:         row[col("problem")]       || "",
-        parts:           row[col("part")]          || "",
-        color:           row[col("color")]         || "",
-        promised:        row[col("date promised")] || "",
-        supplier:        row[col("supplier")]      || "",
-        paid:            row[col("paid")]          || "",
-        deviceLeft:      row[col("device left")]   || "",
-        partNumber:      row[col("part number")]   || "",
-        quoted:          row[col("quoted")]        || "",
-        rep:             row[col("rep")]           || "",
-        itemOrdered:     row[col("item ordered")]  || "",
-        expectedDelivery:row[col("expected")]      || "",
-        partIn:          row[col("part in")]       || "",
-        customerCalled:  row[col("customer called")] || "",
+        timestamp:        row[0]  || "",
+        customer:         row[1]  || "",
+        phone:            row[2]  || "",
+        make:             row[3]  || "",
+        model:            row[4]  || "",
+        problem:          row[5]  || "",
+        parts:            row[6]  || "",
+        color:            row[7]  || "",
+        promised:         row[8]  || "",
+        supplier:         row[9]  || "",
+        paid:             row[10] || "",
+        deviceLeft:       row[11] || "",
+        partNumber:       row[12] || "",
+        quoted:           row[13] || "",
+        rep:              row[14] || "",
+        itemOrdered:      row[15] || "",
+        expectedDelivery: row[16] || "",
+        partIn:           row[17] || "",
+        customerCalled:   row[18] || "",
+        ticketNum:        row[19] || "",
       })).filter(r => r.customer);
       setOrders(parsed);
     } catch (e) {
@@ -2309,7 +2310,7 @@ const SpecialOrdersView = ({ currentUser }) => {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
               <tr style={{ color: C.textMuted, textAlign: "left" }}>
-                {["Status","Customer","Phone","Device","Parts Needed","Promised","Supplier","Quoted","Rep", isOwner ? "Part #" : null, "Expected","Part In","Called"].filter(Boolean).map((h, i) => (
+                {["Status","Customer","Phone","Device","Parts Needed","Color","Promised","Supplier","Quoted","Rep", isOwner ? "Part #" : null, "Expected","Part In","Called", isOwner ? "Ticket #" : null].filter(Boolean).map((h, i) => (
                   <th key={i} style={{ padding: "8px 10px", borderBottom: `1px solid ${C.border}`, fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -2333,6 +2334,7 @@ const SpecialOrdersView = ({ currentUser }) => {
                     <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.phone}</td>
                     <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.make} {o.model}</td>
                     <td style={{ padding: "10px 10px", color: C.textDim, maxWidth: 180 }}>{o.parts}</td>
+                    <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.color}</td>
                     <td style={{ padding: "10px 10px", color: overdue && !o.partIn ? C.accent : C.textDim, whiteSpace: "nowrap", fontWeight: overdue ? 700 : 400 }}>{o.promised}</td>
                     <td style={{ padding: "10px 10px", color: C.textDim }}>{o.supplier}</td>
                     <td style={{ padding: "10px 10px", color: C.teal, fontWeight: 600 }}>{o.quoted}</td>
@@ -2341,6 +2343,7 @@ const SpecialOrdersView = ({ currentUser }) => {
                     <td style={{ padding: "10px 10px", color: C.textDim, whiteSpace: "nowrap" }}>{o.expectedDelivery}</td>
                     <td style={{ padding: "10px 10px" }}>{o.partIn ? <Tag color={C.green}>✓ {o.partIn}</Tag> : <Tag color={C.border}>—</Tag>}</td>
                     <td style={{ padding: "10px 10px" }}>{o.customerCalled ? <Tag color={C.teal}>✓</Tag> : <Tag color={C.border}>—</Tag>}</td>
+                    {isOwner && <td style={{ padding: "10px 10px", color: C.textMuted, fontSize: 11 }}>{o.ticketNum}</td>}
                   </tr>
                 );
               })}
