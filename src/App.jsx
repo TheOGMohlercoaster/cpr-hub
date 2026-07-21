@@ -42,10 +42,10 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","schedule","links","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders","schedule","links"],
-  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule","links"],
-  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders","schedule","links"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","pos","crm","orders","schedule","links","leaderboard","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","sales","repairs","tasks","orders","schedule","links","leaderboard"],
+  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule","links","leaderboard"],
+  "Sales":      ["dashboard","buyphones","sop","sales","tasks","orders","schedule","links","leaderboard"],
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
@@ -895,6 +895,7 @@ const NAV = [
   { id: "orders", label: "Special Orders", icon: "dollar" },
   { id: "schedule", label: "Schedule", icon: "tasks" },
   { id: "links", label: "Quick Links", icon: "trend" },
+  { id: "leaderboard", label: "Leaderboard", icon: "trend" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
@@ -2167,6 +2168,7 @@ const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFa
 const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
 const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSFNwL5OkvCCFK2ZiSoEsWE2_3HOFJrxo0q5muYh3_DdFvcC1e-xYPYxAakaC3QEMD/exec";
 const SCHEDULE_WRITE_SHEET_ID = "1kmP_9w85gdfV-ngK27LSF0EwA3aSMrEuTvNZbAa4Jhs";
+const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
@@ -3046,6 +3048,113 @@ const QuickLinksView = () => {
   );
 };
 
+// ── SALES LEADERBOARD ────────────────────────────────────────────────────
+const LeaderboardView = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [month, setMonth] = useState("");
+  const [tab, setTab] = useState("sales");
+  const [mounted, setMounted] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const rows = json.values || [];
+      if (rows.length < 2) { setData([]); setLoading(false); return; }
+      const parsed = rows.slice(1).map(row => ({
+        name:         row[0] || "",
+        totalSales:   parseFloat(row[1]) || 0,
+        repairUnits:  parseInt(row[2]) || 0,
+        accessorySales: parseFloat(row[3]) || 0,
+        deviceSales:  parseFloat(row[4]) || 0,
+        month:        row[5] || "",
+      })).filter(r => r.name);
+      setData(parsed);
+      if (parsed.length > 0) setMonth(parsed[0].month);
+    } catch(e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  if (!mounted) { setMounted(true); fetchData(); }
+
+  const tabs = [
+    { id: "sales",     label: "Total Sales",     key: "totalSales",     format: v => `$${v.toLocaleString()}`,  color: "#00C9A7" },
+    { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
+    { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString()}`,  color: "#FFB547" },
+    { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString()}`,  color: "#3B82F6" },
+  ];
+
+  const activeTab = tabs.find(t => t.id === tab);
+  const sorted = [...data].sort((a, b) => b[activeTab.key] - a[activeTab.key]);
+  const max = sorted.length > 0 ? sorted[0][activeTab.key] : 1;
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#E8EAED", margin: "0 0 4px" }}>Sales Leaderboard</h2>
+        <div style={{ color: "#6B7280", fontSize: 13 }}>
+          {month} · Updated from RepairQ
+          <button onClick={fetchData} style={{ background: "transparent", border: "none", color: "#6B7280", cursor: "pointer", fontSize: 16, marginLeft: 8 }}>↻</button>
+        </div>
+      </div>
+
+      {/* Category tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            style={{ background: tab === t.id ? t.color + "22" : "#181C27", color: tab === t.id ? t.color : "#9CA3AF", border: `1px solid ${tab === t.id ? t.color + "66" : "#252A3A"}`, borderRadius: 8, padding: "7px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {loading && <div style={{ textAlign: "center", padding: "40px", color: "#6B7280" }}>⏳ Loading leaderboard...</div>}
+      {error && <div style={{ color: "#EF4444", padding: 16 }}>{error}</div>}
+
+      {!loading && !error && (
+        <div style={{ display: "grid", gap: 10 }}>
+          {sorted.map((emp, i) => {
+            const val = emp[activeTab.key];
+            const pct = max > 0 ? (val / max) * 100 : 0;
+            const firstName = emp.name.split(", ")[1] || emp.name.split(" ")[0];
+            const lastName = emp.name.split(", ")[0] || "";
+            return (
+              <div key={i} style={{ background: "#181C27", border: `1px solid ${i === 0 ? activeTab.color + "44" : "#252A3A"}`, borderRadius: 12, padding: "14px 18px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>{medals[i] || `#${i+1}`}</span>
+                    <div>
+                      <div style={{ color: "#E8EAED", fontWeight: 700, fontSize: 15 }}>{firstName} {lastName}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ color: activeTab.color, fontWeight: 800, fontSize: 18 }}>{activeTab.format(val)}</div>
+                  </div>
+                </div>
+                <div style={{ background: "#252A3A", borderRadius: 4, height: 6, overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, background: activeTab.color, height: "100%", borderRadius: 4, transition: "width .5s" }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ marginTop: 20, color: "#6B7280", fontSize: 12, textAlign: "center" }}>
+        Update by exporting from RepairQ → pasting into the CPR Sales Data Google Sheet
+      </div>
+    </div>
+  );
+};
+
 // ── VIEWS MAP ─────────────────────────────────────────────────────────────
 const VIEWS = {
   dashboard: DashboardView,
@@ -3060,6 +3169,7 @@ const VIEWS = {
   orders: SpecialOrdersView,
   schedule: ScheduleView,
   links: QuickLinksView,
+  leaderboard: LeaderboardView,
   settings: SettingsView,
 };
 
