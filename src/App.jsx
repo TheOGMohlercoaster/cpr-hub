@@ -940,6 +940,33 @@ const DashboardView = ({ setView, currentUser }) => {
   const tasksLeft = TASKS.filter(t => !t.done).length;
   const canPost = currentUser?.role === "Owner" || currentUser?.role === "Tech/Sales";
 
+  const [salesData, setSalesData] = useState([]);
+  const [salesLoaded, setSalesLoaded] = useState(false);
+
+  if (!salesLoaded) {
+    setSalesLoaded(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        const parsed = rows.map(row => ({
+          totalSales:     parseFloat(row[1]) || 0,
+          repairUnits:    parseInt(row[2]) || 0,
+          accessorySales: parseFloat(row[3]) || 0,
+          deviceSales:    parseFloat(row[4]) || 0,
+          month:          row[5] || '',
+        }));
+        setSalesData(parsed);
+      })
+      .catch(() => {});
+  }
+
+  const totalSalesAmt = salesData.reduce((a, e) => a + e.totalSales, 0);
+  const totalRepairUnits = salesData.reduce((a, e) => a + e.repairUnits, 0);
+  const totalAccessory = salesData.reduce((a, e) => a + e.accessorySales, 0);
+  const totalDevices = salesData.reduce((a, e) => a + e.deviceSales, 0);
+  const salesMonth = salesData.length > 0 ? salesData[0].month : 'This Month';
+
   const [announcements, setAnnouncements] = useState(getAnnouncements);
   const [newPost, setNewPost] = useState("");
   const [newPinned, setNewPinned] = useState("");
@@ -999,6 +1026,19 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         ))}
       </div>
+      {/* Monthly Sales Stats */}
+      {salesData.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ color: "#6B7280", fontSize: 12, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>📊 {salesMonth} Totals</div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <StatCard label="Monthly Sales" value={`$${totalSalesAmt.toLocaleString()}`} color={C.teal} icon="sales" />
+            <StatCard label="Repair Units" value={totalRepairUnits} color={C.accent} icon="repairs" />
+            <StatCard label="Accessory Sales" value={`$${totalAccessory.toLocaleString()}`} color={C.gold} />
+            <StatCard label="Device Sales" value={`$${totalDevices.toLocaleString()}`} color={C.blue} />
+          </div>
+        </div>
+      )}
+
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {[
