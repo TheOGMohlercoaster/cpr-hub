@@ -2965,25 +2965,6 @@ const LinkCard = ({ link, color }) => (
   </a>
 );
 
-─────────────────────────────────────────────────────────────
-const VIEWS = {
-  dashboard: DashboardView,// ── VIEWS MAP
-  pricing: PricingView,
-  buyphones: BuyPhonesView,
-  sop: SOPView,
-  sales: SalesView,
-  repairs: RepairsView,
-  tasks: TasksView,
-  pos: POSView,
-  crm: CRMView,
-  orders: SpecialOrdersView,
-  schedule: ScheduleView,
-  links: QuickLinksView,
-  settings: SettingsView,
-};
-
-// ── QUICK LINKS ──────────────────────────────────────────────────────────
-
 const QuickLinksView = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const cats = ["All", ...LINK_CATEGORIES.map(c => c.name)];
@@ -3026,6 +3007,24 @@ const QuickLinksView = () => {
   );
 };
 
+// ── VIEWS MAP ─────────────────────────────────────────────────────────────
+const VIEWS = {
+  dashboard: DashboardView,
+  pricing: PricingView,
+  buyphones: BuyPhonesView,
+  sop: SOPView,
+  sales: SalesView,
+  repairs: RepairsView,
+  tasks: TasksView,
+  pos: POSView,
+  crm: CRMView,
+  orders: SpecialOrdersView,
+  schedule: ScheduleView,
+  links: QuickLinksView,
+  settings: SettingsView,
+};
+
+// ── QUICK LINKS ──────────────────────────────────────────────────────────
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
 const LoginScreen = ({ onLogin }) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
