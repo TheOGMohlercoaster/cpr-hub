@@ -2397,6 +2397,13 @@ const saveSchedule = (weekStart, schedule) => {
   try { localStorage.setItem(getScheduleKey(weekStart), JSON.stringify(schedule)); } catch {}
 };
 
+const PRESET_SHIFTS = [
+  { label: '9:30a - 5:30p', start: '9:30 AM', end: '5:30 PM' },
+  { label: '9:30a - 6:30p', start: '9:30 AM', end: '6:30 PM' },
+  { label: '10a - 6p',      start: '10:00 AM', end: '6:00 PM' },
+  { label: '10a - 6:30p',   start: '10:00 AM', end: '6:30 PM' },
+];
+
 const ShiftModal = ({ day, employee, existing, onSave, onDelete, onClose }) => {
   const [start, setStart] = useState(existing?.start || "9:00 AM");
   const [end, setEnd] = useState(existing?.end || "5:00 PM");
@@ -2719,13 +2726,15 @@ const ScheduleView = ({ currentUser }) => {
                           onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
                           onDrop={e => {
                             e.preventDefault();
-                            if (draggedShift && !(draggedShift.empId === emp.id && draggedShift.date === dateStr)) {
+                            if (draggedShift) {
                               const ds = draggedShift;
                               setDraggedShift(null);
                               setTimeout(() => {
                                 const next = { ...loadSchedule(weekStart) };
                                 next[`${emp.id}_${dateStr}`] = { ...ds.shift };
-                                delete next[`${ds.empId}_${ds.date}`];
+                                if (!ds.isPreset && ds.empId && ds.date && !(ds.empId === emp.id && ds.date === dateStr)) {
+                                  delete next[`${ds.empId}_${ds.date}`];
+                                }
                                 saveSchedule(weekStart, next);
                                 setSchedule({ ...next });
                               }, 0);
@@ -2768,11 +2777,13 @@ const ScheduleView = ({ currentUser }) => {
                               if (draggedShift) {
                                 const ds = draggedShift;
                                 setDraggedShift(null);
-                                // Use setTimeout to avoid state conflict
                                 setTimeout(() => {
                                   const next = { ...loadSchedule(weekStart) };
                                   next[`${emp.id}_${dateStr}`] = { ...ds.shift };
-                                  delete next[`${ds.empId}_${ds.date}`];
+                                  // Only delete source if not a preset
+                                  if (!ds.isPreset && ds.empId && ds.date) {
+                                    delete next[`${ds.empId}_${ds.date}`];
+                                  }
                                   saveSchedule(weekStart, next);
                                   setSchedule({ ...next });
                                 }, 0);
@@ -2809,6 +2820,29 @@ const ScheduleView = ({ currentUser }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Preset Shifts */}
+      {canEdit && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+            ⚡ Preset Shifts — drag or click to copy
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {PRESET_SHIFTS.map((preset, i) => (
+              <div key={i}
+                draggable
+                onDragStart={() => setDraggedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, empId: null, date: null, isPreset: true })}
+                onDragEnd={() => setDraggedShift(null)}
+                onClick={() => setCopiedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, isPreset: true })}
+                style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 14px', cursor: 'grab', fontSize: 12, fontWeight: 700, color: '#FF4D1C', userSelect: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#FF4D1C33'}
+                onMouseLeave={e => e.currentTarget.style.background = '#FF4D1C22'}>
+                {preset.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Copy mode banner */}
       {copiedShift && (
