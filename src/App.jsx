@@ -950,6 +950,8 @@ const DashboardView = ({ setView, currentUser }) => {
       .then(json => {
         const rows = (json.values || []).slice(1);
         const parsed = rows.map(row => ({
+          name:           row[0] || '',
+          firstName:      row[0] ? (row[0].includes(', ') ? row[0].split(', ')[1] : row[0].split(' ')[0]) : '',
           totalSales:     parseFloat(row[1]) || 0,
           repairUnits:    parseInt(row[2]) || 0,
           accessorySales: parseFloat(row[3]) || 0,
@@ -1627,51 +1629,6 @@ const SOPView = () => {
       </div>
       <div style={{ marginTop: 16 }}>
         <button style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ Upload SOP</button>
-      </div>
-    </div>
-  );
-};
-
-// ── DAILY SALES ───────────────────────────────────────────────────────────
-const SalesView = () => {
-  const totalSales = TODAY_SALES.reduce((a, e) => a + e.sales, 0);
-  return (
-    <div>
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Daily Sales</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Today's performance by rep</div>
-      </div>
-      <IntegrationBanner name="RepairQ" description="Connect your API key to pull sales data automatically from your POS." />
-      <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
-        <StatCard label="Store Total" value={`$${totalSales.toLocaleString()}`} color={C.teal} icon="sales" />
-        <StatCard label="Transactions" value={TODAY_SALES.reduce((a, e) => a + e.transactions, 0)} color={C.accent} />
-        <StatCard label="Avg per Rep" value={`$${Math.round(totalSales / TODAY_SALES.length).toLocaleString()}`} color={C.gold} />
-      </div>
-      <div style={{ display: "grid", gap: 12 }}>
-        {TODAY_SALES.sort((a, b) => b.sales - a.sales).map((s, i) => {
-          const pct = Math.min((s.sales / s.target) * 100, 100);
-          return (
-            <Card key={i}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <div>
-                  <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>{s.name}</div>
-                  <div style={{ color: C.textMuted, fontSize: 12 }}>{s.role} · {s.transactions} transactions</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ color: C.teal, fontWeight: 800, fontSize: 20 }}>${s.sales.toLocaleString()}</div>
-                  <div style={{ color: C.textMuted, fontSize: 12 }}>Target: ${s.target.toLocaleString()}</div>
-                </div>
-              </div>
-              <div style={{ background: C.border, borderRadius: 4, height: 6, overflow: "hidden" }}>
-                <div style={{ width: `${pct}%`, background: pct >= 100 ? C.green : C.teal, height: "100%", borderRadius: 4, transition: "width .5s" }} />
-              </div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 4 }}>{Math.round(pct)}% of daily target</div>
-            </Card>
-          );
-        })}
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <button style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 18px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>+ Log Manual Entry</button>
       </div>
     </div>
   );
@@ -3209,7 +3166,6 @@ const VIEWS = {
   pricing: PricingView,
   buyphones: BuyPhonesView,
   sop: SOPView,
-  sales: SalesView,
   repairs: RepairsView,
   tasks: TasksView,
   pos: POSView,
