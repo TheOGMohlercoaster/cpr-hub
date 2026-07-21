@@ -1134,10 +1134,10 @@ const DashboardView = ({ setView, currentUser }) => {
           {salesData.length > 0
             ? [...salesData].sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5).map((e, i) => {
                 const nameParts = (e.name || "").split(", ");
-                const name = nameParts.length > 1 ? nameParts[1] : nameParts[0];
+                const firstName = nameParts.length > 1 ? nameParts[1] : nameParts[0];
                 return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {name}</span>
+                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {firstName}</span>
                     <span style={{ color: C.teal, fontWeight: 700 }}>{e.repairUnits} units</span>
                   </div>
                 );
@@ -1155,10 +1155,10 @@ const DashboardView = ({ setView, currentUser }) => {
           {salesData.length > 0
             ? [...salesData].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5).map((e, i) => {
                 const nameParts = (e.name || "").split(", ");
-                const name = nameParts.length > 1 ? nameParts[1] : nameParts[0];
+                const firstName = nameParts.length > 1 ? nameParts[1] : nameParts[0];
                 return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {name}</span>
+                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {firstName}</span>
                     <span style={{ color: C.gold, fontWeight: 700 }}>${e.totalSales.toLocaleString()}</span>
                   </div>
                 );
