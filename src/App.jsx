@@ -2970,47 +2970,44 @@ const ScheduleView = ({ currentUser }) => {
         </div>
       )}
 
-      {/* Add to Calendar button for employees */}
-      {currentUser && (() => {
-        // Find matching employee
-        const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser.name);
-        if (!emp) return null;
-        const myShifts = days.flatMap(d => {
-          const dateStr = formatDate(d);
-          const shift = schedule[`${emp.id}_${dateStr}`];
-          return shift ? [{ date: dateStr, ...shift }] : [];
-        });
-        return (
+      {/* Calendar download buttons - always visible */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <button onClick={() => {
+          const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser?.name);
+          const myShifts = emp ? days.flatMap(d => {
+            const dateStr = formatDate(d);
+            const shift = schedule[`${emp.id}_${dateStr}`];
+            return shift ? [{ date: dateStr, ...shift }] : [];
+          }) : [];
+          if (myShifts.length === 0) { alert("No shifts found for your name this week. Make sure your name in CPR Hub matches the schedule."); return; }
+          const ics = generateICS(myShifts, currentUser?.name || "My");
+          downloadICS(ics, `CPR_My_Schedule_${formatDate(days[0])}.ics`);
+        }}
+          style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+          📅 Add My Shifts to Calendar
+        </button>
+        {canEdit && (
           <button onClick={() => {
-            if (myShifts.length === 0) { alert("No shifts scheduled for this week yet."); return; }
-            const ics = generateICS(myShifts, currentUser.name);
-            const weekLabel = `${formatDate(days[0])}_to_${formatDate(days[6])}`;
-            downloadICS(ics, `CPR_Schedule_${currentUser.name.split(" ")[0]}_${weekLabel}.ics`);
-          }}
-            style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 13, marginBottom: 16 }}>
-            📅 Add My Shifts to Calendar
-          </button>
-        );
-      })()}
-
-      {/* Publish button */}
-      {canEdit && (
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => {
-            // Download all employee schedules as one ics
             const allShifts = SCHEDULE_EMPLOYEES.flatMap(emp =>
               days.flatMap(d => {
                 const dateStr = formatDate(d);
                 const shift = schedule[`${emp.id}_${dateStr}`];
-                return shift ? [{ date: dateStr, ...shift, summary: `Work - ${emp.name.split(" ")[0]}` }] : [];
+                return shift ? [{ date: dateStr, ...shift }] : [];
               })
             );
+            if (allShifts.length === 0) { alert("No shifts scheduled this week yet."); return; }
             const ics = generateICS(allShifts, "All Staff");
             downloadICS(ics, `CPR_Full_Schedule_${formatDate(days[0])}.ics`);
           }}
-            style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
             📅 Download Full Schedule (.ics)
           </button>
+        )}
+      </div>
+
+      {/* Publish button */}
+      {canEdit && (
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button onClick={publishAndEmail}
             style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
             📧 Publish & Email Staff
