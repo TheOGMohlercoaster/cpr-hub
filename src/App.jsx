@@ -1635,82 +1635,81 @@ const SOPView = () => {
 };
 
 // ── TECH REPAIRS ──────────────────────────────────────────────────────────
-const TECH_EMPLOYEES = [
-  { name: "Alex Smith",     role: "Tech" },
-  { name: "Nate Williams",  role: "Tech/Sales" },
-];
-
 const RepairsView = () => {
-  const [repairs, setRepairs] = useState(() => {
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [month, setMonth] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  const fetchRepairs = async () => {
+    setLoading(true);
     try {
-      const saved = localStorage.getItem("cpr_repairs_" + new Date().toISOString().split("T")[0]);
-      return saved ? JSON.parse(saved) : TECH_EMPLOYEES.map(e => ({ ...e, completed: 0, pending: 0, notes: "" }));
-    } catch { return TECH_EMPLOYEES.map(e => ({ ...e, completed: 0, pending: 0, notes: "" })); }
-  });
-  const [editing, setEditing] = useState(null);
-
-  const save = (updated) => {
-    setRepairs(updated);
-    try { localStorage.setItem("cpr_repairs_" + new Date().toISOString().split("T")[0], JSON.stringify(updated)); } catch {}
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      const rows = (json.values || []).slice(1);
+      const parsed = rows.map(row => ({
+        name:        row[0] || "",
+        firstName:   row[0] ? (row[0].includes(", ") ? row[0].split(", ")[1] : row[0].split(" ")[0]) : "",
+        repairUnits: parseInt(row[2]) || 0,
+        month:       row[5] || "",
+      })).filter(r => r.name);
+      setRepairs(parsed.sort((a, b) => b.repairUnits - a.repairUnits));
+      if (parsed.length > 0) setMonth(parsed[0].month);
+    } catch(e) { console.error(e); }
+    setLoading(false);
   };
 
-  const update = (i, field, val) => {
-    const next = repairs.map((r, idx) => idx === i ? { ...r, [field]: val } : r);
-    save(next);
-  };
+  if (!mounted) { setMounted(true); fetchRepairs(); }
+
+  const total = repairs.reduce((a, r) => a + r.repairUnits, 0);
+  const max = repairs.length > 0 ? repairs[0].repairUnits : 1;
+  const medals = ["🥇", "🥈", "🥉"];
 
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Tech Repairs</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>Daily repair totals by technician — resets at midnight</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>
+          Consumer Repair Units — {month}
+          <button onClick={fetchRepairs} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, marginLeft: 8 }}>↻</button>
+        </div>
       </div>
-      <div style={{ display: "grid", gap: 12 }}>
-        {repairs.map((t, i) => (
-          <Card key={i}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <div>
-                <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>{t.name}</div>
-                <div style={{ color: C.textMuted, fontSize: 12 }}>{t.role}</div>
-              </div>
-              <button onClick={() => setEditing(editing === i ? null : i)}
-                style={{ background: C.accentDim, color: C.accent, border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                {editing === i ? "Done" : "Update"}
-              </button>
-            </div>
-            <div style={{ display: "flex", gap: 20, marginBottom: editing === i ? 12 : 0 }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.teal, fontWeight: 800, fontSize: 28 }}>{t.completed}</div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>Completed</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.gold, fontWeight: 800, fontSize: 28 }}>{t.pending}</div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>Pending</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.green, fontWeight: 800, fontSize: 28 }}>{t.completed + t.pending}</div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>Total</div>
-              </div>
-            </div>
-            {editing === i && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
-                <div>
-                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Completed</div>
-                  <input type="number" min="0" value={t.completed}
-                    onChange={e => update(i, "completed", parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.teal, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box" }} />
-                </div>
-                <div>
-                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Pending</div>
-                  <input type="number" min="0" value={t.pending}
-                    onChange={e => update(i, "pending", parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.gold, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box" }} />
-                </div>
-              </div>
-            )}
-          </Card>
-        ))}
-      </div>
+
+      {loading && <div style={{ textAlign: "center", padding: 40, color: C.textMuted }}>⏳ Loading...</div>}
+
+      {!loading && (
+        <>
+          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
+            <StatCard label="Total Repair Units" value={total} sub={month} color={C.teal} icon="repairs" />
+          </div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {repairs.map((t, i) => {
+              const pct = max > 0 ? (t.repairUnits / max) * 100 : 0;
+              return (
+                <Card key={i}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>{medals[i] || `#${i+1}`}</span>
+                      <div>
+                        <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>{t.firstName}</div>
+                        <div style={{ color: C.textMuted, fontSize: 12 }}>{t.name}</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ color: C.teal, fontWeight: 800, fontSize: 24 }}>{t.repairUnits}</div>
+                      <div style={{ color: C.textMuted, fontSize: 11 }}>repair units</div>
+                    </div>
+                  </div>
+                  <div style={{ background: C.border, borderRadius: 4, height: 6, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, background: C.teal, height: "100%", borderRadius: 4, transition: "width .5s" }} />
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 };
