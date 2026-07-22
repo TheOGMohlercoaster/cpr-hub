@@ -1246,7 +1246,7 @@ const PricingView = () => {
           { name: "CPR Parts", url: "https://www.cpr.parts" },
           { name: "PLP", url: "https://www.phonelcdparts.com" },
           { name: "Injured Gadgets", url: "https://www.injuredgadgets.com" },
-          { name: "Laptop Screens", url: "https://www.laptopscreens.com" },
+          { name: "Laptop Screens", url: "https://www.laptopscreen.com/English/" },
           { name: "eBay", url: "https://www.ebay.com" },
           { name: "Amazon", url: "https://www.amazon.com" },
         ].map(link => (
@@ -1635,41 +1635,85 @@ const SOPView = () => {
 };
 
 // ── TECH REPAIRS ──────────────────────────────────────────────────────────
-const RepairsView = () => (
-  <div>
-    <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Tech Repairs</h2>
-      <div style={{ color: C.textMuted, fontSize: 13 }}>Repair totals by technician — today</div>
-    </div>
-    <IntegrationBanner name="RepairQ" description="Connect to pull live repair ticket data per technician automatically." />
-    <div style={{ display: "grid", gap: 12 }}>
-      {REPAIR_TOTALS.sort((a, b) => b.completed - a.completed).map((t, i) => (
-        <Card key={i}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>{t.name}</div>
-              <div style={{ color: C.textMuted, fontSize: 12 }}>{t.role}</div>
+const TECH_EMPLOYEES = [
+  { name: "Alex Smith",     role: "Tech" },
+  { name: "Nate Williams",  role: "Tech/Sales" },
+];
+
+const RepairsView = () => {
+  const [repairs, setRepairs] = useState(() => {
+    try {
+      const saved = localStorage.getItem("cpr_repairs_" + new Date().toISOString().split("T")[0]);
+      return saved ? JSON.parse(saved) : TECH_EMPLOYEES.map(e => ({ ...e, completed: 0, pending: 0, notes: "" }));
+    } catch { return TECH_EMPLOYEES.map(e => ({ ...e, completed: 0, pending: 0, notes: "" })); }
+  });
+  const [editing, setEditing] = useState(null);
+
+  const save = (updated) => {
+    setRepairs(updated);
+    try { localStorage.setItem("cpr_repairs_" + new Date().toISOString().split("T")[0], JSON.stringify(updated)); } catch {}
+  };
+
+  const update = (i, field, val) => {
+    const next = repairs.map((r, idx) => idx === i ? { ...r, [field]: val } : r);
+    save(next);
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Tech Repairs</h2>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Daily repair totals by technician — resets at midnight</div>
+      </div>
+      <div style={{ display: "grid", gap: 12 }}>
+        {repairs.map((t, i) => (
+          <Card key={i}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+              <div>
+                <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>{t.name}</div>
+                <div style={{ color: C.textMuted, fontSize: 12 }}>{t.role}</div>
+              </div>
+              <button onClick={() => setEditing(editing === i ? null : i)}
+                style={{ background: C.accentDim, color: C.accent, border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                {editing === i ? "Done" : "Update"}
+              </button>
             </div>
-            <div style={{ display: "flex", gap: 16 }}>
+            <div style={{ display: "flex", gap: 20, marginBottom: editing === i ? 12 : 0 }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.teal, fontWeight: 800, fontSize: 20 }}>{t.completed}</div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>Done</div>
+                <div style={{ color: C.teal, fontWeight: 800, fontSize: 28 }}>{t.completed}</div>
+                <div style={{ color: C.textMuted, fontSize: 11 }}>Completed</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.gold, fontWeight: 800, fontSize: 20 }}>{t.pending}</div>
+                <div style={{ color: C.gold, fontWeight: 800, fontSize: 28 }}>{t.pending}</div>
                 <div style={{ color: C.textMuted, fontSize: 11 }}>Pending</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ color: C.green, fontWeight: 800, fontSize: 20 }}>${t.revenue}</div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>Revenue</div>
+                <div style={{ color: C.green, fontWeight: 800, fontSize: 28 }}>{t.completed + t.pending}</div>
+                <div style={{ color: C.textMuted, fontSize: 11 }}>Total</div>
               </div>
             </div>
-          </div>
-        </Card>
-      ))}
+            {editing === i && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+                <div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Completed</div>
+                  <input type="number" min="0" value={t.completed}
+                    onChange={e => update(i, "completed", parseInt(e.target.value) || 0)}
+                    style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.teal, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Pending</div>
+                  <input type="number" min="0" value={t.pending}
+                    onChange={e => update(i, "pending", parseInt(e.target.value) || 0)}
+                    style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.gold, fontSize: 16, fontWeight: 700, outline: "none", boxSizing: "border-box" }} />
+                </div>
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── DAILY TASKS ───────────────────────────────────────────────────────────
 const TasksView = ({ currentUser }) => {
@@ -2939,7 +2983,7 @@ const LINK_CATEGORIES = [
       { name: "PLP", url: "https://www.phonelcdparts.com" },
       { name: "iFixit", url: "https://www.ifixit.com" },
       { name: "Injured Gadgets", url: "https://www.injuredgadgets.com" },
-      { name: "Laptop Screens", url: "https://www.laptopscreens.com" },
+      { name: "Laptop Screens", url: "https://www.laptopscreen.com/English/" },
       { name: "Digikey", url: "https://www.digikey.com" },
       { name: "eBay", url: "https://www.ebay.com" },
       { name: "Amazon", url: "https://www.amazon.com" },
