@@ -2523,6 +2523,60 @@ const ShiftModal = ({ day, employee, existing, onSave, onDelete, onClose }) => {
   );
 };
 
+const generateICS = (shifts, employeeName) => {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//CPR Hub//Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
+
+  shifts.forEach(shift => {
+    const dateStr = shift.date.replace(/-/g, '');
+    const startTime = shift.start.replace(/:/g, '').replace(' ', '').padStart(6, '0');
+    const endTime = shift.end.replace(/:/g, '').replace(' ', '').padStart(6, '0');
+
+    // Convert 12hr to 24hr
+    const to24 = (timeStr) => {
+      const [time, period] = timeStr.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (period === 'PM' && h !== 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      return `${String(h).padStart(2,'0')}${String(m).padStart(2,'0')}00`;
+    };
+
+    const dtStart = `${dateStr}T${to24(shift.start)}`;
+    const dtEnd = `${dateStr}T${to24(shift.end)}`;
+    const uid = `${dateStr}-${employeeName.replace(/ /g,'')}@cprhub`;
+
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${uid}`);
+    lines.push(`DTSTART;TZID=America/Chicago:${dtStart}`);
+    lines.push(`DTEND;TZID=America/Chicago:${dtEnd}`);
+    lines.push(`SUMMARY:Work - CPR Cell Phone Repair`);
+    lines.push(`DESCRIPTION:${shift.start} - ${shift.end}${shift.notes ? ' | ' + shift.notes : ''}`);
+    lines.push('LOCATION:CPR Cell Phone Repair - Springfield MO');
+    lines.push('END:VEVENT');
+  });
+
+  lines.push('END:VCALENDAR');
+  return lines.join('
+');
+};
+
+const downloadICS = (icsContent, filename) => {
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 const ScheduleView = ({ currentUser }) => {
   const canEdit = currentUser?.role === "Owner";
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
@@ -2916,9 +2970,47 @@ const ScheduleView = ({ currentUser }) => {
         </div>
       )}
 
+      {/* Add to Calendar button for employees */}
+      {currentUser && (() => {
+        // Find matching employee
+        const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser.name);
+        if (!emp) return null;
+        const myShifts = days.flatMap(d => {
+          const dateStr = formatDate(d);
+          const shift = schedule[`${emp.id}_${dateStr}`];
+          return shift ? [{ date: dateStr, ...shift }] : [];
+        });
+        if (myShifts.length === 0) return null;
+        return (
+          <button onClick={() => {
+            const ics = generateICS(myShifts, currentUser.name);
+            const weekLabel = `${formatDate(days[0])}_to_${formatDate(days[6])}`;
+            downloadICS(ics, `CPR_Schedule_${currentUser.name.split(" ")[0]}_${weekLabel}.ics`);
+          }}
+            style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 13, marginBottom: 16 }}>
+            📅 Add My Shifts to Calendar
+          </button>
+        );
+      })()}
+
       {/* Publish button */}
       {canEdit && (
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={() => {
+            // Download all employee schedules as one ics
+            const allShifts = SCHEDULE_EMPLOYEES.flatMap(emp =>
+              days.flatMap(d => {
+                const dateStr = formatDate(d);
+                const shift = schedule[`${emp.id}_${dateStr}`];
+                return shift ? [{ date: dateStr, ...shift, summary: `Work - ${emp.name.split(" ")[0]}` }] : [];
+              })
+            );
+            const ics = generateICS(allShifts, "All Staff");
+            downloadICS(ics, `CPR_Full_Schedule_${formatDate(days[0])}.ics`);
+          }}
+            style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            📅 Download Full Schedule (.ics)
+          </button>
           <button onClick={publishAndEmail}
             style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
             📧 Publish & Email Staff
