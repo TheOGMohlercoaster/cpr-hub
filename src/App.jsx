@@ -42,7 +42,7 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","repairs","tasks","pos","crm","orders","schedule","links","leaderboard","settings"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","repairs","tasks","orders","schedule","links","leaderboard","settings"],
   "Tech/Sales": ["dashboard","pricing","buyphones","sop","repairs","tasks","orders","schedule","links","leaderboard"],
   "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule","links","leaderboard"],
   "Sales":      ["dashboard","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
@@ -890,8 +890,6 @@ const NAV = [
 
   { id: "repairs", label: "Tech Repairs", icon: "repairs" },
   { id: "tasks", label: "Daily Tasks", icon: "tasks" },
-  { id: "pos", label: "RepairQ / POS", icon: "pos" },
-  { id: "crm", label: "Creatio CRM", icon: "crm" },
   { id: "orders", label: "Special Orders", icon: "dollar" },
   { id: "schedule", label: "Schedule", icon: "tasks" },
   { id: "links", label: "Quick Links", icon: "trend" },
@@ -3519,4 +3517,3 @@ export default function App() {
     </div>
   );
 }
-
