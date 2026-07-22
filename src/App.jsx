@@ -2561,8 +2561,7 @@ const generateICS = (shifts, employeeName) => {
   });
 
   lines.push('END:VCALENDAR');
-  return lines.join('
-');
+  return lines.join('\r\n');
 };
 
 const downloadICS = (icsContent, filename) => {
