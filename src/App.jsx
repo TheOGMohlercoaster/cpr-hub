@@ -2980,9 +2980,9 @@ const ScheduleView = ({ currentUser }) => {
           const shift = schedule[`${emp.id}_${dateStr}`];
           return shift ? [{ date: dateStr, ...shift }] : [];
         });
-        if (myShifts.length === 0) return null;
         return (
           <button onClick={() => {
+            if (myShifts.length === 0) { alert("No shifts scheduled for this week yet."); return; }
             const ics = generateICS(myShifts, currentUser.name);
             const weekLabel = `${formatDate(days[0])}_to_${formatDate(days[6])}`;
             downloadICS(ics, `CPR_Schedule_${currentUser.name.split(" ")[0]}_${weekLabel}.ics`);
