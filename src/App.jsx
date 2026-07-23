@@ -1329,6 +1329,177 @@ const PricingView = () => {
   );
 };
 
+// ── IMEI CHECKER ─────────────────────────────────────────────────────────
+const getM360Creds = () => {
+  try {
+    const saved = localStorage.getItem('cpr_m360_creds');
+    return saved ? JSON.parse(saved) : { authCode: '', authToken: '' };
+  } catch { return { authCode: '', authToken: '' }; }
+};
+
+const IMEIChecker = () => {
+  const [imei, setImei] = useState('');
+  const [status, setStatus] = useState(null); // null | 'loading' | 'polling' | 'done' | 'error'
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const creds = getM360Creds();
+  const hasCredentials = creds.authCode && creds.authToken;
+
+  const checkIMEI = async () => {
+    const cleaned = imei.replace(/\s|-/g, '');
+    if (cleaned.length < 14 || cleaned.length > 16) {
+      setError('Please enter a valid IMEI (14-16 digits)');
+      return;
+    }
+    if (!hasCredentials) {
+      setError('Add your M360 credentials in Settings first');
+      return;
+    }
+    setStatus('loading');
+    setError('');
+    setResult(null);
+
+    try {
+      // First check history for existing result
+      const histRes = await fetch('/api/imei-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'history', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
+      });
+      const histData = await histRes.json();
+      const records = histData?.data?.records || [];
+      
+      if (records.length > 0) {
+        const latest = records[0];
+        const blResult = latest.blacklistCheckResult || latest.device?.actualBlacklistCheckResult;
+        if (blResult) {
+          setResult({
+            imei: cleaned,
+            status: blResult.result,
+            device: latest.friendlyName || latest.marketingName || 'Unknown Device',
+            checkedAt: blResult.createdAt,
+            source: 'history'
+          });
+          setStatus('done');
+          return;
+        }
+      }
+
+      // Schedule new blacklist check
+      const schedRes = await fetch('/api/imei-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'schedule', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
+      });
+      const schedData = await schedRes.json();
+      
+      if (!schedData?.meta?.success) {
+        throw new Error(schedData?.meta?.errors?.title || 'Failed to schedule check');
+      }
+
+      const batchId = schedData?.data?.batchId;
+      if (!batchId) throw new Error('No batch ID returned');
+
+      setStatus('polling');
+
+      // Poll for results
+      let attempts = 0;
+      const poll = async () => {
+        attempts++;
+        const pollRes = await fetch('/api/imei-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getResult', batchId, authCode: creds.authCode, authToken: creds.authToken })
+        });
+        const pollData = await pollRes.json();
+        const batchStatus = pollData?.data?.status;
+        
+        if (batchStatus === 'finished' || batchStatus === 'completed') {
+          const results = pollData?.data?.result || [];
+          const r = results.find(r => r.imei === cleaned) || results[0];
+          setResult({
+            imei: cleaned,
+            status: r?.result || 'unknown',
+            device: 'IMEI Checked',
+            checkedAt: new Date().toISOString(),
+            source: 'new'
+          });
+          setStatus('done');
+        } else if (attempts < 10) {
+          setTimeout(poll, 2000);
+        } else {
+          setError('Check timed out — please try again');
+          setStatus('error');
+        }
+      };
+      setTimeout(poll, 2000);
+
+    } catch(e) {
+      setError(e.message);
+      setStatus('error');
+    }
+  };
+
+  const statusConfig = {
+    green:   { color: '#22C55E', bg: '#22C55E20', icon: '✅', label: 'CLEAN', desc: 'Device is not reported stolen or lost' },
+    red:     { color: '#EF4444', bg: '#EF444420', icon: '🚫', label: 'BLACKLISTED', desc: 'Device has been reported stolen or lost' },
+    unknown: { color: '#FFB547', bg: '#FFB54720', icon: '⚠️', label: 'UNKNOWN', desc: 'Blacklist status could not be determined' },
+  };
+
+  return (
+    <Card style={{ marginBottom: 20 }}>
+      <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>🔍 IMEI Blacklist Check</div>
+      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by M360 — check if a device is stolen or lost</div>
+
+      {!hasCredentials && (
+        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '10px 14px', color: '#FFB547', fontSize: 12, marginBottom: 12 }}>
+          ⚠️ Add your M360 credentials in Settings → Integrations to use this feature
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input
+          value={imei}
+          onChange={e => { setImei(e.target.value.replace(/[^0-9]/g, '')); setResult(null); setError(''); }}
+          onKeyDown={e => e.key === 'Enter' && checkIMEI()}
+          placeholder='Enter IMEI number (15 digits)…'
+          maxLength={16}
+          style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }}
+        />
+        <button onClick={checkIMEI} disabled={status === 'loading' || status === 'polling'}
+          style={{ background: status === 'loading' || status === 'polling' ? '#252A3A' : '#FF4D1C', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+          {status === 'loading' ? '⏳ Checking...' : status === 'polling' ? '⏳ Waiting...' : 'Check IMEI'}
+        </button>
+      </div>
+
+      {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
+
+      {status === 'polling' && (
+        <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 8 }}>Running blacklist check — this may take a few seconds...</div>
+      )}
+
+      {result && status === 'done' && (() => {
+        const sc = statusConfig[result.status] || statusConfig.unknown;
+        return (
+          <div style={{ background: sc.bg, border: `1px solid ${sc.color}44`, borderRadius: 10, padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+              <span style={{ fontSize: 24 }}>{sc.icon}</span>
+              <div>
+                <div style={{ color: sc.color, fontWeight: 800, fontSize: 18 }}>{sc.label}</div>
+                <div style={{ color: '#9CA3AF', fontSize: 12 }}>{sc.desc}</div>
+              </div>
+            </div>
+            <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>
+              IMEI: {result.imei} · Checked: {new Date(result.checkedAt).toLocaleString()}
+              {result.source === 'history' ? ' · From M360 history' : ' · Fresh check'}
+            </div>
+          </div>
+        );
+      })()}
+    </Card>
+  );
+};
+
 // ── BUY PHONES (ATLAS - LIVE GOOGLE SHEETS) ──────────────────────────────
 const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
 const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
@@ -1434,6 +1605,9 @@ const BuyPhonesView = () => {
           Live Atlas pricing · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
       </div>
+
+      {/* IMEI Blacklist Checker */}
+      <IMEIChecker />
 
       {/* Phone Buying Quick Links */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -2058,6 +2232,35 @@ const SettingsView = () => {
         <div style={{ marginTop: 12, color: C.textMuted, fontSize: 11 }}>
           Credentials are stored locally on this device only and never sent anywhere except MobileSentrix.
         </div>
+      </Card>
+
+      {/* M360 IMEI Checker */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>M360 IMEI Checker</div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Enter your M360 API credentials to enable IMEI blacklist checking in Buy Phones.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {[
+            ["Auth Code", "m360AuthCode", "Your M360 authCode"],
+            ["Auth Token", "m360AuthToken", "Your M360 authToken"],
+          ].map(([label, key, placeholder]) => (
+            <div key={key}>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>{label}</div>
+              <input type="password"
+                defaultValue={(() => { try { return JSON.parse(localStorage.getItem('cpr_m360_creds') || '{}')[key === 'm360AuthCode' ? 'authCode' : 'authToken'] || ''; } catch { return ''; } })()}
+                id={key}
+                placeholder={placeholder}
+                style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            </div>
+          ))}
+        </div>
+        <button onClick={() => {
+          const code = document.getElementById('m360AuthCode').value;
+          const token = document.getElementById('m360AuthToken').value;
+          localStorage.setItem('cpr_m360_creds', JSON.stringify({ authCode: code, authToken: token }));
+          alert('M360 credentials saved!');
+        }} style={{ marginTop: 14, background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+          Save M360 Credentials
+        </button>
       </Card>
 
       {/* Other integrations */}
