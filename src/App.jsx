@@ -2170,6 +2170,53 @@ const PinEditor = ({ employee }) => {
   );
 };
 
+// ── M360 CREDENTIALS FORM ────────────────────────────────────────────────
+const M360CredentialsForm = () => {
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('cpr_m360_creds') || '{}'); } catch { return {}; } })();
+  const [authCode, setAuthCode] = useState(saved.authCode || '');
+  const [authToken, setAuthToken] = useState(saved.authToken || '');
+  const [saved2, setSaved2] = useState(false);
+  const isConnected = !!(saved.authCode && saved.authToken);
+
+  const save = () => {
+    localStorage.setItem('cpr_m360_creds', JSON.stringify({ authCode: authCode.trim(), authToken: authToken.trim() }));
+    setSaved2(true);
+    setTimeout(() => setSaved2(false), 2000);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: isConnected ? '#22C55E' : '#252A3A' }} />
+        <span style={{ color: isConnected ? '#22C55E' : '#6B7280', fontSize: 12, fontWeight: 600 }}>
+          {isConnected ? 'Connected' : 'Not Connected'}
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <div>
+          <div style={{ color: '#6B7280', fontSize: 11, marginBottom: 4 }}>Auth Code</div>
+          <input type="password" value={authCode} onChange={e => setAuthCode(e.target.value)}
+            placeholder="Your M360 authCode"
+            style={{ width: '100%', background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '8px 12px', color: '#E8EAED', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+        <div>
+          <div style={{ color: '#6B7280', fontSize: 11, marginBottom: 4 }}>Auth Token</div>
+          <input type="password" value={authToken} onChange={e => setAuthToken(e.target.value)}
+            placeholder="Your M360 authToken"
+            style={{ width: '100%', background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '8px 12px', color: '#E8EAED', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={save}
+          style={{ background: '#FF4D1C', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+          Save Credentials
+        </button>
+        {saved2 && <span style={{ color: '#22C55E', fontSize: 13, fontWeight: 600 }}>✓ Saved!</span>}
+      </div>
+    </div>
+  );
+};
+
 // ── SETTINGS ──────────────────────────────────────────────────────────────
 const SettingsView = () => {
   const [msCreds, setMsCreds] = useState(() => {
@@ -2238,29 +2285,7 @@ const SettingsView = () => {
       <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>M360 IMEI Checker</div>
       <Card style={{ marginBottom: 24 }}>
         <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Enter your M360 API credentials to enable IMEI blacklist checking in Buy Phones.</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          {[
-            ["Auth Code", "m360AuthCode", "Your M360 authCode"],
-            ["Auth Token", "m360AuthToken", "Your M360 authToken"],
-          ].map(([label, key, placeholder]) => (
-            <div key={key}>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>{label}</div>
-              <input type="password"
-                defaultValue={(() => { try { return JSON.parse(localStorage.getItem('cpr_m360_creds') || '{}')[key === 'm360AuthCode' ? 'authCode' : 'authToken'] || ''; } catch { return ''; } })()}
-                id={key}
-                placeholder={placeholder}
-                style={{ width: "100%", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.text, fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => {
-          const code = document.getElementById('m360AuthCode').value;
-          const token = document.getElementById('m360AuthToken').value;
-          localStorage.setItem('cpr_m360_creds', JSON.stringify({ authCode: code, authToken: token }));
-          alert('M360 credentials saved!');
-        }} style={{ marginTop: 14, background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
-          Save M360 Credentials
-        </button>
+        <M360CredentialsForm />
       </Card>
 
       {/* Other integrations */}
