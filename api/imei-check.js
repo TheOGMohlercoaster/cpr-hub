@@ -7,61 +7,54 @@ export default async function handler(req, res) {
 
   const { imei, authCode, authToken, action, batchId } = req.body;
 
-  // Debug - log what we received (remove in production)
-  console.log('M360 request:', { action, imei, authCode: authCode ? authCode.substring(0, 8) + '...' : 'MISSING', authToken: authToken ? 'present' : 'MISSING' });
-
   if (!authCode || !authToken) {
-    return res.status(400).json({ error: 'Missing authCode or authToken - please add M360 credentials in Settings' });
+    return res.status(400).json({ error: 'Missing credentials' });
   }
 
+  const body = { authCode: authCode.trim(), authToken: authToken.trim() };
+
   try {
+    let url, payload;
+
     if (action === 'schedule') {
-      const response = await fetch('https://m360soft.com/api/customer/v2/scheduleBlacklistCheck', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          authCode: authCode.trim(), 
-          authToken: authToken.trim(), 
-          imeiList: [imei] 
-        })
-      });
-      const data = await response.json();
-      console.log('Schedule response:', JSON.stringify(data).substring(0, 200));
-      res.status(200).json(data);
-
+      url = 'https://m360soft.com/api/customer/v1/scheduleBlacklistCheck';
+      payload = { ...body, imeiList: [imei] };
     } else if (action === 'getResult') {
-      const response = await fetch('https://m360soft.com/api/customer/v2/getBlacklistChecksByBatchId', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          authCode: authCode.trim(), 
-          authToken: authToken.trim(), 
-          batchId 
-        })
-      });
-      const data = await response.json();
-      res.status(200).json(data);
-
+      url = 'https://m360soft.com/api/customer/v1/getBlacklistChecksByBatchId';
+      payload = { ...body, batchId };
     } else if (action === 'history') {
-      const response = await fetch('https://m360soft.com/api/customer/v2/getHistory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          authCode: authCode.trim(), 
-          authToken: authToken.trim(), 
-          imei: [imei], 
-          limit: 1,
-          hasBlacklistCheck: true
-        })
-      });
-      const data = await response.json();
-      res.status(200).json(data);
-
+      url = 'https://m360soft.com/api/customer/v1/getHistory';
+      payload = { ...body, imei, limit: 1 };
+    } else if (action === 'test') {
+      // Simple connection test
+      url = 'https://m360soft.com/api/customer/v1/getHistory';
+      payload = { ...body, limit: 1 };
     } else {
-      res.status(400).json({ error: 'Invalid action' });
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    console.log('Calling M360:', url, 'authCode:', authCode.substring(0, 8) + '...');
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+    console.log('M360 response status:', response.status);
+    console.log('M360 response:', text.substring(0, 300));
+
+    try {
+      res.status(200).json(JSON.parse(text));
+    } catch {
+      res.status(200).json({ raw: text.substring(0, 500) });
     }
   } catch (error) {
-    console.error('M360 error:', error);
+    console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
 }
