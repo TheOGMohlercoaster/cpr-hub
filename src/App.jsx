@@ -2443,20 +2443,46 @@ const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
-  const MONTHS = ["Current", "June 2026"];
   const [activeMonth, setActiveMonth] = useState("Current");
+  const [allTabs, setAllTabs] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [showHistory, setShowHistory] = useState(false);
   const isOwner = currentUser?.role === "Owner";
+
+  // Fetch all tab names on mount
+  const [tabsFetched, setTabsFetched] = useState(false);
+  if (!tabsFetched) {
+    setTabsFetched(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}?key=${SHEETS_API_KEY}&fields=sheets.properties.title`)
+      .then(r => r.json())
+      .then(data => {
+        const tabs = (data.sheets || []).map(s => s.properties.title);
+        // Filter to month tabs only (exclude utility tabs)
+        const excluded = ['Form Responses 47', 'june/julybackup', 'Old Accessory Board', 'Sheet43'];
+        const monthTabs = tabs.filter(t => 
+          t !== 'current' && 
+          !excluded.includes(t) &&
+          !t.startsWith('Form Responses')
+        );
+        setAllTabs(monthTabs);
+      })
+      .catch(() => {});
+  }
+
+  // Previous month = first non-current tab (june 2026)
+  const previousMonth = allTabs[0] || 'june 2026';
+  const MONTHS = ['Current', previousMonth];
 
   const fetchOrders = async (month = activeMonth) => {
     setLoading(true);
     setError(null);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}/values/${encodeURIComponent(month)}!A:T?key=${SHEETS_API_KEY}`;
+      const tabName = (month === "Current") ? "current" : month;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SO_SHEET_ID}/values/${encodeURIComponent(tabName)}!A:T?key=${SHEETS_API_KEY}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -2539,13 +2565,28 @@ const SpecialOrdersView = ({ currentUser }) => {
       </div>
 
       {/* Month selector */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        {MONTHS.map(m => (
-          <button key={m} onClick={() => { setActiveMonth(m); fetchOrders(m); }}
-            style={{ background: activeMonth === m ? C.teal : C.surface, color: activeMonth === m ? "#fff" : C.textDim, border: `1px solid ${activeMonth === m ? C.teal : C.border}`, borderRadius: 8, padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-            {m}
-          </button>
-        ))}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => { setActiveMonth("Current"); fetchOrders("Current"); setShowHistory(false); }}
+          style={{ background: activeMonth === "Current" ? C.teal : C.surface, color: activeMonth === "Current" ? "#fff" : C.textDim, border: `1px solid ${activeMonth === "Current" ? C.teal : C.border}`, borderRadius: 8, padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          📋 Current
+        </button>
+        <button onClick={() => { setActiveMonth(previousMonth); fetchOrders(previousMonth); setShowHistory(false); }}
+          style={{ background: activeMonth === previousMonth ? C.teal : C.surface, color: activeMonth === previousMonth ? "#fff" : C.textDim, border: `1px solid ${activeMonth === previousMonth ? C.teal : C.border}`, borderRadius: 8, padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          📁 {previousMonth || "Previous Month"}
+        </button>
+        <button onClick={() => setShowHistory(!showHistory)}
+          style={{ background: showHistory ? C.gold : C.surface, color: showHistory ? "#000" : C.textDim, border: `1px solid ${showHistory ? C.gold : C.border}`, borderRadius: 8, padding: "6px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          🗂 History ▾
+        </button>
+        {showHistory && (
+          <select onChange={e => { if (e.target.value) { setActiveMonth(e.target.value); fetchOrders(e.target.value); setShowHistory(false); } }}
+            style={{ background: C.surface, border: `1px solid ${C.gold}`, borderRadius: 8, padding: "6px 12px", color: C.text, fontSize: 13, outline: "none" }}>
+            <option value="">Select month...</option>
+            {allTabs.slice(1).map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Controls */}
