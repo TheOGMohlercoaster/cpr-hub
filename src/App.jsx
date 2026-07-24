@@ -563,8 +563,6 @@ PREPARE FOR REPAIRS
 • Verify required parts are in stock before beginning work
 • Organize your repair workflow to maximize efficiency throughout the day`
   },
-  { id: 1, title: "iPhone Screen Replacement Protocol", category: "Repair", updated: "Jun 1", content: "" },
-  { id: 2, title: "Samsung Water Damage Intake", category: "Repair", updated: "May 28", content: "" },
   { id: 3, title: "Trade-In Evaluation Checklist", category: "Sales", updated: "May 20", content: "" },
   {
     id: 4,
