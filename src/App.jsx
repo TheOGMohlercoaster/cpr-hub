@@ -3490,7 +3490,7 @@ const LeaderboardView = () => {
 
   const tabs = [
     { id: "sales",     label: "Total Sales",     key: "totalSales",     format: v => `$${v.toLocaleString()}`,  color: "#00C9A7" },
-    { id:    label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
+    { id: "repairs",   label: "?? Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
     { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString()}`,  color: "#FFB547" },
     { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString()}`,  color: "#3B82F6" },
   ];
@@ -3787,3 +3787,4 @@ export default function App() {
     </div>
   );
 }
+
