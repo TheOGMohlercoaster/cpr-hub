@@ -1032,6 +1032,7 @@ const DashboardView = ({ setView, currentUser }) => {
           { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: "#3B82F6" },
           { name: "Device Care", url: "https://devicecarenow.com/cpr", color: "#00C9A7" },
           { name: "Akko", url: "https://partner.akko.app/claims/device-info", color: "#A855F7" },
+          { name: "Claims National Accounts", url: "https://franchiseeconnects.sharepoint.com/SitePages/National-Accounts.aspx", color: "#22C55E" },
           { name: "CPR Support", url: "https://cpr.creatio.com", color: "#FFB547" },
           { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: "#22C55E" },
           { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: "#00C9A7" },
@@ -3394,6 +3395,7 @@ const LINK_CATEGORIES = [
       { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile" },
       { name: "Device Care", url: "https://devicecarenow.com/cpr" },
       { name: "Akko", url: "https://partner.akko.app/claims/device-info" },
+      { name: "Claims National Accounts", url: "https://franchiseeconnects.sharepoint.com/SitePages/National-Accounts.aspx" },
     ]
   },
 ];
