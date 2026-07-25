@@ -2411,7 +2411,7 @@ const TodaySchedule = () => {
       {!loading && shifts.length > 0 && (
         <div style={{ display: "grid", gap: 8 }}>
           {shifts.sort((a, b) => a.startTime.localeCompare(b.startTime)).map((s, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 12px", background: C.bg, borderRadius: 8, border: `1px solid ${C.border}` }}>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: C.bg, borderRadius: 8, border: `1px solid ${C.border}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <span style={{ color: C.accent, fontWeight: 800, fontSize: 13 }}>{s.firstName.charAt(0)}</span>
@@ -2421,12 +2421,14 @@ const TodaySchedule = () => {
                   {s.notes && <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>📝 {s.notes}</div>}
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ color: C.teal, fontWeight: 700, fontSize: 13 }}>{s.startTime} – {s.endTime}
-                  {(s.startTime === '9:30 AM' || s.startTime === '9:30AM') && <span style={{ background: '#22C55E22', color: '#22C55E', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>OPEN</span>}
-                  {(s.endTime === '6:30 PM' || s.endTime === '6:30PM') && <span style={{ background: '#3B82F622', color: '#3B82F6', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>CLOSE</span>}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ color: C.teal, fontWeight: 700, fontSize: 13 }}>{s.startTime} – {s.endTime}</div>
                 </div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}></div>
+                <div style={{ minWidth: 52, textAlign: "center" }}>
+                  {(s.startTime === '9:30 AM' || s.startTime === '9:30AM') && <span style={{ background: '#22C55E22', color: '#22C55E', borderRadius: 4, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>OPEN</span>}
+                  {(s.endTime === '6:30 PM' || s.endTime === '6:30PM') && <span style={{ background: '#3B82F622', color: '#3B82F6', borderRadius: 4, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>CLOSE</span>}
+                </div>
               </div>
             </div>
           ))}
