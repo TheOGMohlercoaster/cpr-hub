@@ -42,9 +42,9 @@ const EMPLOYEES = [
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","repairs","tasks","orders","schedule","links","leaderboard","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","repairs","tasks","orders","schedule","links","leaderboard"],
-  "Tech":       ["dashboard","sop","repairs","tasks","orders","schedule","links","leaderboard"],
+  "Owner":      ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
+  "Tech":       ["dashboard","sop","tasks","orders","schedule","links","leaderboard"],
   "Sales":      ["dashboard","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
 };
 
@@ -886,7 +886,6 @@ const NAV = [
   { id: "buyphones", label: "Buy Phones", icon: "buyphones" },
   { id: "sop", label: "SOPs", icon: "sop" },
 
-  { id: "repairs", label: "Tech Repairs", icon: "repairs" },
   { id: "tasks", label: "Daily Tasks", icon: "tasks" },
   { id: "orders", label: "Special Orders", icon: "dollar" },
   { id: "schedule", label: "Schedule", icon: "tasks" },
@@ -3459,7 +3458,7 @@ const LeaderboardView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [month, setMonth] = useState("");
-  const [tab, setTab] = useState("sales");
+  const [tab, setTab] = useState("repairs");
   const [mounted, setMounted] = useState(false);
 
   const fetchData = async () => {
@@ -3491,7 +3490,7 @@ const LeaderboardView = () => {
 
   const tabs = [
     { id: "sales",     label: "Total Sales",     key: "totalSales",     format: v => `$${v.toLocaleString()}`,  color: "#00C9A7" },
-    { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
+    { id:    label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
     { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString()}`,  color: "#FFB547" },
     { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString()}`,  color: "#3B82F6" },
   ];
@@ -3505,7 +3504,7 @@ const LeaderboardView = () => {
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#E8EAED", margin: "0 0 4px" }}>Sales Leaderboard</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#E8EAED", margin: "0 0 4px" }}>Leaderboard</h2>
         <div style={{ color: "#6B7280", fontSize: 13 }}>
           {month} · Updated from RepairQ
           <button onClick={fetchData} style={{ background: "transparent", border: "none", color: "#6B7280", cursor: "pointer", fontSize: 16, marginLeft: 8 }}>↻</button>
@@ -3567,7 +3566,6 @@ const VIEWS = {
   pricing: PricingView,
   buyphones: BuyPhonesView,
   sop: SOPView,
-  repairs: RepairsView,
   tasks: TasksView,
   pos: POSView,
   crm: CRMView,
