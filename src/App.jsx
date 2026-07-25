@@ -884,7 +884,7 @@ const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "dashboard" },
   { id: "pricing", label: "Repair Pricing", icon: "pricing" },
   { id: "buyphones", label: "Buy Phones", icon: "buyphones" },
-  { id: "sop", label: "SOPs", icon: "sop" },
+  { id: "orders", label: "Special Orders", icon: "dollar" },`r`n  { id: "links", label: "Quick Links", icon: "trend" },`r`n  { id: "tasks", label: "Daily Tasks", icon: "tasks" },`r`n  { id: "sop", label: "SOPs", icon: "sop" },
 
   { id: "tasks", label: "Daily Tasks", icon: "tasks" },
   { id: "orders", label: "Special Orders", icon: "dollar" },
@@ -3787,3 +3787,4 @@ export default function App() {
     </div>
   );
 }
+
