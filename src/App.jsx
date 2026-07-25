@@ -881,19 +881,15 @@ const ATLAS_PHONES = [
 
 // ── Nav items ─────────────────────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard", label: "Dashboard", icon: "dashboard" },
-  { id: "pricing", label: "Repair Pricing", icon: "pricing" },
-  { id: "buyphones", label: "Buy Phones", icon: "buyphones" },
-{ id: "orders", label: "Special Orders", icon: "dollar" },
-  { id: "links", label: "Quick Links", icon: "trend" },
-  { id: "tasks", label: "Daily Tasks", icon: "tasks" },
-  { id: "sop", label: "SOPs", icon: "sop" },
-
-  { id: "tasks", label: "Daily Tasks", icon: "tasks" },
-  { id: "orders", label: "Special Orders", icon: "dollar" },
-  { id: "schedule", label: "Schedule", icon: "tasks" },
-  { id: "links", label: "Quick Links", icon: "trend" },
-  { id: "leaderboard", label: "Leaderboard", icon: "trend" },
+  { id: "dashboard",   label: "Dashboard",      icon: "dashboard" },
+  { id: "pricing",     label: "Repair Pricing",  icon: "pricing" },
+  { id: "buyphones",   label: "Buy Phones",      icon: "buyphones" },
+  { id: "orders",      label: "Special Orders",  icon: "dollar" },
+  { id: "links",       label: "Quick Links",     icon: "trend" },
+  { id: "tasks",       label: "Daily Tasks",     icon: "tasks" },
+  { id: "sop",         label: "SOPs",            icon: "sop" },
+  { id: "schedule",    label: "Schedule",        icon: "tasks" },
+  { id: "leaderboard", label: "Leaderboard",     icon: "trend" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
