@@ -2426,7 +2426,7 @@ const TodaySchedule = () => {
                   {(s.startTime === '9:30 AM' || s.startTime === '9:30AM') && <span style={{ background: '#22C55E22', color: '#22C55E', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>OPEN</span>}
                   {(s.endTime === '6:30 PM' || s.endTime === '6:30PM') && <span style={{ background: '#3B82F622', color: '#3B82F6', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700, marginLeft: 6 }}>CLOSE</span>}
                 </div>
-                <div style={{ color: C.textMuted, fontSize: 11 }}>{s.hours} hrs</div>
+                <div style={{ color: C.textMuted, fontSize: 11 }}></div>
               </div>
             </div>
           ))}
