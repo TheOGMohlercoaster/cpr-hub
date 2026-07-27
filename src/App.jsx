@@ -965,6 +965,30 @@ const DashboardView = ({ setView, currentUser }) => {
   const salesMonth = salesData.length > 0 ? salesData[0].month : 'This Month';
 
   const [announcements, setAnnouncements] = useState(getAnnouncements);
+
+  // Auto recurring announcements
+  const getAutoAnnouncements = () => {
+    const today = new Date();
+    const day = today.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed
+    const date = today.getDate();
+    const auto = [];
+
+    // Every other Monday-Wednesday: Process KBBs
+    // Week number since epoch to determine even/odd weeks
+    const weekNum = Math.floor(today.getTime() / (7 * 24 * 60 * 60 * 1000));
+    const isEvenWeek = weekNum % 2 === 0;
+    if ((day === 1 || day === 2 || day === 3) && isEvenWeek) {
+      auto.push({ id: 'auto-kbb', text: '📋 Reminder: Process KBBs today', author: 'Auto', time: 'Recurring', auto: true });
+    }
+
+    // First week of month (days 1-7): Process parts returns
+    if (date >= 1 && date <= 7) {
+      auto.push({ id: 'auto-parts', text: '📦 Reminder: Process parts returns this week', author: 'Auto', time: 'Monthly', auto: true });
+    }
+
+    return auto;
+  };
+  const autoAnnouncements = getAutoAnnouncements();
   const [newPost, setNewPost] = useState("");
   const [newPinned, setNewPinned] = useState("");
   const [showPinnedEdit, setShowPinnedEdit] = useState(false);
@@ -1063,6 +1087,14 @@ const DashboardView = ({ setView, currentUser }) => {
             </div>
           )}
         </div>
+
+        {/* Auto recurring announcements */}
+        {autoAnnouncements.map(a => (
+          <div key={a.id} style={{ background: '#3B82F622', border: '1px solid #3B82F644', borderRadius: 10, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ color: '#3B82F6', fontWeight: 600, fontSize: 14, flex: 1 }}>{a.text}</span>
+            <span style={{ color: '#6B7280', fontSize: 11 }}>{a.time}</span>
+          </div>
+        ))}
 
         {/* Pinned message */}
         {announcements.pinned && (
