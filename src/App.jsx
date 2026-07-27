@@ -1404,7 +1404,7 @@ const IMEIChecker = () => {
         const batch = pollData?.data;
         const batchStatus = batch?.status;
 
-        if (batchStatus === 'finished' || batchStatus === 'completed') {
+        if (batchStatus === 'finished' || batchStatus === 'completed' || batchStatus === 'successful') {
           const results = batch?.result || [];
           const r = results.find(r => r.imei === cleaned) || results[0];
           setResult({
