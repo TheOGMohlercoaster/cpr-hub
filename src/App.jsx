@@ -881,15 +881,16 @@ const ATLAS_PHONES = [
 
 // ── Nav items ─────────────────────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard",   label: "Dashboard",      icon: "dashboard" },
-  { id: "pricing",     label: "Repair Pricing",  icon: "pricing" },
-  { id: "buyphones",   label: "Buy Phones",      icon: "buyphones" },
-  { id: "orders",      label: "Special Orders",  icon: "dollar" },
-  { id: "links",       label: "Quick Links",     icon: "trend" },
-  { id: "tasks",       label: "Daily Tasks",     icon: "tasks" },
-  { id: "sop",         label: "SOPs",            icon: "sop" },
-  { id: "schedule",    label: "Schedule",        icon: "tasks" },
-  { id: "leaderboard", label: "Leaderboard",     icon: "trend" },
+  { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+  { id: "pricing", label: "Repair Pricing", icon: "pricing" },
+  { id: "buyphones", label: "Buy Phones", icon: "buyphones" },
+  { id: "sop", label: "SOPs", icon: "sop" },
+
+  { id: "tasks", label: "Daily Tasks", icon: "tasks" },
+  { id: "orders", label: "Special Orders", icon: "dollar" },
+  { id: "schedule", label: "Schedule", icon: "tasks" },
+  { id: "links", label: "Quick Links", icon: "trend" },
+  { id: "leaderboard", label: "Leaderboard", icon: "trend" },
 ];
 
 // ── Shared UI components ──────────────────────────────────────────────────
@@ -1342,39 +1343,38 @@ const IMEIChecker = () => {
   const creds = getM360Creds();
   const hasCredentials = creds.authCode && creds.authToken;
 
+  const postM360 = (action, extra = {}) => fetch('/api/imei-check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, imei: imei.replace(/[^0-9]/g, ''), authCode: creds.authCode, authToken: creds.authToken, ...extra })
+  }).then(r => r.json());
+
   const checkIMEI = async () => {
-    const cleaned = imei.replace(/\s|-/g, '');
+    const cleaned = imei.replace(/[^0-9]/g, '');
     if (cleaned.length < 14 || cleaned.length > 16) {
-      setError('Please enter a valid IMEI (14-16 digits)');
-      return;
+      setError('Please enter a valid IMEI (14-16 digits)'); return;
     }
     if (!hasCredentials) {
-      setError('Add your M360 credentials in Settings first');
-      return;
+      setError('Add your M360 credentials in Settings first'); return;
     }
     setStatus('loading');
     setError('');
     setResult(null);
 
     try {
-      // First check history for existing result
-      const histRes = await fetch('/api/imei-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'history', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
-      });
-      const histData = await histRes.json();
+      // Step 1: Check history for existing blacklist result
+      const histData = await postM360('history');
       const records = histData?.data?.records || [];
-      
+
       if (records.length > 0) {
-        const latest = records[0];
-        const blResult = latest.blacklistCheckResult || latest.device?.actualBlacklistCheckResult;
-        if (blResult) {
+        const rec = records[0];
+        const bl = rec.blacklistCheckResult || rec.device?.actualBlacklistCheckResult;
+        if (bl) {
           setResult({
             imei: cleaned,
-            status: blResult.result,
-            device: latest.friendlyName || latest.marketingName || 'Unknown Device',
-            checkedAt: blResult.createdAt,
+            status: bl.result,
+            device: rec.marketingName || rec.friendlyName || 'Device Found',
+            checkedAt: bl.createdAt,
             source: 'history'
           });
           setStatus('done');
@@ -1382,47 +1382,40 @@ const IMEIChecker = () => {
         }
       }
 
-      // Schedule new blacklist check
-      const schedRes = await fetch('/api/imei-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'schedule', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
-      });
-      const schedData = await schedRes.json();
-      
+      // Step 2: Check history without blacklist filter for device info
+      const hist2 = await postM360('historyAll');
+      const rec2 = (hist2?.data?.records || [])[0];
+      const deviceName = rec2?.marketingName || rec2?.friendlyName || null;
+
+      // Step 3: Schedule new blacklist check
+      setStatus('polling');
+      const schedData = await postM360('schedule');
       if (!schedData?.meta?.success) {
         throw new Error(schedData?.meta?.errors?.title || 'Failed to schedule check');
       }
-
       const batchId = schedData?.data?.batchId;
       if (!batchId) throw new Error('No batch ID returned');
 
-      setStatus('polling');
-
-      // Poll for results
+      // Step 4: Poll for result
       let attempts = 0;
       const poll = async () => {
         attempts++;
-        const pollRes = await fetch('/api/imei-check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getResult', batchId, authCode: creds.authCode, authToken: creds.authToken })
-        });
-        const pollData = await pollRes.json();
-        const batchStatus = pollData?.data?.status;
-        
+        const pollData = await postM360('getResult', { batchId });
+        const batch = pollData?.data;
+        const batchStatus = batch?.status;
+
         if (batchStatus === 'finished' || batchStatus === 'completed') {
-          const results = pollData?.data?.result || [];
+          const results = batch?.result || [];
           const r = results.find(r => r.imei === cleaned) || results[0];
           setResult({
             imei: cleaned,
             status: r?.result || 'unknown',
-            device: 'IMEI Checked',
+            device: deviceName || 'IMEI Checked',
             checkedAt: new Date().toISOString(),
             source: 'new'
           });
           setStatus('done');
-        } else if (attempts < 10) {
+        } else if (attempts < 15) {
           setTimeout(poll, 2000);
         } else {
           setError('Check timed out — please try again');
@@ -3786,5 +3779,3 @@ export default function App() {
     </div>
   );
 }
-
-

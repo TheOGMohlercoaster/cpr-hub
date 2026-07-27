@@ -8,53 +8,62 @@ export default async function handler(req, res) {
   const { imei, authCode, authToken, action, batchId } = req.body;
 
   if (!authCode || !authToken) {
-    return res.status(400).json({ error: 'Missing credentials' });
+    return res.status(400).json({ error: 'Missing authCode or authToken' });
   }
 
-  const body = { authCode: authCode.trim(), authToken: authToken.trim() };
+  // V2 Bearer auth: AuthCode-AuthToken
+  const bearerToken = `${authCode.trim()}-${authToken.trim()}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${bearerToken}`
+  };
+
+  const BASE = 'https://m360soft.com/api/customer/v2';
 
   try {
-    let url, payload;
+    let url, body;
 
-    if (action === 'schedule') {
-      url = 'https://m360soft.com/api/customer/v1/scheduleBlacklistCheck';
-      payload = { ...body, imeiList: [imei] };
+    if (action === 'history') {
+      // Search history for this IMEI's blacklist check result
+      url = `${BASE}/getHistory`;
+      body = { imei: [imei], limit: 1, hasBlacklistCheck: true };
+
+    } else if (action === 'historyAll') {
+      // Get history without blacklist filter (to find device info)
+      url = `${BASE}/getHistory`;
+      body = { imei: [imei], limit: 1 };
+
+    } else if (action === 'schedule') {
+      // Schedule new blacklist check
+      url = `${BASE}/scheduleBlacklistCheck`;
+      body = { imeiList: [imei] };
+
     } else if (action === 'getResult') {
-      url = 'https://m360soft.com/api/customer/v1/getBlacklistChecksByBatchId';
-      payload = { ...body, batchId };
-    } else if (action === 'history') {
-      url = 'https://m360soft.com/api/customer/v1/getHistory';
-      payload = { ...body, imei, limit: 1 };
+      // Get batch result by batchId
+      url = `${BASE}/getBlacklistChecksByBatchId`;
+      body = { batchId };
+
     } else if (action === 'test') {
-      // Simple connection test
-      url = 'https://m360soft.com/api/customer/v1/getHistory';
-      payload = { ...body, limit: 1 };
+      url = `${BASE}/getHistory`;
+      body = { limit: 1 };
+
     } else {
       return res.status(400).json({ error: 'Invalid action' });
     }
 
-    console.log('Calling M360:', url, 'authCode:', authCode.substring(0, 8) + '...');
-
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      headers,
+      body: JSON.stringify(body)
     });
 
     const text = await response.text();
-    console.log('M360 response status:', response.status);
-    console.log('M360 response:', text.substring(0, 300));
-
     try {
       res.status(200).json(JSON.parse(text));
     } catch {
       res.status(200).json({ raw: text.substring(0, 500) });
     }
   } catch (error) {
-    console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
 }
