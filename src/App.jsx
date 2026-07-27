@@ -1327,6 +1327,127 @@ const PricingView = () => {
   );
 };
 
+// ── DEVICE INFO CHECKER ──────────────────────────────────────────────────
+const DeviceInfoChecker = () => {
+  const [imei, setImei] = useState('');
+  const [status, setStatus] = useState(null);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const creds = getM360Creds();
+  const hasCredentials = creds.authCode && creds.authToken;
+
+  const lookup = async () => {
+    const cleaned = imei.replace(/[^0-9]/g, '');
+    if (cleaned.length < 14 || cleaned.length > 16) { setError('Please enter a valid IMEI (14-16 digits)'); return; }
+    if (!hasCredentials) { setError('Add your M360 credentials in Settings first'); return; }
+    setStatus('loading'); setError(''); setResult(null);
+
+    try {
+      const res = await fetch('/api/imei-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'historyAll', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
+      });
+      const data = await res.json();
+      const rec = (data?.data?.records || [])[0];
+
+      if (!rec) {
+        setError('No device found for this IMEI. Device must have been previously connected to M360.');
+        setStatus('error');
+        return;
+      }
+
+      setResult({
+        imei: cleaned,
+        device:        rec.marketingName || rec.friendlyName || 'Unknown Device',
+        manufacturer:  rec.manufacturer || null,
+        model:         rec.modelName || rec.modelCode || null,
+        color:         rec.deviceColor || null,
+        storage:       rec.internalStorageFree || null,
+        batteryHealth: rec.batteryHealthPercent || rec.preciseBatteryHealthPercent || null,
+        batteryCycles: rec.batteryCycles || null,
+        batteryCapacity: rec.fullChargeCapacity ? `${rec.fullChargeCapacity} mAh / ${rec.batteryDesignCapacity} mAh` : null,
+        account:       rec.associatedAccount || null,
+        knoxWarranty:  rec.samsungKnoxWarranty || null,
+        frpState:      rec.frpState,
+        networkOperator: rec.networkOperator || null,
+        simStatus:     rec.simStatus || null,
+        simLock:       rec.device?.actualSimLockCheckResult || null,
+        os:            rec.osType || null,
+        origin:        rec.deviceOrigin || null,
+        checkedAt:     rec.createdAt,
+      });
+      setStatus('done');
+    } catch(e) {
+      setError(e.message);
+      setStatus('error');
+    }
+  };
+
+  const Row = ({ label, value, color }) => value == null ? null : (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: `1px solid #252A3A` }}>
+      <span style={{ color: '#6B7280', fontSize: 13 }}>{label}</span>
+      <span style={{ color: color || '#E8EAED', fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '60%' }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <Card style={{ marginBottom: 20 }}>
+      <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>📱 Device Info Lookup</div>
+      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Pull device details from M360 history — no tokens used</div>
+
+      {!hasCredentials && (
+        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '10px 14px', color: '#FFB547', fontSize: 12, marginBottom: 12 }}>
+          ⚠️ Add your M360 credentials in Settings to use this feature
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input value={imei} onChange={e => { setImei(e.target.value.replace(/[^0-9]/g, '')); setResult(null); setError(''); }}
+          onKeyDown={e => e.key === 'Enter' && lookup()}
+          placeholder='Enter IMEI number…' maxLength={16}
+          style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+        <button onClick={lookup} disabled={status === 'loading'}
+          style={{ background: status === 'loading' ? '#252A3A' : '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+          {status === 'loading' ? '⏳ Looking up...' : 'Lookup Device'}
+        </button>
+      </div>
+
+      {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
+
+      {result && status === 'done' && (
+        <div style={{ background: '#0F111733', borderRadius: 10, padding: '14px 16px' }}>
+          <div style={{ color: '#E8EAED', fontWeight: 800, fontSize: 16, marginBottom: 12 }}>{result.device}</div>
+          <Row label='Manufacturer' value={result.manufacturer} />
+          <Row label='Model' value={result.model} />
+          <Row label='Color' value={result.color} />
+          <Row label='Storage Free' value={result.storage} />
+          <Row label='Battery Health' value={result.batteryHealth} color={
+            result.batteryHealth ? (parseInt(result.batteryHealth) >= 80 ? '#22C55E' : parseInt(result.batteryHealth) >= 60 ? '#FFB547' : '#EF4444') : null
+          } />
+          <Row label='Battery Cycles' value={result.batteryCycles ? result.batteryCycles + ' cycles' : null} />
+          <Row label='Battery Capacity' value={result.batteryCapacity} />
+          <Row label='Associated Account' value={
+            result.account === 'found' ? '🔒 Account Found' : result.account === 'no' ? '✅ No Account' : result.account
+          } color={result.account === 'found' ? '#EF4444' : result.account === 'no' ? '#22C55E' : null} />
+          <Row label='Samsung Knox' value={result.knoxWarranty ? result.knoxWarranty.charAt(0).toUpperCase() + result.knoxWarranty.slice(1) : null} />
+          <Row label='FRP State' value={result.frpState === true ? '🔒 FRP Enabled' : result.frpState === false ? '✅ FRP Off' : null}
+            color={result.frpState === true ? '#EF4444' : '#22C55E'} />
+          <Row label='Network Operator' value={result.networkOperator} />
+          <Row label='SIM Status' value={result.simStatus === 'no_sim' ? 'No SIM' : result.simStatus === 'has_sim' ? 'SIM Present' : result.simStatus} />
+          <Row label='SIM Lock' value={
+            result.simLock ? (result.simLock.isLocked ? `🔒 Locked (${result.simLock.carrier || 'Unknown'})` : '✅ Unlocked') : null
+          } color={result.simLock?.isLocked ? '#EF4444' : '#22C55E'} />
+          <Row label='Device Origin' value={result.origin ? result.origin.charAt(0).toUpperCase() + result.origin.slice(1) : null} />
+          <div style={{ color: '#6B7280', fontSize: 11, marginTop: 10 }}>
+            IMEI: {result.imei} · Last seen: {new Date(result.checkedAt).toLocaleString()}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
 // ── IMEI CHECKER ─────────────────────────────────────────────────────────
 const getM360Creds = () => {
   try {
@@ -1373,7 +1494,13 @@ const IMEIChecker = () => {
           setResult({
             imei: cleaned,
             status: bl.result,
-            device: rec.marketingName || rec.friendlyName || 'Device Found',
+            device:        rec.marketingName || rec.friendlyName || 'Unknown Device',
+            batteryHealth: rec.batteryHealthPercent || rec.preciseBatteryHealthPercent || null,
+            batteryCycles: rec.batteryCycles || null,
+            account:       rec.associatedAccount || null,
+            simStatus:     rec.simStatus || null,
+            simLock:       rec.device?.actualSimLockCheckResult || null,
+            origin:        rec.deviceOrigin || null,
             checkedAt: bl.createdAt,
             source: 'history'
           });
@@ -1382,10 +1509,20 @@ const IMEIChecker = () => {
         }
       }
 
-      // Step 2: Check history without blacklist filter for device info
+      // Step 2: Check history without blacklist filter for full device info
       const hist2 = await postM360('historyAll');
       const rec2 = (hist2?.data?.records || [])[0];
-      const deviceName = rec2?.marketingName || rec2?.friendlyName || null;
+      const deviceInfo = rec2 ? {
+        device:        rec2.marketingName || rec2.friendlyName || 'Unknown Device',
+        batteryHealth: rec2.batteryHealthPercent || rec2.preciseBatteryHealthPercent || null,
+        batteryCycles: rec2.batteryCycles || null,
+        account:       rec2.associatedAccount || null,
+        simStatus:     rec2.simStatus || null,
+        simLock:       rec2.device?.actualSimLockCheckResult || null,
+        origin:        rec2.deviceOrigin || null,
+        os:            rec2.osType || null,
+        storage:       rec2.internalStorageFree || null,
+      } : {};
 
       // Step 3: Schedule new blacklist check
       setStatus('polling');
@@ -1410,9 +1547,9 @@ const IMEIChecker = () => {
           setResult({
             imei: cleaned,
             status: r?.result || 'unknown',
-            device: deviceName || 'IMEI Checked',
             checkedAt: new Date().toISOString(),
-            source: 'new'
+            source: 'new',
+            ...deviceInfo,
           });
           setStatus('done');
         } else if (attempts < 15) {
@@ -1472,18 +1609,60 @@ const IMEIChecker = () => {
         const sc = statusConfig[result.status] || statusConfig.unknown;
         return (
           <div style={{ background: sc.bg, border: `1px solid ${sc.color}44`, borderRadius: 10, padding: '14px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <span style={{ fontSize: 24 }}>{sc.icon}</span>
-              <div>
-                <div style={{ color: sc.color, fontWeight: 800, fontSize: 18 }}>{sc.label}</div>
-                <div style={{ color: '#9CA3AF', fontSize: 12 }}>{sc.desc}</div>
-              </div>
-            </div>
-            <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>
-              IMEI: {result.imei} · Checked: {new Date(result.checkedAt).toLocaleString()}
-              {result.source === 'history' ? ' · From M360 history' : ' · Fresh check'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 24 }}>{sc.icon}</span>
+            <div>
+              <div style={{ color: sc.color, fontWeight: 800, fontSize: 18 }}>{sc.label}</div>
+              <div style={{ color: '#9CA3AF', fontSize: 12 }}>{sc.desc}</div>
             </div>
           </div>
+          {result.device && result.device !== 'IMEI Checked' && (
+            <div style={{ color: '#E8EAED', fontWeight: 700, fontSize: 15, marginBottom: 10 }}>{result.device}</div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+            {result.batteryHealth && (
+              <div style={{ background: '#0F111722', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>Battery Health</div>
+                <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 15 }}>{result.batteryHealth}</div>
+                {result.batteryCycles && <div style={{ color: '#6B7280', fontSize: 11 }}>{result.batteryCycles} cycles</div>}
+              </div>
+            )}
+            {result.account && (
+              <div style={{ background: '#0F111722', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>Account Lock</div>
+                <div style={{ color: result.account === 'found' ? '#EF4444' : '#22C55E', fontWeight: 700, fontSize: 15 }}>
+                  {result.account === 'found' ? '🔒 Account Found' : '✅ No Account'}
+                </div>
+              </div>
+            )}
+            {result.simStatus && (
+              <div style={{ background: '#0F111722', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>SIM Status</div>
+                <div style={{ color: '#E8EAED', fontWeight: 700, fontSize: 15 }}>
+                  {result.simStatus === 'no_sim' ? 'No SIM' : 'SIM Present'}
+                </div>
+              </div>
+            )}
+            {result.simLock && (
+              <div style={{ background: '#0F111722', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>SIM Lock</div>
+                <div style={{ color: result.simLock.isLocked ? '#EF4444' : '#22C55E', fontWeight: 700, fontSize: 15 }}>
+                  {result.simLock.isLocked ? `🔒 Locked (${result.simLock.carrier || 'Unknown'})` : '✅ Unlocked'}
+                </div>
+              </div>
+            )}
+            {result.origin && (
+              <div style={{ background: '#0F111722', borderRadius: 8, padding: '8px 12px' }}>
+                <div style={{ color: '#6B7280', fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8 }}>Device Origin</div>
+                <div style={{ color: '#E8EAED', fontWeight: 700, fontSize: 15, textTransform: 'capitalize' }}>{result.origin}</div>
+              </div>
+            )}
+          </div>
+          <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>
+            IMEI: {result.imei} · {new Date(result.checkedAt).toLocaleString()}
+            {result.source === 'history' ? ' · From history' : ' · Fresh check'}
+          </div>
+        </div>
         );
       })()}
     </Card>
@@ -1595,6 +1774,9 @@ const BuyPhonesView = () => {
           Live Atlas pricing · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
       </div>
+
+      {/* Device Info Lookup */}
+      <DeviceInfoChecker />
 
       {/* IMEI Blacklist Checker */}
       <IMEIChecker />
