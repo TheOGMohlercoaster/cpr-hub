@@ -1674,28 +1674,78 @@ const getSickwKey = () => {
   try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; }
 };
 
-const SickwChecker = ({ title, icon, service, color, fields }) => {
+// Parse Sickw HTML result string into clean lines
+const parseSickwResult = (resultStr) => {
+  if (!resultStr) return [];
+  // Remove HTML tags and split by line breaks
+  const lines = resultStr
+    .replace(/<br\s*\/?>/gi, '
+')
+    .replace(/<[^>]+>/g, '')
+    .split('
+')
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+  // Parse each line into label/value pairs
+  return lines.map(line => {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx > 0) {
+      return { label: line.substring(0, colonIdx).trim(), value: line.substring(colonIdx + 1).trim() };
+    }
+    return { label: line, value: '' };
+  });
+};
+
+const getSickwColor = (value) => {
+  if (!value) return '#E8EAED';
+  const v = value.toLowerCase();
+  if (v.includes('on') || v.includes('locked') || v.includes('blacklisted') || v.includes('lost') || v.includes('stolen')) return '#EF4444';
+  if (v.includes('off') || v.includes('unlocked') || v.includes('clean') || v.includes('ok')) return '#22C55E';
+  return '#E8EAED';
+};
+
+const SickwChecker = ({ title, icon, services, color }) => {
   const [imei, setImei] = useState('');
   const [status, setStatus] = useState(null);
-  const [result, setResult] = useState(null);
+  const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const apiKey = getSickwKey();
 
   const check = async () => {
-    const cleaned = imei.replace(/[^0-9a-zA-Z]/g, '');
+    const cleaned = imei.replace(/[^0-9]/g, '');
     if (cleaned.length < 14) { setError('Please enter a valid IMEI (14+ digits)'); return; }
     if (!apiKey) { setError('Add your Sickw API key in Settings first'); return; }
-    setStatus('loading'); setError(''); setResult(null);
+    setStatus('loading'); setError(''); setResults([]);
+
     try {
-      const res = await fetch('/api/sickw-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imei: cleaned, apiKey, service })
+      // Run all services in parallel
+      const checks = await Promise.all(services.map(svc =>
+        fetch('/api/sickw-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imei: cleaned, apiKey, service: svc })
+        }).then(r => r.json())
+      ));
+
+      const allLines = [];
+      checks.forEach(data => {
+        if (data.status === 'success' && data.result) {
+          const lines = parseSickwResult(data.result);
+          lines.forEach(line => {
+            if (line.label && !allLines.find(l => l.label === line.label)) {
+              allLines.push(line);
+            }
+          });
+        }
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      if (data.raw) throw new Error(data.raw);
-      setResult(data);
+
+      if (allLines.length === 0) {
+        setError('No data returned — IMEI may not be supported for this device type');
+        setStatus('error');
+        return;
+      }
+
+      setResults(allLines);
       setStatus('done');
     } catch(e) {
       setError(e.message);
@@ -1703,26 +1753,19 @@ const SickwChecker = ({ title, icon, service, color, fields }) => {
     }
   };
 
-  const Row = ({ label, value, color: c }) => !value ? null : (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #252A3A33' }}>
-      <span style={{ color: '#6B7280', fontSize: 13 }}>{label}</span>
-      <span style={{ color: c || '#E8EAED', fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{value}</span>
-    </div>
-  );
-
   return (
     <Card style={{ marginBottom: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>{icon} {title}</div>
-      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by Sickw · Service {service}</div>
+      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by Sickw</div>
       {!apiKey && (
         <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '8px 12px', color: '#FFB547', fontSize: 12, marginBottom: 10 }}>
           ⚠️ Add your Sickw API key in Settings to use this feature
         </div>
       )}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-        <input value={imei} onChange={e => { setImei(e.target.value); setResult(null); setError(''); }}
+        <input value={imei} onChange={e => { setImei(e.target.value); setResults([]); setError(''); }}
           onKeyDown={e => e.key === 'Enter' && check()}
-          placeholder='Enter IMEI number…' maxLength={20}
+          placeholder='Enter IMEI number…' maxLength={16}
           style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
         <button onClick={check} disabled={status === 'loading'}
           style={{ background: status === 'loading' ? '#252A3A' : color, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
@@ -1730,12 +1773,13 @@ const SickwChecker = ({ title, icon, service, color, fields }) => {
         </button>
       </div>
       {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
-      {result && status === 'done' && (
+      {results.length > 0 && status === 'done' && (
         <div style={{ background: '#0F111733', borderRadius: 10, padding: '12px 16px' }}>
-          {fields.map(f => (
-            <Row key={f.label} label={f.label}
-              value={f.format ? f.format(result) : result[f.key]}
-              color={f.color ? f.color(result) : null} />
+          {results.map((row, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < results.length - 1 ? '1px solid #252A3A33' : 'none' }}>
+              <span style={{ color: '#6B7280', fontSize: 13 }}>{row.label}</span>
+              <span style={{ color: getSickwColor(row.value), fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{row.value}</span>
+            </div>
           ))}
           <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>IMEI: {imei}</div>
         </div>
@@ -1748,22 +1792,8 @@ const iPhoneSickwCheck = () => (
   <SickwChecker
     title='iPhone Info Check'
     icon='🍎'
-    service={78}
+    services={[3, 78, 92]}
     color='#3B82F6'
-    fields={[
-      { label: 'Model', key: 'model_desc' },
-      { label: 'Model Name', key: 'model_name' },
-      { label: 'Color & Capacity', key: 'model_desc', format: r => r.color_capacity || r.model },
-      { label: 'Carrier', key: 'carrier', format: r => r.carrier || r.network },
-      { label: 'iCloud / FMI', key: 'fmi', format: r => r.fmi || r.icloud || r['Find My iPhone'],
-        color: r => (r.fmi === 'On' || r.icloud === 'On') ? '#EF4444' : '#22C55E' },
-      { label: 'SIM Lock', key: 'simlock', format: r => r.simlock || r['Sim-Lock Status'] || r.sim_lock,
-        color: r => (r.simlock === 'Locked' || r['Sim-Lock Status'] === 'Locked') ? '#EF4444' : '#22C55E' },
-      { label: 'Blacklist', key: 'blacklist', format: r => r.blacklist || r['Blacklist Status'],
-        color: r => r.blacklist === 'Blacklisted' ? '#EF4444' : '#22C55E' },
-      { label: 'Purchase Country', key: 'purchase_country', format: r => r.purchase_country || r['Purchase Country'] },
-      { label: 'Warranty', key: 'warranty', format: r => r.warranty || r['Warranty Status'] },
-    ]}
   />
 );
 
@@ -1771,20 +1801,8 @@ const SamsungSickwCheck = () => (
   <SickwChecker
     title='Samsung Info Check'
     icon='📱'
-    service={1}
+    services={[1, 80]}
     color='#1428A0'
-    fields={[
-      { label: 'Model', key: 'model_name', format: r => r.model_name || r['Model Name'] || r.model },
-      { label: 'Model Number', key: 'model_number', format: r => r.model_number || r['Model Number'] },
-      { label: 'Color', key: 'color', format: r => r.color || r['Color'] },
-      { label: 'Storage', key: 'storage', format: r => r.storage || r['Storage'] },
-      { label: 'Carrier', key: 'carrier', format: r => r.carrier || r['Carrier'] || r.network },
-      { label: 'SIM Lock', key: 'simlock', format: r => r.simlock || r['Sim-Lock Status'] || r.sim_lock,
-        color: r => (r.simlock === 'Locked' || r['Sim-Lock Status'] === 'Locked') ? '#EF4444' : '#22C55E' },
-      { label: 'Knox Warranty', key: 'knox', format: r => r.knox || r['Knox Warranty'] || r.knox_warranty },
-      { label: 'Country', key: 'country', format: r => r.country || r['Country of Purchase'] },
-      { label: 'Warranty', key: 'warranty', format: r => r.warranty || r['Warranty Status'] },
-    ]}
   />
 );
 
