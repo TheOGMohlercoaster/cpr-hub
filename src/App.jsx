@@ -1669,6 +1669,125 @@ const IMEIChecker = () => {
   );
 };
 
+// ── SICKW CHECKERS ───────────────────────────────────────────────────────
+const getSickwKey = () => {
+  try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; }
+};
+
+const SickwChecker = ({ title, icon, service, color, fields }) => {
+  const [imei, setImei] = useState('');
+  const [status, setStatus] = useState(null);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const apiKey = getSickwKey();
+
+  const check = async () => {
+    const cleaned = imei.replace(/[^0-9a-zA-Z]/g, '');
+    if (cleaned.length < 14) { setError('Please enter a valid IMEI (14+ digits)'); return; }
+    if (!apiKey) { setError('Add your Sickw API key in Settings first'); return; }
+    setStatus('loading'); setError(''); setResult(null);
+    try {
+      const res = await fetch('/api/sickw-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imei: cleaned, apiKey, service })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (data.raw) throw new Error(data.raw);
+      setResult(data);
+      setStatus('done');
+    } catch(e) {
+      setError(e.message);
+      setStatus('error');
+    }
+  };
+
+  const Row = ({ label, value, color: c }) => !value ? null : (
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #252A3A33' }}>
+      <span style={{ color: '#6B7280', fontSize: 13 }}>{label}</span>
+      <span style={{ color: c || '#E8EAED', fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <Card style={{ marginBottom: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>{icon} {title}</div>
+      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by Sickw · Service {service}</div>
+      {!apiKey && (
+        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '8px 12px', color: '#FFB547', fontSize: 12, marginBottom: 10 }}>
+          ⚠️ Add your Sickw API key in Settings to use this feature
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input value={imei} onChange={e => { setImei(e.target.value); setResult(null); setError(''); }}
+          onKeyDown={e => e.key === 'Enter' && check()}
+          placeholder='Enter IMEI number…' maxLength={20}
+          style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+        <button onClick={check} disabled={status === 'loading'}
+          style={{ background: status === 'loading' ? '#252A3A' : color, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+          {status === 'loading' ? '⏳ Checking...' : 'Check'}
+        </button>
+      </div>
+      {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
+      {result && status === 'done' && (
+        <div style={{ background: '#0F111733', borderRadius: 10, padding: '12px 16px' }}>
+          {fields.map(f => (
+            <Row key={f.label} label={f.label}
+              value={f.format ? f.format(result) : result[f.key]}
+              color={f.color ? f.color(result) : null} />
+          ))}
+          <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>IMEI: {imei}</div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+const iPhoneSickwCheck = () => (
+  <SickwChecker
+    title='iPhone Info Check'
+    icon='🍎'
+    service={78}
+    color='#3B82F6'
+    fields={[
+      { label: 'Model', key: 'model_desc' },
+      { label: 'Model Name', key: 'model_name' },
+      { label: 'Color & Capacity', key: 'model_desc', format: r => r.color_capacity || r.model },
+      { label: 'Carrier', key: 'carrier', format: r => r.carrier || r.network },
+      { label: 'iCloud / FMI', key: 'fmi', format: r => r.fmi || r.icloud || r['Find My iPhone'],
+        color: r => (r.fmi === 'On' || r.icloud === 'On') ? '#EF4444' : '#22C55E' },
+      { label: 'SIM Lock', key: 'simlock', format: r => r.simlock || r['Sim-Lock Status'] || r.sim_lock,
+        color: r => (r.simlock === 'Locked' || r['Sim-Lock Status'] === 'Locked') ? '#EF4444' : '#22C55E' },
+      { label: 'Blacklist', key: 'blacklist', format: r => r.blacklist || r['Blacklist Status'],
+        color: r => r.blacklist === 'Blacklisted' ? '#EF4444' : '#22C55E' },
+      { label: 'Purchase Country', key: 'purchase_country', format: r => r.purchase_country || r['Purchase Country'] },
+      { label: 'Warranty', key: 'warranty', format: r => r.warranty || r['Warranty Status'] },
+    ]}
+  />
+);
+
+const SamsungSickwCheck = () => (
+  <SickwChecker
+    title='Samsung Info Check'
+    icon='📱'
+    service={1}
+    color='#1428A0'
+    fields={[
+      { label: 'Model', key: 'model_name', format: r => r.model_name || r['Model Name'] || r.model },
+      { label: 'Model Number', key: 'model_number', format: r => r.model_number || r['Model Number'] },
+      { label: 'Color', key: 'color', format: r => r.color || r['Color'] },
+      { label: 'Storage', key: 'storage', format: r => r.storage || r['Storage'] },
+      { label: 'Carrier', key: 'carrier', format: r => r.carrier || r['Carrier'] || r.network },
+      { label: 'SIM Lock', key: 'simlock', format: r => r.simlock || r['Sim-Lock Status'] || r.sim_lock,
+        color: r => (r.simlock === 'Locked' || r['Sim-Lock Status'] === 'Locked') ? '#EF4444' : '#22C55E' },
+      { label: 'Knox Warranty', key: 'knox', format: r => r.knox || r['Knox Warranty'] || r.knox_warranty },
+      { label: 'Country', key: 'country', format: r => r.country || r['Country of Purchase'] },
+      { label: 'Warranty', key: 'warranty', format: r => r.warranty || r['Warranty Status'] },
+    ]}
+  />
+);
+
 // ── BUY PHONES (ATLAS - LIVE GOOGLE SHEETS) ──────────────────────────────
 const SHEETS_API_KEY = "AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA";
 const SHEET_ID = "1pu4Adxq4MGB6Qour0k__4gBdgnggWRoSVYnJUKgxzEw";
@@ -1775,10 +1894,16 @@ const BuyPhonesView = () => {
         </div>
       </div>
 
-      {/* Device Info Lookup */}
+      {/* Sickw iPhone Check */}
+      {iPhoneSickwCheck()}
+
+      {/* Sickw Samsung Check */}
+      {SamsungSickwCheck()}
+
+      {/* Device Info Lookup - M360 */}
       <DeviceInfoChecker />
 
-      {/* IMEI Blacklist Checker */}
+      {/* IMEI Blacklist Checker - M360 */}
       <IMEIChecker />
 
       {/* Phone Buying Quick Links */}
@@ -2389,6 +2514,43 @@ const M360CredentialsForm = () => {
   );
 };
 
+// ── SICKW KEY FORM ────────────────────────────────────────────────────────
+const SickwKeyForm = () => {
+  const [key, setKey] = useState(() => { try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; } });
+  const [saved, setSaved] = useState(false);
+  const isConnected = key.length === 31;
+
+  const save = () => {
+    localStorage.setItem('cpr_sickw_key', key.trim());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: isConnected ? '#22C55E' : '#252A3A' }} />
+        <span style={{ color: isConnected ? '#22C55E' : '#6B7280', fontSize: 12, fontWeight: 600 }}>
+          {isConnected ? 'Connected' : 'Not Connected — API key must be 31 characters'}
+        </span>
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ color: '#6B7280', fontSize: 11, marginBottom: 4 }}>API Key (31 characters)</div>
+        <input type="password" value={key} onChange={e => setKey(e.target.value)}
+          placeholder="Your Sickw API key"
+          style={{ width: '100%', background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '8px 12px', color: '#E8EAED', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={save}
+          style={{ background: '#FF4D1C', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+          Save API Key
+        </button>
+        {saved && <span style={{ color: '#22C55E', fontSize: 13, fontWeight: 600 }}>✓ Saved!</span>}
+      </div>
+    </div>
+  );
+};
+
 // ── SETTINGS ──────────────────────────────────────────────────────────────
 const SettingsView = () => {
   const [msCreds, setMsCreds] = useState(() => {
@@ -2451,6 +2613,13 @@ const SettingsView = () => {
         <div style={{ marginTop: 12, color: C.textMuted, fontSize: 11 }}>
           Credentials are stored locally on this device only and never sent anywhere except MobileSentrix.
         </div>
+      </Card>
+
+      {/* Sickw API Key */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: uppercase, letterSpacing: 1 }}>Sickw IMEI Checker</div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Enter your Sickw API key to enable iPhone and Samsung device lookups in Buy Phones.</div>
+        <SickwKeyForm />
       </Card>
 
       {/* M360 IMEI Checker */}
