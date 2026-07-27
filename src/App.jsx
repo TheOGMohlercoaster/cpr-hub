@@ -1773,7 +1773,13 @@ const SickwChecker = ({ title, icon, services, color }) => {
               <span style={{ color: getSickwColor(row.value), fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{row.value}</span>
             </div>
           ))}
-          <div style={{ color: '#6B7280', fontSize: 11, marginTop: 8 }}>IMEI: {imei}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+            <div style={{ color: '#6B7280', fontSize: 11 }}>IMEI: {imei}</div>
+            <button onClick={() => { setResults([]); setImei(''); setStatus(null); }}
+              style={{ background: 'transparent', border: '1px solid #252A3A', borderRadius: 6, padding: '3px 10px', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
+              ✕ Clear
+            </button>
+          </div>
         </div>
       )}
     </Card>
@@ -1909,9 +1915,6 @@ const BuyPhonesView = () => {
 
       {/* Sickw Samsung Check */}
       {SamsungSickwCheck()}
-
-      {/* Device Info Lookup - M360 */}
-      <DeviceInfoChecker />
 
       {/* IMEI Blacklist Checker - M360 */}
       <IMEIChecker />
