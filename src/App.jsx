@@ -2616,7 +2616,7 @@ const SettingsView = () => {
       </Card>
 
       {/* Sickw API Key */}
-      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: uppercase, letterSpacing: 1 }}>Sickw IMEI Checker</div>
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Sickw IMEI Checker</div>
       <Card style={{ marginBottom: 24 }}>
         <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Enter your Sickw API key to enable iPhone and Samsung device lookups in Buy Phones.</div>
         <SickwKeyForm />
