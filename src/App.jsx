@@ -2828,8 +2828,8 @@ const TodaySchedule = () => {
 const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
 const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
-const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSFNwL5OkvCCFK2ZiSoEsWE2_3HOFJrxo0q5muYh3_DdFvcC1e-xYPYxAakaC3QEMD/exec";
-const SCHEDULE_WRITE_SHEET_ID = "1kmP_9w85gdfV-ngK27LSF0EwA3aSMrEuTvNZbAa4Jhs";
+const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfABZuj90C8bGeBtPo0zLXDEgzU67ekf9BibqA7o4wV78XR81JKG3Q5/exec";
+const SCHEDULE_WRITE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
