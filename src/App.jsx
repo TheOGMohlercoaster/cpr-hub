@@ -1856,7 +1856,9 @@ const TABS = [
 
 const BuyPhonesView = () => {
   const [search, setSearch] = useState("");
-  const [margin, setMargin] = useState(20);
+  const [margin, setMargin] = useState(() => {
+    try { return parseInt(localStorage.getItem('cpr_atlas_margin')) || 20; } catch { return 20; }
+  });
   const [phones, setPhones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -2561,6 +2563,46 @@ const M360CredentialsForm = () => {
   );
 };
 
+// ── ATLAS MARGIN FORM ────────────────────────────────────────────────────
+const AtlasMarginForm = () => {
+  const [margin, setMargin] = useState(() => {
+    try { return parseInt(localStorage.getItem('cpr_atlas_margin')) || 20; } catch { return 20; }
+  });
+  const [saved, setSaved] = useState(false);
+
+  const save = () => {
+    localStorage.setItem('cpr_atlas_margin', margin.toString());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+        <div>
+          <div style={{ color: '#6B7280', fontSize: 11, marginBottom: 4 }}>Offer % Below Atlas Price</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '8px 14px' }}>
+            <input type="number" min="1" max="99" value={margin} onChange={e => setMargin(parseInt(e.target.value) || 20)}
+              style={{ background: 'transparent', border: 'none', color: '#FF4D1C', fontSize: 22, fontWeight: 800, width: 60, outline: 'none', textAlign: 'center' }} />
+            <span style={{ color: '#6B7280', fontSize: 16 }}>%</span>
+          </div>
+        </div>
+        <div style={{ color: '#6B7280', fontSize: 13 }}>
+          <div>Example: Atlas price <strong style={{ color: '#E8EAED' }}>$100</strong></div>
+          <div>Your offer: <strong style={{ color: '#00C9A7' }}>${(100 * (1 - margin / 100)).toFixed(0)}</strong></div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={save}
+          style={{ background: '#FF4D1C', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+          Save
+        </button>
+        {saved && <span style={{ color: '#22C55E', fontSize: 13, fontWeight: 600 }}>✓ Saved!</span>}
+      </div>
+    </div>
+  );
+};
+
 // ── SICKW KEY FORM ────────────────────────────────────────────────────────
 const SickwKeyForm = () => {
   const [key, setKey] = useState(() => { try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; } });
@@ -2660,6 +2702,13 @@ const SettingsView = () => {
         <div style={{ marginTop: 12, color: C.textMuted, fontSize: 11 }}>
           Credentials are stored locally on this device only and never sent anywhere except MobileSentrix.
         </div>
+      </Card>
+
+      {/* Buy Phones Settings */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Buy Phones</div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Set the default % below Atlas price shown as your offer in Buy Phones.</div>
+        <AtlasMarginForm />
       </Card>
 
       {/* Sickw API Key */}
