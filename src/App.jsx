@@ -2737,38 +2737,51 @@ const TodaySchedule = () => {
     setLoading(true);
     setError(null);
     try {
-      // First try to read from Schedule Maker (localStorage)
-      const saved = localStorage.getItem("cpr_today_shifts");
-      if (saved) {
-        const todayShifts = JSON.parse(saved);
-        if (todayShifts.length > 0) {
-          setShifts(todayShifts);
-          setLoading(false);
-          return;
-        }
-      }
-      // Fall back to Google Sheet if no schedule maker data
-      if (!SCHEDULE_SHEET_ID) { setLoading(false); setError("no_sheet"); return; }
-      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:Q?key=${SHEETS_API_KEY}`)
+      // Always try Google Sheets sync first (works on all devices)
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_WRITE_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
         .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
         .then(data => {
           const rows = data.values || [];
-          if (rows.length < 2) { setShifts([]); setLoading(false); return; }
-          const headers = rows[0];
-          const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+          if (rows.length < 2) {
+            // Fall back to localStorage if sheet is empty
+            const saved = localStorage.getItem("cpr_today_shifts");
+            if (saved) {
+              const todayShifts = JSON.parse(saved);
+              if (todayShifts.length > 0) { setShifts(todayShifts); setLoading(false); return; }
+            }
+            setShifts([]); setLoading(false); return;
+          }
+          // Parse schedule sync sheet format: empId, empName, date, start, end, notes
+          const seen = new Set();
+          const EMP_COLORS = { '1': '#FF4D1C', '2': '#00C9A7', '3': '#3B82F6', '4': '#FFB547', '5': '#A855F7', '6': '#22C55E', '7': '#EF4444' };
           const parsed = rows.slice(1).map(row => ({
-            firstName:  row[col("first name")]  || "",
-            lastName:   row[col("last name")]   || "",
-            date:       row[col("shift start date")] || "",
-            startTime:  row[col("shift start time")] || "",
-            endTime:    row[col("shift end time")]   || "",
-            hours:      row[col("scheduled hours")]  || "",
-            notes:      row[col("notes")]            || "",
-          })).filter(r => r.date === todayStr && r.firstName);
-          setShifts(parsed);
+            empId:     row[0] || '',
+            firstName: row[1] ? row[1].split(' ')[0] : '',
+            lastName:  row[1] ? row[1].split(' ').slice(1).join(' ') : '',
+            date:      row[2] || '',
+            startTime: row[3] || '',
+            endTime:   row[4] || '',
+            notes:     row[5] || '',
+            color:     EMP_COLORS[row[0]] || '#FF4D1C',
+          })).filter(r => {
+            if (r.date !== todayStr || !r.firstName) return false;
+            const key = r.empId + r.date + r.startTime;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setShifts(parsed.sort((a, b) => a.startTime.localeCompare(b.startTime)));
           setLoading(false);
         })
-        .catch(e => { setError(e.message); setLoading(false); });
+        .catch(() => {
+          // Fall back to localStorage on fetch error
+          const saved = localStorage.getItem("cpr_today_shifts");
+          if (saved) {
+            const todayShifts = JSON.parse(saved);
+            if (todayShifts.length > 0) { setShifts(todayShifts); setLoading(false); return; }
+          }
+          setError("no_sheet"); setLoading(false);
+        });
     } catch (e) {
       setError(e.message);
       setLoading(false);
