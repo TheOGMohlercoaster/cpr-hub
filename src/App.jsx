@@ -44,7 +44,7 @@ const EMPLOYEES = [
 const ROLE_ACCESS = {
   "Owner":      ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard","settings"],
   "Tech/Sales": ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
-  "Tech":       ["dashboard","sop","tasks","orders","schedule","links","leaderboard"],
+  "Tech":       ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
   "Sales":      ["dashboard","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
 };
 
