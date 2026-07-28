@@ -1059,7 +1059,7 @@ const DashboardView = ({ setView, currentUser }) => {
           { name: "CPR Support", url: "https://cpr.creatio.com", color: "#FFB547" },
           { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: "#22C55E" },
           { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: "#00C9A7" },
-          { name: "Email", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office", color: "#6B7280" },
+          { name: "Email", url: "https://outlook.office.com", color: "#6B7280" },
         ].map(link => (
           <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
             style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
@@ -3782,7 +3782,7 @@ const LINK_CATEGORIES = [
       { name: "When I Work", url: "https://app.wheniwork.com" },
       { name: "CPR Support / Creatio", url: "https://cpr.creatio.com" },
       { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/" },
-      { name: "Email / Outlook", url: "https://m365.cloud.microsoft/chat?auth=2&origindomain=Office" },
+      { name: "Email / Outlook", url: "https://outlook.office.com" },
     ]
   },
   {
