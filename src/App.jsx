@@ -1707,8 +1707,16 @@ const getSickwKey = () => {
   try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; }
 };
 
-// Parse Sickw HTML result string into clean lines
-const parseSickwResult = (resultStr) => { if (!resultStr) return []; const parts = resultStr.split(/<br[^>]*>/i); const lines = parts.map(l => l.replace(/<[^>]+>/g, "").trim()).filter(l => l.length > 0); return lines.map(line => { const colonIdx = line.indexOf(":"); if (colonIdx > 0) { return { label: line.substring(0, colonIdx).trim(), value: line.substring(colonIdx + 1).trim() }; } return { label: line, value: "" }; }).filter(r => r.value && r.value.length > 0); };
+const parseSickwResult = (resultStr) => {
+  if (!resultStr) return [];
+  const parts = resultStr.split('<br>');
+  const lines = parts.map(l => l.replace(/<[^>]+>/g, '').trim()).filter(l => l.length > 0);
+  return lines.map(line => {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx > 0) {
+      return { label: line.substring(0, colonIdx).trim(), value: line.substring(colonIdx + 1).trim() };
+    }
+    return { label: line, value: '' };
   }).filter(r => r.value && r.value.length > 0);
 };
 
