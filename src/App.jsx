@@ -4300,6 +4300,8 @@ const IPhoneIdentifier = ({ onClose }) => {
             )}
           </div>
         )}
+        </div>
+        )}
       </div>
     </div>
   );
