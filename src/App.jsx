@@ -4199,7 +4199,7 @@ const IPhoneIdentifier = ({ onClose }) => {
         {results && (
           <div>
             <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 15, marginBottom: 16 }}>
-              {results.length === 0 ? '❌ No match found' : results.length === 1 ? '✅ Model Identified!' : }
+              {results.length === 0 ? '❌ No match found' : results.length === 1 ? '✅ Model Identified!' : `📋 ${results.length} possible models:`}
             </div>
             {results.map((r, i) => (
               <div key={i} style={{ background: '#0F1117', border: '1px solid #252A3A', borderRadius: 10, padding: '14px 18px', marginBottom: 10 }}>
