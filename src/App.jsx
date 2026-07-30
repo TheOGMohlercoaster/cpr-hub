@@ -4175,10 +4175,10 @@ const IPhoneIdentifier = ({ onClose }) => {
     {
       key: 'front',
       question: 'What does the front top look like?',
-      options: [
-        { label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout at top', value: 'island' },
+      options: (ans) => [
+        ...(!(ans.port === 'lightning' && ans.cameras === 2 && ans.layout === 'vertical') ? [{ label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout at top', value: 'island' }] : []),
         { label: '⬛ Wide Notch', sublabel: 'Wide notch at top center', value: 'notch' },
-        { label: '⬜ Small Notch', sublabel: 'Small notch or no notch', value: 'smallnotch' },
+        ...(!(ans.port === 'lightning' && ans.cameras === 2 && ans.layout === 'vertical') ? [{ label: '⬜ Small Notch', sublabel: 'Small notch or no notch', value: 'smallnotch' }] : []),
       ]
     },
     {
