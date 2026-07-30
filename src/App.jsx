@@ -4097,6 +4097,10 @@ const IPhoneIdentifier = ({ onClose }) => {
 
   const answer = (key, value) => {
     const newAnswers = { ...answers, [key]: value };
+    // USB-C phones never have a home button - auto-set it
+    if (key === 'port' && value === 'usbc') {
+      newAnswers.home = false;
+    }
     setAnswers(newAnswers);
 
     // Filter results after each answer
@@ -4111,7 +4115,14 @@ const IPhoneIdentifier = ({ onClose }) => {
     if (filtered.length <= 2 || step >= 5) {
       setResults(filtered);
     } else {
-      setStep(step + 1);
+      // Skip home button question if USB-C
+      const nextStep = step + 1;
+      const nextQ = questions[nextStep];
+      if (nextQ?.key === 'home' && newAnswers.port === 'usbc') {
+        setStep(nextStep + 1);
+      } else {
+        setStep(nextStep);
+      }
     }
   };
 
