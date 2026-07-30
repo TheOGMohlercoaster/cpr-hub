@@ -933,6 +933,7 @@ const DashboardView = ({ setView, currentUser }) => {
   const totalRepairs = REPAIR_TOTALS.reduce((a, e) => a + e.completed, 0);
   const tasksLeft = TASKS.filter(t => !t.done).length;
   const canPost = currentUser?.role === "Owner" || currentUser?.role === "Tech/Sales";
+  const [showIPhoneID, setShowIPhoneID] = useState(false);
 
   const [salesData, setSalesData] = useState([]);
   const [salesLoaded, setSalesLoaded] = useState(false);
@@ -1026,6 +1027,15 @@ const DashboardView = ({ setView, currentUser }) => {
         <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 4 }}>Friday, June 12, 2026</div>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0 }}>Good morning, CPR Team 👋</h1>
       </div>
+      {/* iPhone Identifier Button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button onClick={() => setShowIPhoneID(true)}
+          style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+          🍎 Identify iPhone
+        </button>
+      </div>
+      {showIPhoneID && <IPhoneIdentifier onClose={() => setShowIPhoneID(false)} />}
+
       {/* Stat row - Monthly totals */}
       <div style={{ display: "flex", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
         <StatCard label="Monthly Sales" value={salesData.length > 0 ? `$${totalSalesAmt.toLocaleString()}` : "—"} sub={salesMonth} color={C.teal} icon="sales" />
@@ -1268,6 +1278,9 @@ const PricingView = () => {
           Live from your pricing sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
       </div>
+
+      {/* iPhone Identifier */}
+      <IPhoneIDButton />
 
       {/* Parts Quick Links */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -1707,9 +1720,10 @@ const getSickwKey = () => {
   try { return localStorage.getItem('cpr_sickw_key') || ''; } catch { return ''; }
 };
 
+// Parse Sickw HTML result string into clean lines
 const parseSickwResult = (resultStr) => {
   if (!resultStr) return [];
-  const parts = resultStr.split('<br>');
+  const parts = resultStr.split(/<br[^>]*>/i);
   const lines = parts.map(l => l.replace(/<[^>]+>/g, '').trim()).filter(l => l.length > 0);
   return lines.map(line => {
     const colonIdx = line.indexOf(':');
@@ -1952,6 +1966,9 @@ const BuyPhonesView = () => {
 
       {/* IMEI Blacklist Checker - M360 */}
       <IMEIChecker />
+
+      {/* iPhone Identifier */}
+      <IPhoneIDButton />
 
       {/* Phone Buying Quick Links */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -4027,6 +4044,248 @@ const VIEWS = {
 };
 
 // ── QUICK LINKS ──────────────────────────────────────────────────────────
+// ── IPHONE IDENTIFIER ────────────────────────────────────────────────────
+const IPHONE_DATA = [
+  // USB-C, No home button, 3 cameras, diagonal, Dynamic Island
+  { model: 'iPhone 16 Pro Max', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
+  { model: 'iPhone 16 Pro', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
+  { model: 'iPhone 15 Pro Max', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
+  { model: 'iPhone 15 Pro', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
+  // USB-C, No home button, 2 cameras, vertical, Dynamic Island
+  { model: 'iPhone 16 Plus', port: 'usbc', home: false, cameras: 2, layout: 'vertical', front: 'island', colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
+  { model: 'iPhone 16', port: 'usbc', home: false, cameras: 2, layout: 'vertical', front: 'island', colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
+  { model: 'iPhone 15 Plus', port: 'usbc', home: false, cameras: 2, layout: 'vertical', front: 'island', colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
+  { model: 'iPhone 15', port: 'usbc', home: false, cameras: 2, layout: 'vertical', front: 'island', colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
+  // Lightning, No home button, 3 cameras, diagonal, Dynamic Island
+  { model: 'iPhone 14 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
+  { model: 'iPhone 14 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'island', colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
+  // Lightning, No home button, 2 cameras, vertical, notch
+  { model: 'iPhone 14 Plus', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
+  { model: 'iPhone 14', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
+  { model: 'iPhone 13 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 13 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 13', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
+  { model: 'iPhone 13 Mini', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
+  { model: 'iPhone 12 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 12 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 12', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
+  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Space Gray', 'Silver'] },
+  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone XR', port: 'lightning', home: false, cameras: 1, layout: 'single', front: 'notch', colors: ['Black', 'White', 'Blue', 'Yellow', 'Coral', 'Product Red'] },
+  // Lightning, Home button, 2 cameras
+  { model: 'iPhone SE (3rd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Midnight', 'Starlight', 'Product Red'] },
+  { model: 'iPhone SE (2nd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Black', 'White', 'Product Red'] },
+  { model: 'iPhone 8 Plus', port: 'lightning', home: true, cameras: 2, layout: 'vertical', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 8', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 7 Plus', port: 'lightning', home: true, cameras: 2, layout: 'horizontal', front: 'smallnotch', colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
+  { model: 'iPhone 7', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
+  { model: 'iPhone 6s Plus', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
+  { model: 'iPhone 6s', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
+  { model: 'iPhone 6 Plus', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 6', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', colors: ['Space Gray', 'Silver', 'Gold'] },
+];
+
+const IPhoneIdentifier = ({ onClose }) => {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [results, setResults] = useState(null);
+
+  const answer = (key, value) => {
+    const newAnswers = { ...answers, [key]: value };
+    setAnswers(newAnswers);
+
+    // Filter results after each answer
+    let filtered = IPHONE_DATA;
+    if (newAnswers.port) filtered = filtered.filter(p => p.port === newAnswers.port);
+    if (newAnswers.home !== undefined) filtered = filtered.filter(p => p.home === newAnswers.home);
+    if (newAnswers.cameras) filtered = filtered.filter(p => p.cameras === newAnswers.cameras);
+    if (newAnswers.layout) filtered = filtered.filter(p => p.layout === newAnswers.layout);
+    if (newAnswers.front) filtered = filtered.filter(p => p.front === newAnswers.front);
+    if (newAnswers.color) filtered = filtered.filter(p => p.colors.some(c => c.toLowerCase().includes(newAnswers.color.toLowerCase())));
+
+    if (filtered.length <= 2 || step >= 5) {
+      setResults(filtered);
+    } else {
+      setStep(step + 1);
+    }
+  };
+
+  const reset = () => { setStep(0); setAnswers({}); setResults(null); };
+
+  const questions = [
+    {
+      key: 'port',
+      question: 'What type of charging port?',
+      options: [
+        { label: '⚡ Lightning', sublabel: 'Older style, narrow oval', value: 'lightning' },
+        { label: '🔌 USB-C', sublabel: 'Newer style, wider oval', value: 'usbc' },
+      ]
+    },
+    {
+      key: 'home',
+      question: 'Does it have a home button?',
+      options: [
+        { label: '✅ Yes', sublabel: 'Round button at bottom front', value: true },
+        { label: '❌ No', sublabel: 'Full screen, no button', value: false },
+      ]
+    },
+    {
+      key: 'cameras',
+      question: 'How many cameras on the back?',
+      options: [
+        { label: '1️⃣ One', sublabel: 'Single camera', value: 1 },
+        { label: '2️⃣ Two', sublabel: 'Two cameras', value: 2 },
+        { label: '3️⃣ Three', sublabel: 'Three cameras', value: 3 },
+      ]
+    },
+    {
+      key: 'layout',
+      question: 'How are the cameras arranged?',
+      options: [
+        { label: '📱 Vertical', sublabel: 'Stacked top to bottom', value: 'vertical' },
+        { label: '◤ Diagonal', sublabel: 'Triangle/diagonal arrangement', value: 'diagonal' },
+        { label: '➖ Horizontal', sublabel: 'Side by side', value: 'horizontal' },
+        { label: '⭕ Single', sublabel: 'Just one camera', value: 'single' },
+      ]
+    },
+    {
+      key: 'front',
+      question: 'What does the front top look like?',
+      options: [
+        { label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout at top', value: 'island' },
+        { label: '⬛ Wide Notch', sublabel: 'Wide notch at top center', value: 'notch' },
+        { label: '⬜ Small Notch', sublabel: 'Small notch or no notch', value: 'smallnotch' },
+      ]
+    },
+    {
+      key: 'color',
+      question: 'What color is the device?',
+      isText: true,
+    }
+  ];
+
+  const currentQ = questions[step];
+
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      onClick={onClose}>
+      <div style={{ background: '#181C27', border: '1px solid #252A3A', borderRadius: 16, padding: 28, width: 480, maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <div style={{ color: '#E8EAED', fontWeight: 800, fontSize: 18 }}>🍎 iPhone Identifier</div>
+            <div style={{ color: '#6B7280', fontSize: 12, marginTop: 2 }}>Answer a few questions to identify the model</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6B7280', fontSize: 22, cursor: 'pointer' }}>×</button>
+        </div>
+
+        {/* Progress */}
+        {!results && (
+          <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
+            {questions.map((_, i) => (
+              <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= step ? '#FF4D1C' : '#252A3A' }} />
+            ))}
+          </div>
+        )}
+
+        {/* Results */}
+        {results && (
+          <div>
+            <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 15, marginBottom: 16 }}>
+              {results.length === 0 ? '❌ No match found' : results.length === 1 ? '✅ Model Identified!' : }
+            </div>
+            {results.map((r, i) => (
+              <div key={i} style={{ background: '#0F1117', border: '1px solid #252A3A', borderRadius: 10, padding: '14px 18px', marginBottom: 10 }}>
+                <div style={{ color: '#FF4D1C', fontWeight: 800, fontSize: 16 }}>{r.model}</div>
+                <div style={{ color: '#6B7280', fontSize: 12, marginTop: 4 }}>
+                  {r.port === 'usbc' ? 'USB-C' : 'Lightning'} · {r.cameras} camera{r.cameras > 1 ? 's' : ''} · {r.home ? 'Home button' : 'No home button'}
+                </div>
+                <div style={{ color: '#9CA3AF', fontSize: 11, marginTop: 6 }}>
+                  Colors: {r.colors.join(', ')}
+                </div>
+              </div>
+            ))}
+            <button onClick={reset}
+              style={{ width: '100%', background: '#FF4D1C', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontWeight: 700, cursor: 'pointer', fontSize: 14, marginTop: 8 }}>
+              🔄 Start Over
+            </button>
+          </div>
+        )}
+
+        {/* Question */}
+        {!results && currentQ && (
+          <div>
+            <div style={{ color: '#E8EAED', fontWeight: 700, fontSize: 16, marginBottom: 16 }}>
+              {currentQ.question}
+            </div>
+            {currentQ.isText ? (
+              <div>
+                <input autoFocus placeholder='e.g. Midnight, Blue, Natural Titanium...'
+                  onKeyDown={e => e.key === 'Enter' && answer(currentQ.key, e.target.value)}
+                  style={{ width: '100%', background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '10px 14px', color: '#E8EAED', fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
+                <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 12 }}>Press Enter to search, or:</div>
+                <button onClick={() => { setResults(IPHONE_DATA.filter(p => {
+                  let f = p;
+                  if (answers.port) f = answers.port === p.port ? p : null;
+                  if (!f) return false;
+                  if (answers.home !== undefined && p.home !== answers.home) return false;
+                  if (answers.cameras && p.cameras !== answers.cameras) return false;
+                  if (answers.layout && p.layout !== answers.layout) return false;
+                  if (answers.front && p.front !== answers.front) return false;
+                  return true;
+                })); }}
+                  style={{ width: '100%', background: '#252A3A', color: '#9CA3AF', border: 'none', borderRadius: 8, padding: '10px', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>
+                  Skip color — show all matches
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: 10 }}>
+                {currentQ.options.map(opt => (
+                  <button key={String(opt.value)} onClick={() => answer(currentQ.key, opt.value)}
+                    style={{ background: '#0F1117', border: '1px solid #252A3A', borderRadius: 10, padding: '14px 18px', cursor: 'pointer', textAlign: 'left', transition: 'all .15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF4D1C'; e.currentTarget.style.background = '#FF4D1C11'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#252A3A'; e.currentTarget.style.background = '#0F1117'; }}>
+                    <div style={{ color: '#E8EAED', fontWeight: 600, fontSize: 14 }}>{opt.label}</div>
+                    <div style={{ color: '#6B7280', fontSize: 12, marginTop: 2 }}>{opt.sublabel}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step > 0 && (
+              <button onClick={() => { setStep(step - 1); const a = { ...answers }; delete a[currentQ.key]; setAnswers(a); }}
+                style={{ width: '100%', background: 'transparent', border: '1px solid #252A3A', borderRadius: 8, padding: '8px', color: '#6B7280', cursor: 'pointer', fontSize: 13, marginTop: 12 }}>
+                ← Back
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── IPHONE ID BUTTON ─────────────────────────────────────────────────────
+const IPhoneIDButton = () => {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <button onClick={() => setShow(true)}
+        style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer', marginBottom: 14 }}>
+        🍎 Identify iPhone Model
+      </button>
+      {show && <IPhoneIdentifier onClose={() => setShow(false)} />}
+    </>
+  );
+};
+
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
 const LoginScreen = ({ onLogin }) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -4237,5 +4496,3 @@ export default function App() {
     </div>
   );
 }
-
-
