@@ -4077,43 +4077,43 @@ const VIEWS = {
 const IPHONE_DATA = [
   // USB-C, No home button, 3 cameras, diagonal, Dynamic Island
   // action: true = has Action Button (Pro models 15+)
-  { model: 'iPhone 16 Pro Max', port: 'usbc', home: false, cameras: 3, front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
-  { model: 'iPhone 16 Pro', port: 'usbc', home: false, cameras: 3, front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
-  { model: 'iPhone 15 Pro Max', port: 'usbc', home: false, cameras: 3, front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
-  { model: 'iPhone 15 Pro', port: 'usbc', home: false, cameras: 3, front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
-  { model: 'iPhone 16 Plus', port: 'usbc', home: false, cameras: 2, front: 'island', action: false, colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
-  { model: 'iPhone 16', port: 'usbc', home: false, cameras: 2, front: 'island', action: false, colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
-  { model: 'iPhone 15 Plus', port: 'usbc', home: false, cameras: 2, front: 'island', action: false, colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
-  { model: 'iPhone 15', port: 'usbc', home: false, cameras: 2, front: 'island', action: false, colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
-  { model: 'iPhone 14 Pro Max', port: 'lightning', home: false, cameras: 3, front: 'island', action: false, colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
-  { model: 'iPhone 14 Pro', port: 'lightning', home: false, cameras: 3, front: 'island', action: false, colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
-  { model: 'iPhone 14 Plus', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
-  { model: 'iPhone 14', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
-  { model: 'iPhone 13 Pro Max', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
-  { model: 'iPhone 13 Pro', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
-  { model: 'iPhone 13', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
-  { model: 'iPhone 13 Mini', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
-  { model: 'iPhone 12 Pro Max', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
-  { model: 'iPhone 12 Pro', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
-  { model: 'iPhone 12', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
-  { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
-  { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
-  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, front: 'notch', action: false, colors: ['Space Gray', 'Silver'] },
-  { model: 'iPhone XR', port: 'lightning', home: false, cameras: 1, front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Yellow', 'Coral', 'Product Red'] },
-  { model: 'iPhone SE (3rd Gen)', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Midnight', 'Starlight', 'Product Red'] },
-  { model: 'iPhone SE (2nd Gen)', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Black', 'White', 'Product Red'] },
-  { model: 'iPhone 8 Plus', port: 'lightning', home: true, cameras: 2, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 8', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 7 Plus', port: 'lightning', home: true, cameras: 2, front: 'smallnotch', action: false, colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
-  { model: 'iPhone 7', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
-  { model: 'iPhone 6s Plus', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
-  { model: 'iPhone 6s', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
-  { model: 'iPhone 6 Plus', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 6', port: 'lightning', home: true, cameras: 1, front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 16 Pro Max', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
+  { model: 'iPhone 16 Pro', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Desert Titanium'] },
+  { model: 'iPhone 15 Pro Max', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
+  { model: 'iPhone 15 Pro', port: 'usbc', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: true, colors: ['Black Titanium', 'White Titanium', 'Natural Titanium', 'Blue Titanium'] },
+  { model: 'iPhone 16 Plus', port: 'usbc', home: false, cameras: 2, layout: 'diagonal', front: 'island', action: false, colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
+  { model: 'iPhone 16', port: 'usbc', home: false, cameras: 2, layout: 'diagonal', front: 'island', action: false, colors: ['Black', 'White', 'Pink', 'Teal', 'Ultramarine'] },
+  { model: 'iPhone 15 Plus', port: 'usbc', home: false, cameras: 2, layout: 'diagonal', front: 'island', action: false, colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
+  { model: 'iPhone 15', port: 'usbc', home: false, cameras: 2, layout: 'diagonal', front: 'island', action: false, colors: ['Black', 'Yellow', 'Green', 'Pink', 'Blue'] },
+  { model: 'iPhone 14 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: false, colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
+  { model: 'iPhone 14 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'island', action: false, colors: ['Space Black', 'Silver', 'Gold', 'Deep Purple'] },
+  { model: 'iPhone 14 Plus', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
+  { model: 'iPhone 14', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Purple', 'Product Red'] },
+  { model: 'iPhone 13 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 13 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Alpine Green', 'Sierra Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 13', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
+  { model: 'iPhone 13 Mini', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
+  { model: 'iPhone 12 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 12 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
+  { model: 'iPhone 12', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
+  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver'] },
+  { model: 'iPhone XR', port: 'lightning', home: false, cameras: 1, layout: 'single', front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Yellow', 'Coral', 'Product Red'] },
+  { model: 'iPhone SE (3rd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Midnight', 'Starlight', 'Product Red'] },
+  { model: 'iPhone SE (2nd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Black', 'White', 'Product Red'] },
+  { model: 'iPhone 8 Plus', port: 'lightning', home: true, cameras: 2, layout: 'vertical', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 8', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 7 Plus', port: 'lightning', home: true, cameras: 2, layout: 'horizontal', front: 'smallnotch', action: false, colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
+  { model: 'iPhone 7', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Black', 'Jet Black', 'Silver', 'Gold', 'Rose Gold', 'Product Red'] },
+  { model: 'iPhone 6s Plus', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
+  { model: 'iPhone 6s', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold', 'Rose Gold'] },
+  { model: 'iPhone 6 Plus', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone 6', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
 ];
 
 const IPhoneIdentifier = ({ onClose }) => {
@@ -4136,6 +4136,7 @@ const IPhoneIdentifier = ({ onClose }) => {
     if (newAnswers.port) filtered = filtered.filter(p => p.port === newAnswers.port);
     if (newAnswers.home !== undefined) filtered = filtered.filter(p => p.home === newAnswers.home);
     if (newAnswers.cameras) filtered = filtered.filter(p => p.cameras === newAnswers.cameras);
+    if (newAnswers.layout) filtered = filtered.filter(p => p.layout === newAnswers.layout);
     if (newAnswers.front) filtered = filtered.filter(p => p.front === newAnswers.front);
     if (newAnswers.action !== undefined) filtered = filtered.filter(p => p.action === newAnswers.action);
     if (newAnswers.color) filtered = filtered.filter(p => p.colors.some(c => c.toLowerCase().includes(newAnswers.color.toLowerCase())));
@@ -4151,6 +4152,10 @@ const IPhoneIdentifier = ({ onClose }) => {
       const nextQ = questions[nextStep];
       // Skip home button for USB-C
       if (nextQ.key === 'home' && newAnswers.port === 'usbc') { nextStep++; continue; }
+      // Skip layout for 3-camera USB-C (all diagonal) 
+      if (nextQ.key === 'layout' && newAnswers.port === 'usbc' && newAnswers.cameras === 3) { newAnswers.layout = 'diagonal'; filtered = filtered.filter(p => p.layout === 'diagonal'); nextStep++; if (filtered.length <= 2) { setResults(filtered); return; } continue; }
+      // Skip layout for 1-camera home button phones
+      if (nextQ.key === 'layout' && newAnswers.home === true && newAnswers.cameras === 1) { newAnswers.layout = 'single'; filtered = filtered.filter(p => p.layout === 'single'); nextStep++; if (filtered.length <= 2) { setResults(filtered); return; } continue; }
       // Skip front question if home button (only smallnotch applies)
       if (nextQ.key === 'front' && newAnswers.home === true) {
         newAnswers.front = 'smallnotch';
@@ -4206,8 +4211,19 @@ const IPhoneIdentifier = ({ onClose }) => {
       ]
     },
     {
+      key: 'layout',
+      question: '4. How are the cameras arranged?',
+      options: (ans) => [
+        ...(ans.cameras !== 3 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max, 8 Plus', value: 'vertical' }] : []),
+        { label: '◤ Diagonal / Triangle', sublabel: 'Triangle shape — iPhone 11 through 16 standard+', value: 'diagonal' },
+        ...(ans.cameras === 3 && ans.port === 'lightning' ? [{ label: '⬜ Square bump', sublabel: 'Large square bump — iPhone 11 Pro/Pro Max', value: 'square' }] : []),
+        ...(ans.cameras === 1 ? [{ label: '⭕ Single', sublabel: 'Just one camera', value: 'single' }] : []),
+        ...(ans.cameras === 2 && ans.port === 'lightning' && ans.home === true ? [{ label: '➖ Horizontal', sublabel: 'Side by side — iPhone 7 Plus', value: 'horizontal' }] : []),
+      ]
+    },
+    {
       key: 'front',
-      question: '4. What is at the top of the screen?',
+      question: '5. What is at the top of the screen?',
       options: (ans) => [
         ...(ans.home ? [] : [{ label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout — iPhone 14 Pro and newer', value: 'island' }]),
         ...(ans.home ? [] : [{ label: '⬛ Notch', sublabel: 'Wide notch — iPhone X through 13', value: 'notch' }]),
@@ -4216,7 +4232,7 @@ const IPhoneIdentifier = ({ onClose }) => {
     },
     {
       key: 'action',
-      question: '5. Does it have an Action Button on the left side?',
+      question: '6. Does it have an Action Button on the left side?',
       sublabel: 'Replaces the mute switch — iPhone 15 Pro / 16 Pro series only',
       options: () => [
         { label: '✅ Yes', sublabel: 'Customizable button on left side', value: true },
@@ -4225,7 +4241,7 @@ const IPhoneIdentifier = ({ onClose }) => {
     },
     {
       key: 'color',
-      question: '6. What color is the device?',
+      question: '7. What color is the device?',
       isText: true,
     }
   ];
