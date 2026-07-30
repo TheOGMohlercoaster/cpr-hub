@@ -49,12 +49,12 @@ const ROLE_ACCESS = {
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
-const C = {
+const DARK_COLORS = {
   bg: "#0F1117",
   surface: "#181C27",
   surfaceHover: "#1E2333",
   border: "#252A3A",
-  accent: "#FF4D1C",       // CPR-brand orange-red
+  accent: "#FF4D1C",
   accentDim: "#FF4D1C22",
   accentHover: "#FF6B40",
   teal: "#00C9A7",
@@ -71,6 +71,35 @@ const C = {
   blue: "#3B82F6",
   blueDim: "#3B82F620",
 };
+
+const LIGHT_COLORS = {
+  bg: "#F3F4F6",
+  surface: "#FFFFFF",
+  surfaceHover: "#F9FAFB",
+  border: "#E5E7EB",
+  accent: "#CC2200",
+  accentDim: "#CC220015",
+  accentHover: "#FF4D1C",
+  teal: "#0D9488",
+  tealDim: "#0D948815",
+  gold: "#D97706",
+  goldDim: "#D9770615",
+  text: "#111827",
+  textMuted: "#6B7280",
+  textDim: "#374151",
+  green: "#16A34A",
+  greenDim: "#16A34A15",
+  red: "#DC2626",
+  redDim: "#DC262615",
+  blue: "#2563EB",
+  blueDim: "#2563EB15",
+};
+
+const getTheme = () => {
+  try { return localStorage.getItem('cpr_theme') || 'dark'; } catch { return 'dark'; }
+};
+
+let C = getTheme() === 'light' ? LIGHT_COLORS : DARK_COLORS;
 
 // ── Sample data ───────────────────────────────────────────────────────────
 const TODAY_SALES = [
@@ -4454,6 +4483,19 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [view, setView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState(getTheme());
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('cpr_theme', newTheme);
+    C = newTheme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+    document.body.style.background = C.bg;
+  };
+
+  // Apply theme on mount
+  C = theme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+  document.body.style.background = C.bg;
   const ViewComponent = VIEWS[view] || DashboardView;
 
   const handleLogin = (employee) => {
@@ -4483,10 +4525,16 @@ export default function App() {
           <div style={{ width: 32, height: 32, background: C.accent, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <Icon d={Icons.phone} size={16} stroke="#fff" fill="none" />
           </div>
-          {sidebarOpen && <div>
+          {sidebarOpen && <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: C.text, letterSpacing: -0.3 }}>CPR Hub</div>
             <div style={{ fontSize: 10, color: C.textMuted }}>Operations Center</div>
           </div>}
+          {sidebarOpen && (
+            <button onClick={toggleTheme} title={theme === 'dark' ? 'Day Mode' : 'Night Mode'}
+              style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 6px', cursor: 'pointer', fontSize: 14, lineHeight: 1, flexShrink: 0 }}>
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+          )}
         </div>
         {/* Nav */}
         <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto" }}>
