@@ -4092,6 +4092,7 @@ const IPHONE_DATA = [
 
 const IPhoneIdentifier = ({ onClose }) => {
   const [step, setStep] = useState(0);
+  const [tab, setTab] = useState('questions');
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
 
@@ -4189,13 +4190,34 @@ const IPhoneIdentifier = ({ onClose }) => {
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ color: '#E8EAED', fontWeight: 800, fontSize: 18 }}>🍎 iPhone Identifier</div>
-            <div style={{ color: '#6B7280', fontSize: 12, marginTop: 2 }}>Answer a few questions to identify the model</div>
+            <div style={{ color: '#6B7280', fontSize: 12, marginTop: 2 }}>Answer questions or view the visual guide</div>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#6B7280', fontSize: 22, cursor: 'pointer' }}>×</button>
         </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          <button onClick={() => setTab('questions')}
+            style={{ flex: 1, background: tab === 'questions' ? '#FF4D1C' : '#252A3A', color: tab === 'questions' ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 8, padding: '7px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+            ❓ Step-by-Step
+          </button>
+          <button onClick={() => setTab('guide')}
+            style={{ flex: 1, background: tab === 'guide' ? '#FF4D1C' : '#252A3A', color: tab === 'guide' ? '#fff' : '#9CA3AF', border: 'none', borderRadius: 8, padding: '7px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+            🖼️ Visual Guide
+          </button>
+        </div>
+        {tab === 'guide' && (
+          <div>
+            <img src='/iphone-guide.png' alt='iPhone ID Guide'
+              style={{ width: '100%', borderRadius: 8, border: '1px solid #252A3A' }} />
+            <div style={{ color: '#6B7280', fontSize: 11, textAlign: 'center', marginTop: 8 }}>
+              CPR Official iPhone Identification Guide
+            </div>
+          </div>
+        )}
+        {tab === 'questions' && (
+          <div>
 
         {/* Progress */}
         {!results && (
