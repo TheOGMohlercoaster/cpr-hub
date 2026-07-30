@@ -4099,13 +4099,17 @@ const IPhoneIdentifier = ({ onClose }) => {
 
   const answer = (key, value) => {
     const newAnswers = { ...answers, [key]: value };
-    // USB-C phones never have a home button - auto-set it
-    if (key === 'port' && value === 'usbc') {
-      newAnswers.home = false;
-    }
+
+    // USB-C phones never have a home button
+    if (key === 'port' && value === 'usbc') newAnswers.home = false;
+
+    // USB-C phones never have 1 camera (skip that option handled in UI)
+    // 3 cameras - no need to ask layout (all diagonal/square bump)
+    if (key === 'cameras' && value === 3) newAnswers.layout = 'diagonal';
+
     setAnswers(newAnswers);
 
-    // Filter results after each answer
+    // Filter results
     let filtered = IPHONE_DATA;
     if (newAnswers.port) filtered = filtered.filter(p => p.port === newAnswers.port);
     if (newAnswers.home !== undefined) filtered = filtered.filter(p => p.home === newAnswers.home);
@@ -4116,16 +4120,20 @@ const IPhoneIdentifier = ({ onClose }) => {
 
     if (filtered.length <= 2 || step >= 5) {
       setResults(filtered);
-    } else {
-      // Skip home button question if USB-C
-      const nextStep = step + 1;
-      const nextQ = questions[nextStep];
-      if (nextQ?.key === 'home' && newAnswers.port === 'usbc') {
-        setStep(nextStep + 1);
-      } else {
-        setStep(nextStep);
-      }
+      return;
     }
+
+    // Determine next step - skip irrelevant questions
+    let nextStep = step + 1;
+    while (nextStep < questions.length) {
+      const nextQ = questions[nextStep];
+      // Skip home button for USB-C
+      if (nextQ.key === 'home' && newAnswers.port === 'usbc') { nextStep++; continue; }
+      // Skip layout for 3 cameras (auto diagonal) or 1 camera (single, no layout needed)
+      if (nextQ.key === 'layout' && (newAnswers.cameras === 3 || newAnswers.cameras === 1)) { nextStep++; continue; }
+      break;
+    }
+    setStep(nextStep);
   };
 
   const reset = () => { setStep(0); setAnswers({}); setResults(null); };
@@ -4150,20 +4158,18 @@ const IPhoneIdentifier = ({ onClose }) => {
     {
       key: 'cameras',
       question: 'How many cameras on the back?',
-      options: [
-        { label: '1️⃣ One', sublabel: 'Single camera', value: 1 },
+      options: (ans) => [
+        ...(ans.port !== 'usbc' ? [{ label: '1️⃣ One', sublabel: 'Single camera', value: 1 }] : []),
         { label: '2️⃣ Two', sublabel: 'Two cameras', value: 2 },
         { label: '3️⃣ Three', sublabel: 'Three cameras', value: 3 },
       ]
     },
     {
       key: 'layout',
-      question: 'How are the cameras arranged?',
-      options: [
+      question: 'How are the 2 cameras arranged?',
+      options: () => [
         { label: '📱 Vertical', sublabel: 'Stacked top to bottom', value: 'vertical' },
-        { label: '◤ Diagonal', sublabel: 'Triangle/diagonal arrangement', value: 'diagonal' },
-        { label: '➖ Horizontal', sublabel: 'Side by side', value: 'horizontal' },
-        { label: '⭕ Single', sublabel: 'Just one camera', value: 'single' },
+        { label: '◤ Diagonal', sublabel: 'Diagonal arrangement', value: 'diagonal' },
       ]
     },
     {
@@ -4297,7 +4303,7 @@ const IPhoneIdentifier = ({ onClose }) => {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 10 }}>
-                {currentQ.options.map(opt => (
+                {(typeof currentQ.options === 'function' ? currentQ.options(answers) : currentQ.options).map(opt => (
                   <button key={String(opt.value)} onClick={() => answer(currentQ.key, opt.value)}
                     style={{ background: '#0F1117', border: '1px solid #252A3A', borderRadius: 10, padding: '14px 18px', cursor: 'pointer', textAlign: 'left', transition: 'all .15s' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF4D1C'; e.currentTarget.style.background = '#FF4D1C11'; }}
