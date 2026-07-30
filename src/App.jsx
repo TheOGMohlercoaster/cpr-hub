@@ -4093,6 +4093,7 @@ const IPHONE_DATA = [
 const IPhoneIdentifier = ({ onClose }) => {
   const [step, setStep] = useState(0);
   const [tab, setTab] = useState('questions');
+  const [zoomed, setZoomed] = useState(false);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
 
@@ -4209,11 +4210,27 @@ const IPhoneIdentifier = ({ onClose }) => {
         </div>
         {tab === 'guide' && (
           <div>
+            <div style={{ color: '#6B7280', fontSize: 11, textAlign: 'center', marginBottom: 8 }}>
+              Tap image to expand fullscreen
+            </div>
             <img src='/iphone-guide.png' alt='iPhone ID Guide'
-              style={{ width: '100%', borderRadius: 8, border: '1px solid #252A3A' }} />
+              onClick={() => setZoomed(true)}
+              style={{ width: '100%', borderRadius: 8, border: '1px solid #252A3A', cursor: 'zoom-in' }} />
             <div style={{ color: '#6B7280', fontSize: 11, textAlign: 'center', marginTop: 8 }}>
               CPR Official iPhone Identification Guide
             </div>
+            {zoomed && (
+              <div onClick={() => setZoomed(false)}
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out' }}>
+                <div style={{ position: 'relative', width: '98vw', maxHeight: '98vh', overflowY: 'auto' }}>
+                  <img src='/iphone-guide.png' alt='iPhone ID Guide' style={{ width: '100%', borderRadius: 8 }} />
+                  <button onClick={() => setZoomed(false)}
+                    style={{ position: 'fixed', top: 16, right: 16, background: '#FF4D1C', border: 'none', borderRadius: '50%', width: 40, height: 40, color: '#fff', fontSize: 20, cursor: 'pointer', fontWeight: 700 }}>
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
         {tab === 'questions' && (
