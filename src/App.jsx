@@ -3658,9 +3658,9 @@ const ScheduleView = ({ currentUser }) => {
         </button>
       </div>
 
-      {/* Copy Last Week / Clear Schedule buttons */}
+      {/* Copy Last Week / Clear Schedule / Save Draft buttons */}
       {canEdit && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           <button onClick={() => {
             const prevWeek = new Date(weekStart);
             prevWeek.setDate(prevWeek.getDate() - 7);
@@ -3687,6 +3687,15 @@ const ScheduleView = ({ currentUser }) => {
             style={{ flex: 1, background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
             🗑️ Clear Week
           </button>
+          <button onClick={() => {
+            saveSchedule(weekStart, schedule);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+          }}
+            style={{ flex: 1, background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
+            💾 Save Draft
+          </button>
+          {saved && <span style={{ color: C.green, fontSize: 12, alignSelf: "center", fontWeight: 600 }}>✓ Saved!</span>}
         </div>
       )}
 
@@ -3991,23 +4000,14 @@ const ScheduleView = ({ currentUser }) => {
         )}
       </div>
 
-      {/* Save / Publish buttons */}
+      {/* Publish button */}
       {canEdit && (
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => {
-            saveSchedule(weekStart, schedule);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
-          }}
-            style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
-            💾 Save Draft
-          </button>
           <button onClick={publishAndEmail}
             style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
             📧 Publish & Email Staff
           </button>
-          {saved && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Draft saved!</span>}
-          {published && !saved && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Schedule ready!</span>}
+          {published && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Schedule ready!</span>}
         </div>
       )}
 
