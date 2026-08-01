@@ -2322,14 +2322,44 @@ const RepairsView = () => {
 const TasksView = ({ currentUser }) => {
   const priColor = { high: C.accent, med: C.gold, low: C.textMuted };
 
-  const CATEGORIES = [
-    { id: 'Opener',   label: '🌅 Opener',         roles: ['Opener'] },
-    { id: 'Closer',   label: '🌙 Closer',          roles: ['Closer'] },
-    { id: 'TechOpen', label: '🔧 Tech Start',      roles: ['TechOpen'] },
-    { id: 'TechClose',label: '🔧 Tech End',        roles: ['TechClose'] },
-  ];
+  const isTech = currentUser?.role === 'Tech' || currentUser?.role === 'Tech/Sales' || currentUser?.role === 'Owner';
+  const isOwner = currentUser?.role === 'Owner' || currentUser?.role === 'Tech/Sales';
 
-  const [activeTab, setActiveTab] = useState('Opener');
+  // Determine if this employee is scheduled to open or close today
+  const todayStr = new Date().toISOString().split('T')[0];
+  const mySchedule = (() => {
+    try {
+      const shifts = JSON.parse(localStorage.getItem('cpr_today_shifts') || '[]');
+      const myShift = shifts.find(s => s.firstName === currentUser?.name?.split(' ')[0]);
+      return myShift || null;
+    } catch { return null; }
+  })();
+  const isOpener = mySchedule?.startTime === '9:30 AM' || mySchedule?.startTime === '9:30AM';
+  const isCloser = mySchedule?.endTime === '6:30 PM' || mySchedule?.endTime === '6:30PM';
+
+  // Build available categories based on role and schedule
+  const CATEGORIES = [
+    ...(isOpener || isOwner ? [{ id: 'Opener',    label: '🌅 Opener',    color: '#22C55E' }] : []),
+    ...(isCloser || isOwner ? [{ id: 'Closer',    label: '🌙 Closer',    color: '#3B82F6' }] : []),
+    ...(isTech             ? [{ id: 'TechOpen',  label: '🔧 Tech Start', color: '#FF4D1C' }] : []),
+    ...(isTech             ? [{ id: 'TechClose', label: '🔧 Tech End',   color: '#FFB547' }] : []),
+    // Owners always see all
+    ...(!isOpener && !isCloser && !isTech && isOwner ? [] : []),
+  ].filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+
+  // Owners always see all categories
+  const allCategories = isOwner
+    ? [
+        { id: 'Opener',    label: '🌅 Opener',    color: '#22C55E' },
+        { id: 'Closer',    label: '🌙 Closer',    color: '#3B82F6' },
+        { id: 'TechOpen',  label: '🔧 Tech Start', color: '#FF4D1C' },
+        { id: 'TechClose', label: '🔧 Tech End',   color: '#FFB547' },
+      ]
+    : CATEGORIES;
+
+  const displayCategories = isOwner ? allCategories : CATEGORIES;
+  const [activeTab, setActiveTab] = useState(displayCategories[0]?.id || 'Opener');
+  const [showReport, setShowReport] = useState(false);
   const [state, setState] = useState(() => {
     const saved = getTaskState();
     const today = getTodayKey();
@@ -2418,18 +2448,55 @@ const TasksView = ({ currentUser }) => {
 
       {/* Category tabs */}
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        {CATEGORIES.map(cat => {
+        {displayCategories.map(cat => {
           const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
           const catDone = catTasks.filter(t => state.done.includes(t.id)).length;
-          const catPct = catTasks.length ? Math.round((catDone / catTasks.length) * 100) : 0;
           return (
             <button key={cat.id} onClick={() => setActiveTab(cat.id)}
-              style={{ background: activeTab === cat.id ? C.accent : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? C.accent : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              style={{ background: activeTab === cat.id ? cat.color : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? cat.color : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               {cat.label} <span style={{ opacity: 0.8, fontSize: 11 }}>({catDone}/{catTasks.length})</span>
             </button>
           );
         })}
+        {isOwner && (
+          <button onClick={() => setShowReport(!showReport)}
+            style={{ background: showReport ? C.gold : C.surface, color: showReport ? '#000' : C.textDim, border: `1px solid ${showReport ? C.gold : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            📊 Report
+          </button>
+        )}
       </div>
+
+      {/* Owner Report */}
+      {showReport && isOwner && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, color: C.text, fontSize: 15, marginBottom: 14 }}>📊 Task Completion Report — Today</div>
+          {allCategories.map(cat => {
+            const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
+            const catDone = catTasks.filter(t => state.done.includes(t.id));
+            const catOpen = catTasks.filter(t => !state.done.includes(t.id));
+            const pctCat = catTasks.length ? Math.round((catDone.length / catTasks.length) * 100) : 0;
+            return (
+              <div key={cat.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ color: cat.color, fontWeight: 700, fontSize: 14 }}>{cat.label}</span>
+                  <span style={{ color: pctCat === 100 ? C.green : C.textMuted, fontWeight: 700, fontSize: 13 }}>{catDone.length}/{catTasks.length} ({pctCat}%)</span>
+                </div>
+                <div style={{ background: C.border, borderRadius: 4, height: 6, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ width: `${pctCat}%`, background: cat.color, height: '100%', borderRadius: 4 }} />
+                </div>
+                {catOpen.length > 0 && (
+                  <div style={{ color: C.red, fontSize: 12 }}>
+                    ❌ Incomplete: {catOpen.map(t => t.text).join(' · ')}
+                  </div>
+                )}
+                {catOpen.length === 0 && (
+                  <div style={{ color: C.green, fontSize: 12 }}>✅ All tasks complete!</div>
+                )}
+              </div>
+            );
+          })}
+        </Card>
+      )}
 
       {/* Tab progress */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
