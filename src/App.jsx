@@ -113,33 +113,75 @@ const REPAIR_TOTALS = [
   { name: "Carlos M.", role: "Tech Lead", completed: 14, pending: 1, revenue: 1020 },
 ];
 // ── Daily Tasks Data ─────────────────────────────────────────────────────
-// Recurring tasks reset every day at midnight
 const RECURRING_TASKS = [
-  // All staff
-  { id: "r1",  text: "Clock in and review schedule",              role: "All",     priority: "high" },
-  { id: "r2",  text: "Check daily announcements",                 role: "All",     priority: "med"  },
-  // Opening / Manager
-  { id: "r3",  text: "Count and balance cash drawer",             role: "Manager", priority: "high" },
-  { id: "r4",  text: "Check RepairQ for overnight tickets",       role: "Manager", priority: "high" },
-  { id: "r5",  text: "Place display devices in cases",            role: "Manager", priority: "high" },
-  { id: "r6",  text: "Turn on store equipment",                   role: "Manager", priority: "high" },
-  { id: "r7",  text: "Clean display case glass",                  role: "Manager", priority: "med"  },
-  { id: "r8",  text: "Put sidewalk sign out",                     role: "Manager", priority: "med"  },
-  { id: "r9",  text: "Check MobileSentrix for backorders",        role: "Manager", priority: "low"  },
-  { id: "r10", text: "Post daily promo on social media",          role: "Manager", priority: "med"  },
-  // Sales
-  { id: "r11", text: "Restock accessories and display items",     role: "Sales",   priority: "med"  },
-  { id: "r12", text: "Wipe down display phones",                  role: "Sales",   priority: "med"  },
-  { id: "r13", text: "Follow up on pending customer quotes",      role: "Sales",   priority: "high" },
-  { id: "r14", text: "Check ZAGG inventory levels",               role: "Sales",   priority: "low"  },
-  // Techs
-  { id: "r15", text: "Review repair queue for overdue tickets",   role: "Techs",   priority: "high" },
-  { id: "r16", text: "Clean and organize workbench",              role: "Techs",   priority: "high" },
-  { id: "r17", text: "Verify parts in stock for today's repairs", role: "Techs",   priority: "high" },
-  { id: "r18", text: "Pre-test all incoming devices",             role: "Techs",   priority: "high" },
-  { id: "r19", text: "Mark completed repairs Ready for Pickup",   role: "Techs",   priority: "med"  },
-  { id: "r20", text: "Call customers with completed repairs",     role: "Techs",   priority: "med"  },
-  { id: "r21", text: "Tin soldering tips before shutdown",        role: "Techs",   priority: "low"  },
+  // ── OPENER (Sales or Tech opening the store) ──
+  { id: "open1",  text: "Registers counted and balanced",                          role: "Opener", priority: "high" },
+  { id: "open2",  text: "All display devices placed in cases",                     role: "Opener", priority: "high" },
+  { id: "open3",  text: "Display devices cleaned",                                 role: "Opener", priority: "high" },
+  { id: "open4",  text: "Display case lights on",                                  role: "Opener", priority: "high" },
+  { id: "open5",  text: "Front and back lights on",                                role: "Opener", priority: "high" },
+  { id: "open6",  text: "Track lights on",                                         role: "Opener", priority: "high" },
+  { id: "open7",  text: "Compressor on",                                           role: "Opener", priority: "high" },
+  { id: "open8",  text: "Display TVs on",                                          role: "Opener", priority: "high" },
+  { id: "open9",  text: "Security monitors on",                                    role: "Opener", priority: "high" },
+  { id: "open10", text: "Dehydrator on",                                           role: "Opener", priority: "med"  },
+  { id: "open11", text: "Display case glass cleaned",                              role: "Opener", priority: "med"  },
+  { id: "open12", text: "Center island cleaned",                                   role: "Opener", priority: "med"  },
+  { id: "open13", text: "Floors clean",                                            role: "Opener", priority: "med"  },
+  { id: "open14", text: "Store organized and presentable",                         role: "Opener", priority: "med"  },
+  { id: "open15", text: "Sign placed out front, open sign turned on",              role: "Opener", priority: "high" },
+
+  // ── CLOSER (Sales or Tech closing the store) ──
+  { id: "close1",  text: "OPEN sign turned off",                                   role: "Closer", priority: "high" },
+  { id: "close2",  text: "Sidewalk sign brought inside",                           role: "Closer", priority: "high" },
+  { id: "close3",  text: "Front door locked",                                      role: "Closer", priority: "high" },
+  { id: "close4",  text: "Cash drawers counted and balanced",                      role: "Closer", priority: "high" },
+  { id: "close5",  text: "Deposit completed and placed in drop box",               role: "Closer", priority: "high" },
+  { id: "close6",  text: "Front showroom vacuumed",                                role: "Closer", priority: "med"  },
+  { id: "close7",  text: "Back work area vacuumed",                                role: "Closer", priority: "med"  },
+  { id: "close8",  text: "All trash removed",                                      role: "Closer", priority: "med"  },
+  { id: "close9",  text: "Electronic devices secured in cage",                     role: "Closer", priority: "high" },
+  { id: "close10", text: "Front display island cleaned and organized",             role: "Closer", priority: "med"  },
+  { id: "close11", text: "Back work island cleaned and organized",                 role: "Closer", priority: "med"  },
+  { id: "close12", text: "Display case glass cleaned",                             role: "Closer", priority: "med"  },
+  { id: "close13", text: "Entrance door glass cleaned",                            role: "Closer", priority: "med"  },
+  { id: "close14", text: "Accessories restocked",                                  role: "Closer", priority: "med"  },
+  { id: "close15", text: "Display phones placed on charging bases",                role: "Closer", priority: "med"  },
+  { id: "close16", text: "Monitors turned off",                                    role: "Closer", priority: "high" },
+  { id: "close17", text: "Display TVs turned off",                                 role: "Closer", priority: "high" },
+  { id: "close18", text: "Security monitors turned off",                           role: "Closer", priority: "high" },
+  { id: "close19", text: "All computers shut down",                                role: "Closer", priority: "high" },
+  { id: "close20", text: "Display cabinet lights unplugged",                       role: "Closer", priority: "high" },
+  { id: "close21", text: "Air compressor turned off",                              role: "Closer", priority: "high" },
+  { id: "close22", text: "Powered tools turned off",                               role: "Closer", priority: "high" },
+  { id: "close23", text: "Back door boarded and locked",                           role: "Closer", priority: "high" },
+  { id: "close24", text: "Security system armed",                                  role: "Closer", priority: "high" },
+  { id: "close25", text: "Final check completed and all doors locked",             role: "Closer", priority: "high" },
+
+  // ── TECH - Start of Shift ──
+  { id: "topen1", text: "Repair bench clean, organized, and stocked with tools",  role: "TechOpen", priority: "high" },
+  { id: "topen2", text: "Remove unnecessary parts, tools, trash from workspace",  role: "TechOpen", priority: "high" },
+  { id: "topen3", text: "Review the Repair Queue",                                role: "TechOpen", priority: "high" },
+  { id: "topen4", text: "Identify any overdue or past-due repairs",               role: "TechOpen", priority: "high" },
+  { id: "topen5", text: "Update estimated completion and pickup times as needed", role: "TechOpen", priority: "high" },
+  { id: "topen6", text: "Review all repairs scheduled for the day",               role: "TechOpen", priority: "high" },
+  { id: "topen7", text: "Prioritize repairs by due date and management direction",role: "TechOpen", priority: "high" },
+
+  // ── TECH - End of Shift ──
+  { id: "tclose1",  text: "Review all assigned repair tickets",                   role: "TechClose", priority: "high" },
+  { id: "tclose2",  text: "Every repair ticket has accurate and up-to-date notes",role: "TechClose", priority: "high" },
+  { id: "tclose3",  text: "No past-due tickets without customer communication",   role: "TechClose", priority: "high" },
+  { id: "tclose4",  text: "Update estimated completion and pickup times",         role: "TechClose", priority: "high" },
+  { id: "tclose5",  text: "Confirm all repair statuses reflect current stage",    role: "TechClose", priority: "high" },
+  { id: "tclose6",  text: "Completed repairs properly labeled",                   role: "TechClose", priority: "high" },
+  { id: "tclose7",  text: "Completed devices placed in designated pickup location",role: "TechClose", priority: "high" },
+  { id: "tclose8",  text: "Completed devices connected to chargers when applicable",role: "TechClose", priority: "med" },
+  { id: "tclose9",  text: "If off tomorrow — notify scheduled tech of due repairs",role: "TechClose", priority: "med" },
+  { id: "tclose10", text: "Remove all leftover parts, screws, adhesive, packaging, trash from bench", role: "TechClose", priority: "high" },
+  { id: "tclose11", text: "Return all tools and equipment to designated locations",role: "TechClose", priority: "high" },
+  { id: "tclose12", text: "Workstation clean and ready for next business day",    role: "TechClose", priority: "high" },
+  { id: "tclose13", text: "Recycled lithium-ion batteries placed in battery storage container", role: "TechClose", priority: "high" },
+  { id: "tclose14", text: "Recycled parts bin emptied if full",                   role: "TechClose", priority: "med"  },
 ];
 
 const getTodayKey = () => new Date().toISOString().split("T")[0]; // "2026-07-09"
@@ -2280,8 +2322,15 @@ const RepairsView = () => {
 const TasksView = ({ currentUser }) => {
   const priColor = { high: C.accent, med: C.gold, low: C.textMuted };
 
-  // Load state, reset if it's a new day
-  const initState = () => {
+  const CATEGORIES = [
+    { id: 'Opener',   label: '🌅 Opener',         roles: ['Opener'] },
+    { id: 'Closer',   label: '🌙 Closer',          roles: ['Closer'] },
+    { id: 'TechOpen', label: '🔧 Tech Start',      roles: ['TechOpen'] },
+    { id: 'TechClose',label: '🔧 Tech End',        roles: ['TechClose'] },
+  ];
+
+  const [activeTab, setActiveTab] = useState('Opener');
+  const [state, setState] = useState(() => {
     const saved = getTaskState();
     const today = getTodayKey();
     if (saved.date !== today) {
@@ -2290,43 +2339,34 @@ const TasksView = ({ currentUser }) => {
       return fresh;
     }
     return saved;
-  };
-
-  const [state, setState] = useState(initState);
+  });
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("med");
 
   const updateState = (next) => { setState(next); saveTaskState(next); };
 
-  // Filter recurring tasks by role
-  const roleMap = {
-    "Owner":      ["All", "Manager", "Sales", "Techs"],
-    "Tech/Sales": ["All", "Sales", "Techs"],
-    "Tech":       ["All", "Techs"],
-    "Sales":      ["All", "Sales"],
-  };
-  const allowedRoles = roleMap[currentUser?.role] || ["All"];
-  const myRecurring = RECURRING_TASKS.filter(t => allowedRoles.includes(t.role));
+  const tabTasks = RECURRING_TASKS.filter(t => t.role === activeTab);
+  const customTasks = state.custom.filter(t => t.role === activeTab || t.role === 'Custom');
+  const allTabTasks = [...tabTasks, ...customTasks];
+  const doneTasks = allTabTasks.filter(t => state.done.includes(t.id));
+  const openTasks = allTabTasks.filter(t => !state.done.includes(t.id));
+  const pct = allTabTasks.length ? Math.round((doneTasks.length / allTabTasks.length) * 100) : 0;
 
-  const toggleRecurring = (id) => {
-    const done = state.done.includes(id)
-      ? state.done.filter(d => d !== id)
-      : [...state.done, id];
+  // Overall progress across all tasks
+  const totalTasks = RECURRING_TASKS.length + state.custom.length;
+  const totalDone = state.done.length;
+  const totalPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
+
+  const toggle = (id) => {
+    const done = state.done.includes(id) ? state.done.filter(d => d !== id) : [...state.done, id];
     updateState({ ...state, done });
   };
 
   const addCustom = () => {
     if (!newTask.trim()) return;
-    const custom = [...state.custom, { id: `c${Date.now()}`, text: newTask, priority: newPriority }];
+    const custom = [...state.custom, { id: `c${Date.now()}`, text: newTask, priority: newPriority, role: activeTab }];
     updateState({ ...state, custom });
     setNewTask("");
-  };
-
-  const toggleCustom = (id) => {
-    const done = state.done.includes(id)
-      ? state.done.filter(d => d !== id)
-      : [...state.done, id];
-    updateState({ ...state, done });
   };
 
   const deleteCustom = (id) => {
@@ -2335,37 +2375,89 @@ const TasksView = ({ currentUser }) => {
     updateState({ ...state, custom, done });
   };
 
-  const allTasks = [
-    ...myRecurring.map(t => ({ ...t, recurring: true })),
-    ...state.custom.map(t => ({ ...t, recurring: false, role: "Custom" })),
-  ];
-  const open = allTasks.filter(t => !state.done.includes(t.id));
-  const done = allTasks.filter(t => state.done.includes(t.id));
-  const pct = allTasks.length ? Math.round((done.length / allTasks.length) * 100) : 0;
+  const TaskItem = ({ task }) => {
+    const isDone = state.done.includes(task.id);
+    return (
+      <div onClick={() => toggle(task.id)}
+        style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: isDone ? C.greenDim : C.surface, border: `1px solid ${isDone ? C.green + '44' : C.border}`, borderRadius: 10, cursor: "pointer", marginBottom: 8, transition: "all .15s" }}>
+        <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${isDone ? C.green : priColor[task.priority] || C.border}`, background: isDone ? C.green : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+          {isDone && <span style={{ color: "#fff", fontSize: 13, fontWeight: 800 }}>✓</span>}
+        </div>
+        <div style={{ flex: 1 }}>
+          <span style={{ color: isDone ? C.textMuted : C.text, fontSize: 13, textDecoration: isDone ? "line-through" : "none" }}>{task.text}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Tag color={priColor[task.priority] || C.textMuted}>{task.priority}</Tag>
+          {!task.recurring && (
+            <button onClick={e => { e.stopPropagation(); deleteCustom(task.id); }}
+              style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 14, padding: "0 2px" }}>×</button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Daily Tasks</h2>
-        <div style={{ color: C.textMuted, fontSize: 13 }}>{open.length} remaining · {done.length} complete · resets at midnight</div>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>{totalDone} of {totalTasks} complete across all categories · resets at midnight</div>
       </div>
 
-      {/* Progress bar */}
-      <Card style={{ marginBottom: 20 }}>
+      {/* Overall progress */}
+      <Card style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ color: C.textDim, fontSize: 13 }}>Today's Progress</span>
-          <span style={{ color: pct === 100 ? C.green : C.teal, fontWeight: 700 }}>{pct}%</span>
+          <span style={{ color: C.textDim, fontSize: 13 }}>Overall Progress</span>
+          <span style={{ color: totalPct === 100 ? C.green : C.teal, fontWeight: 700 }}>{totalPct}%</span>
         </div>
         <div style={{ background: C.border, borderRadius: 4, height: 8, overflow: "hidden" }}>
-          <div style={{ width: `${pct}%`, background: pct === 100 ? C.green : C.teal, height: "100%", borderRadius: 4, transition: "width .4s" }} />
+          <div style={{ width: `${totalPct}%`, background: totalPct === 100 ? C.green : C.teal, height: "100%", borderRadius: 4, transition: "width .4s" }} />
         </div>
-        {pct === 100 && <div style={{ color: C.green, fontSize: 12, marginTop: 8, textAlign: "center", fontWeight: 600 }}>🎉 All tasks complete!</div>}
+        {totalPct === 100 && <div style={{ color: C.green, fontSize: 12, marginTop: 8, textAlign: "center", fontWeight: 600 }}>🎉 All tasks complete!</div>}
       </Card>
 
-      {/* Add custom task — owners and managers only */}
+      {/* Category tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        {CATEGORIES.map(cat => {
+          const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
+          const catDone = catTasks.filter(t => state.done.includes(t.id)).length;
+          const catPct = catTasks.length ? Math.round((catDone / catTasks.length) * 100) : 0;
+          return (
+            <button key={cat.id} onClick={() => setActiveTab(cat.id)}
+              style={{ background: activeTab === cat.id ? C.accent : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? C.accent : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              {cat.label} <span style={{ opacity: 0.8, fontSize: 11 }}>({catDone}/{catTasks.length})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab progress */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <span style={{ color: C.textMuted, fontSize: 12 }}>{openTasks.length} remaining · {doneTasks.length} complete</span>
+        <span style={{ color: pct === 100 ? C.green : C.teal, fontWeight: 700, fontSize: 12 }}>{pct}%</span>
+      </div>
+      <div style={{ background: C.border, borderRadius: 4, height: 4, overflow: "hidden", marginBottom: 16 }}>
+        <div style={{ width: `${pct}%`, background: pct === 100 ? C.green : C.accent, height: "100%", borderRadius: 4, transition: "width .4s" }} />
+      </div>
+
+      {/* Tasks */}
+      <div style={{ marginBottom: 16 }}>
+        {openTasks.map(t => <TaskItem key={t.id} task={{ ...t, recurring: !t.role?.startsWith('c') }} />)}
+        {doneTasks.length > 0 && (
+          <div>
+            <div style={{ color: C.textMuted, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8, marginTop: 12 }}>✓ Completed</div>
+            {doneTasks.map(t => <TaskItem key={t.id} task={{ ...t, recurring: !t.role?.startsWith('c') }} />)}
+          </div>
+        )}
+        {allTabTasks.length === 0 && (
+          <div style={{ color: C.textMuted, fontSize: 13, textAlign: "center", padding: 24 }}>No tasks for this category</div>
+        )}
+      </div>
+
+      {/* Add custom task */}
       {(currentUser?.role === "Owner" || currentUser?.role === "Tech/Sales") && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          <input value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustom()} placeholder="Add a one-off task…"
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <input value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustom()} placeholder={`Add task to ${CATEGORIES.find(c => c.id === activeTab)?.label}…`}
             style={{ flex: 1, minWidth: 180, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
           <select value={newPriority} onChange={e => setNewPriority(e.target.value)}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 13, outline: "none" }}>
@@ -2376,48 +2468,10 @@ const TasksView = ({ currentUser }) => {
           <button onClick={addCustom} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer" }}>Add</button>
         </div>
       )}
-
-      {/* Open tasks */}
-      {open.length > 0 && <>
-        <div style={{ marginBottom: 10, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>To Do — {open.length}</div>
-        {open.map(t => (
-          <div key={t.id}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8 }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = priColor[t.priority]}
-            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-            <div onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)}
-              style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${priColor[t.priority]}`, flexShrink: 0, cursor: "pointer" }} />
-            <div onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)} style={{ flex: 1, cursor: "pointer" }}>
-              <div style={{ color: C.text, fontSize: 14 }}>{t.text}</div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>{t.role} {!t.recurring ? "· Custom" : ""}</div>
-            </div>
-            <Tag color={priColor[t.priority]}>{t.priority}</Tag>
-            {!t.recurring && (
-              <button onClick={() => deleteCustom(t.id)}
-                style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px" }}>×</button>
-            )}
-          </div>
-        ))}
-      </>}
-
-      {/* Completed tasks */}
-      {done.length > 0 && <>
-        <div style={{ margin: "20px 0 10px", color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Completed — {done.length}</div>
-        {done.map(t => (
-          <div key={t.id}
-            onClick={() => t.recurring ? toggleRecurring(t.id) : toggleCustom(t.id)}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 8, cursor: "pointer", opacity: 0.5 }}>
-            <div style={{ width: 20, height: 20, borderRadius: 6, background: C.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon d={Icons.check} size={12} stroke="#fff" />
-            </div>
-            <div style={{ flex: 1, color: C.textMuted, fontSize: 14, textDecoration: "line-through" }}>{t.text}</div>
-            <Tag color={C.green}>done</Tag>
-          </div>
-        ))}
-      </>}
     </div>
   );
 };
+
 
 // ── POS / RepairQ ─────────────────────────────────────────────────────────
 const POSView = () => (
