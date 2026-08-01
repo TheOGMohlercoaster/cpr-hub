@@ -3676,8 +3676,30 @@ const ScheduleView = ({ currentUser }) => {
         </button>
       </div>
 
-      {/* Schedule grid */}
-      <div style={{ overflowX: "auto", marginBottom: 20 }}>
+      {/* Copy from last week button */}
+      {canEdit && Object.keys(schedule).length === 0 && (
+        <button onClick={() => {
+          const prevWeek = new Date(weekStart);
+          prevWeek.setDate(prevWeek.getDate() - 7);
+          const prevSchedule = loadSchedule(prevWeek);
+          if (Object.keys(prevSchedule).length === 0) { alert("No schedule found for last week."); return; }
+          const copied = {};
+          Object.entries(prevSchedule).forEach(([key, shift]) => {
+            const [empId, date] = key.split("_");
+            const newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + 7);
+            copied[`${empId}_${newDate.toISOString().split("T")[0]}`] = { ...shift };
+          });
+          saveSchedule(weekStart, copied);
+          setSchedule(copied);
+        }}
+          style={{ width: "100%", background: C.tealDim, color: C.teal, border: `1px solid ${C.teal}44`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13, marginBottom: 12 }}>
+          📋 Copy Last Week's Schedule
+        </button>
+      )}
+
+      {/* Schedule grid - desktop table */}
+      <div style={{ display: window.innerWidth < 640 ? 'none' : 'block', overflowX: "auto", marginBottom: 20 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr>
@@ -3811,7 +3833,95 @@ const ScheduleView = ({ currentUser }) => {
         </table>
       </div>
 
-      {/* Preset Shifts */}
+      {/* Mobile card view - shown only on small screens */}
+      <div style={{ display: window.innerWidth < 640 ? 'block' : 'none', marginBottom: 20 }}>
+        {days.map((d, di) => {
+          const dateStr = formatDate(d);
+          const isToday = dateStr === today;
+          const dayShifts = SCHEDULE_EMPLOYEES.filter(emp => getShift(emp.id, dateStr));
+          if (dayShifts.length === 0 && !canEdit) return null;
+          return (
+            <div key={di} style={{ marginBottom: 12, background: isToday ? C.accentDim : C.surface, border: `1px solid ${isToday ? C.accent + '44' : C.border}`, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, background: isToday ? C.accent : C.surface }}>
+                <span style={{ color: isToday ? '#fff' : C.text, fontWeight: 700, fontSize: 14 }}>
+                  {d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+                </span>
+                {isToday && <span style={{ color: '#fff', fontSize: 11, marginLeft: 8 }}>TODAY</span>}
+              </div>
+              <div style={{ padding: '8px 14px' }}>
+                {dayShifts.length === 0 && <div style={{ color: C.textMuted, fontSize: 13, padding: '4px 0' }}>No shifts scheduled</div>}
+                {SCHEDULE_EMPLOYEES.map(emp => {
+                  const shift = getShift(emp.id, dateStr);
+                  if (!shift && !canEdit) return null;
+                  return (
+                    <div key={emp.id} onClick={() => canEdit && setModal({ day: d, employee: emp })}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${C.border}22`, cursor: canEdit ? 'pointer' : 'default' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: emp.color, flexShrink: 0 }} />
+                        <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{emp.name.split(' ')[0]}</span>
+                      </div>
+                      {shift ? (
+                        <span style={{ color: emp.color, fontSize: 12, fontWeight: 600 }}>{shift.start} – {shift.end}</span>
+                      ) : canEdit ? (
+                        <span style={{ color: C.textMuted, fontSize: 12 }}>+ Add</span>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Calendar Subscription */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, color: C.text, fontSize: 14, marginBottom: 4 }}>📅 Subscribe to Schedule</div>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
+          Auto-syncs to your phone calendar when schedule is published
+        </div>
+        {currentUser && (() => {
+          const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser.name);
+          const myEmpId = emp?.id || '';
+          const webcalUrl = 'https://cpr-hub.vercel.app/api/calendar?emp=' + myEmpId;
+          const webcal = webcalUrl.replace('https://', 'webcal://');
+          return (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a href={webcal}
+                style={{ background: C.teal, color: '#fff', borderRadius: 8, padding: '8px 16px', fontWeight: 700, fontSize: 13, textDecoration: 'none', display: 'inline-block' }}>
+                📲 Subscribe (iOS/Android)
+              </a>
+              <button onClick={() => { navigator.clipboard.writeText(webcalUrl); alert('Calendar URL copied! In Google Calendar: Other calendars → + → From URL → Paste'); }}
+                style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                📋 Copy for Google Calendar
+              </button>
+            </div>
+          );
+        })()}
+        {canEdit && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 8 }}>Share individual links with staff:</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {SCHEDULE_EMPLOYEES.map(emp => {
+                const webcal = ('https://cpr-hub.vercel.app/api/calendar?emp=' + emp.id).replace('https://', 'webcal://');
+                return (
+                  <div key={emp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: C.bg, borderRadius: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: emp.color }} />
+                      <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{emp.name.split(' ')[0]}</span>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(webcal); alert(`${emp.name.split(' ')[0]}'s calendar link copied!`); }}
+                      style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 10px', color: C.textMuted, fontSize: 11, cursor: 'pointer' }}>
+                      Copy Link
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Card>
+
       {canEdit && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
