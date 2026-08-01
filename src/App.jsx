@@ -3467,6 +3467,7 @@ const ScheduleView = ({ currentUser }) => {
   const [schedule, setSchedule] = useState(() => loadSchedule(getWeekStart(new Date())));
   const [modal, setModal] = useState(null); // { day, employee }
   const [published, setPublished] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [copiedShift, setCopiedShift] = useState(null); // { shift, empId, date }
   const [draggedShift, setDraggedShift] = useState(null); // { shift, empId, date }
 
@@ -4009,14 +4010,23 @@ const ScheduleView = ({ currentUser }) => {
         )}
       </div>
 
-      {/* Publish button */}
+      {/* Save / Publish buttons */}
       {canEdit && (
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={() => {
+            saveSchedule(weekStart, schedule);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+          }}
+            style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+            💾 Save Draft
+          </button>
           <button onClick={publishAndEmail}
             style={{ background: C.teal, color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
             📧 Publish & Email Staff
           </button>
-          {published && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Schedule ready!</span>}
+          {saved && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Draft saved!</span>}
+          {published && !saved && <span style={{ color: C.green, fontSize: 13, alignSelf: "center", fontWeight: 600 }}>✓ Schedule ready!</span>}
         </div>
       )}
 
