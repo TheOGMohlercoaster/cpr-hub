@@ -3676,26 +3676,36 @@ const ScheduleView = ({ currentUser }) => {
         </button>
       </div>
 
-      {/* Copy from last week button */}
-      {canEdit && Object.keys(schedule).length === 0 && (
-        <button onClick={() => {
-          const prevWeek = new Date(weekStart);
-          prevWeek.setDate(prevWeek.getDate() - 7);
-          const prevSchedule = loadSchedule(prevWeek);
-          if (Object.keys(prevSchedule).length === 0) { alert("No schedule found for last week."); return; }
-          const copied = {};
-          Object.entries(prevSchedule).forEach(([key, shift]) => {
-            const [empId, date] = key.split("_");
-            const newDate = new Date(date);
-            newDate.setDate(newDate.getDate() + 7);
-            copied[`${empId}_${newDate.toISOString().split("T")[0]}`] = { ...shift };
-          });
-          saveSchedule(weekStart, copied);
-          setSchedule(copied);
-        }}
-          style={{ width: "100%", background: C.tealDim, color: C.teal, border: `1px solid ${C.teal}44`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13, marginBottom: 12 }}>
-          📋 Copy Last Week's Schedule
-        </button>
+      {/* Copy Last Week / Clear Schedule buttons */}
+      {canEdit && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button onClick={() => {
+            const prevWeek = new Date(weekStart);
+            prevWeek.setDate(prevWeek.getDate() - 7);
+            const prevSchedule = loadSchedule(prevWeek);
+            if (Object.keys(prevSchedule).length === 0) { alert("No schedule found for last week."); return; }
+            const copied = {};
+            Object.entries(prevSchedule).forEach(([key, shift]) => {
+              const [empId, date] = key.split("_");
+              const newDate = new Date(date);
+              newDate.setDate(newDate.getDate() + 7);
+              copied[`${empId}_${newDate.toISOString().split("T")[0]}`] = { ...shift };
+            });
+            saveSchedule(weekStart, copied);
+            setSchedule(copied);
+          }}
+            style={{ flex: 1, background: C.tealDim, color: C.teal, border: `1px solid ${C.teal}44`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
+            📋 Copy Last Week
+          </button>
+          <button onClick={() => {
+            if (!window.confirm("Clear all shifts for this week?")) return;
+            saveSchedule(weekStart, {});
+            setSchedule({});
+          }}
+            style={{ flex: 1, background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "9px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
+            🗑️ Clear Week
+          </button>
+        </div>
       )}
 
       {/* Schedule grid - desktop table */}
