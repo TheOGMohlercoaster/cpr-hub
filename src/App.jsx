@@ -3482,6 +3482,54 @@ const ScheduleView = ({ currentUser }) => {
   const [modal, setModal] = useState(null); // { day, employee }
   const [published, setPublished] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showAddPreset, setShowAddPreset] = useState(false);
+  const [newPresetStart, setNewPresetStart] = useState('9:30 AM');
+  const [newPresetEnd, setNewPresetEnd] = useState('6:30 PM');
+  const [newPresetLabel, setNewPresetLabel] = useState('');
+  const [customPresets, setCustomPresets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cpr_custom_presets');
+      return saved ? JSON.parse(saved) : [...PRESET_SHIFTS];
+    } catch { return [...PRESET_SHIFTS]; }
+  });
+  const [presetsLoaded, setPresetsLoaded] = useState(false);
+
+  // Load presets from Google Sheets on mount
+  if (!presetsLoaded) {
+    setPresetsLoaded(true);
+    fetch('/api/presets')
+      .then(r => r.json())
+      .then(data => {
+        if (data.presets && data.presets.length > 0) {
+          setCustomPresets(data.presets);
+          localStorage.setItem('cpr_custom_presets', JSON.stringify(data.presets));
+        }
+      })
+      .catch(() => {});
+  }
+
+  const savePresets = (updated) => {
+    setCustomPresets(updated);
+    localStorage.setItem('cpr_custom_presets', JSON.stringify(updated));
+    // Sync to Google Sheets
+    fetch('/api/presets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets: updated })
+    }).catch(() => {});
+  };
+
+  const timeOptions = () => {
+    const opts = [];
+    for (let h = 6; h <= 22; h++) {
+      for (let m of [0, 30]) {
+        const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+        const ampm = h < 12 ? 'AM' : 'PM';
+        opts.push(`${hour}:${m === 0 ? '00' : '30'} ${ampm}`);
+      }
+    }
+    return opts;
+  };
   const [copiedShift, setCopiedShift] = useState(null); // { shift, empId, date }
   const [draggedShift, setDraggedShift] = useState(null); // { shift, empId, date }
 
@@ -3939,20 +3987,73 @@ const ScheduleView = ({ currentUser }) => {
 
       {canEdit && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
-            ⚡ Preset Shifts — drag or click to copy
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div style={{ color: C.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+              ⚡ Preset Shifts — drag or click to copy
+            </div>
+            <button onClick={() => setShowAddPreset(!showAddPreset)}
+              style={{ background: C.accentDim, color: C.accent, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+              + Add Preset
+            </button>
           </div>
+
+          {/* Add preset form */}
+          {showAddPreset && (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 8, alignItems: 'end' }}>
+                <div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Start Time</div>
+                  <select value={newPresetStart} onChange={e => setNewPresetStart(e.target.value)}
+                    style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.text, fontSize: 13, outline: 'none' }}>
+                    {timeOptions().map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>End Time</div>
+                  <select value={newPresetEnd} onChange={e => setNewPresetEnd(e.target.value)}
+                    style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.text, fontSize: 13, outline: 'none' }}>
+                    {timeOptions().map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Label (optional)</div>
+                  <input value={newPresetLabel} onChange={e => setNewPresetLabel(e.target.value)}
+                    placeholder="e.g. 11a - 7p"
+                    style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 10px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+                <button onClick={() => {
+                  const label = newPresetLabel.trim() || `${newPresetStart.replace(':00', '').replace(' ', '').toLowerCase()} - ${newPresetEnd.replace(':00', '').replace(' ', '').toLowerCase()}`;
+                  const updated = [...customPresets, { label, start: newPresetStart, end: newPresetEnd }];
+                  savePresets(updated);
+                  setNewPresetLabel(''); setShowAddPreset(false);
+                }}
+                  style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {PRESET_SHIFTS.map((preset, i) => (
-              <div key={i}
-                draggable
-                onDragStart={() => setDraggedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, empId: null, date: null, isPreset: true })}
-                onDragEnd={() => setDraggedShift(null)}
-                onClick={() => setCopiedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, isPreset: true })}
-                style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 14px', cursor: 'grab', fontSize: 12, fontWeight: 700, color: '#FF4D1C', userSelect: 'none' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#FF4D1C33'}
-                onMouseLeave={e => e.currentTarget.style.background = '#FF4D1C22'}>
-                {preset.label}
+            {[...customPresets].map((preset, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, overflow: 'hidden' }}>
+                <div
+                  draggable
+                  onDragStart={() => setDraggedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, empId: null, date: null, isPreset: true })}
+                  onDragEnd={() => setDraggedShift(null)}
+                  onClick={() => setCopiedShift({ shift: { start: preset.start, end: preset.end, notes: '' }, isPreset: true })}
+                  style={{ padding: '7px 12px', cursor: 'grab', fontSize: 12, fontWeight: 700, color: '#FF4D1C', userSelect: 'none' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#FF4D1C11'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  {preset.label}
+                </div>
+                <button onClick={() => {
+                  const updated = customPresets.filter((_, idx) => idx !== i);
+                  savePresets(updated);
+                }}
+                  style={{ background: 'transparent', border: 'none', borderLeft: '1px solid #FF4D1C33', color: '#FF4D1C', cursor: 'pointer', padding: '7px 8px', fontSize: 13 }}>
+                  ×
+                </button>
               </div>
             ))}
           </div>
