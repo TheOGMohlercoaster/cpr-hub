@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // ── Icons (inline SVGs to avoid dependencies) ──────────────────────────────
 const Icon = ({ d, size = 20, stroke = "currentColor", fill = "none" }) => (
@@ -1007,6 +1007,15 @@ const StatCard = ({ label, value, sub, color = C.accent, icon }) => (
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 const DashboardView = ({ setView, currentUser }) => {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening';
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   const totalSales = TODAY_SALES.reduce((a, e) => a + e.sales, 0);
   const totalRepairs = REPAIR_TOTALS.reduce((a, e) => a + e.completed, 0);
   const tasksLeft = TASKS.filter(t => !t.done).length;
@@ -1102,8 +1111,12 @@ const DashboardView = ({ setView, currentUser }) => {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 4 }}>Friday, June 12, 2026</div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0 }}>Good morning, CPR Team 👋</h1>
+        <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 4 }}>
+          {dateStr} · {timeStr}
+        </div>
+        <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: 0 }}>
+          {greeting}, CPR Team 👋
+        </h1>
       </div>
       {/* iPhone Identifier Button */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
