@@ -4871,7 +4871,15 @@ const LoginScreen = ({ onLogin }) => {
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [view, setView] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try { return localStorage.getItem('cpr_sidebar') !== 'closed'; } catch { return true; }
+  });
+
+  const toggleSidebar = (val) => {
+    const next = val !== undefined ? val : !sidebarOpen;
+    setSidebarOpen(next);
+    try { localStorage.setItem('cpr_sidebar', next ? 'open' : 'closed'); } catch {}
+  };
   const [theme, setTheme] = useState(getTheme());
 
   const toggleTheme = () => {
@@ -4951,7 +4959,7 @@ export default function App() {
               {sidebarOpen && <span style={{ fontSize: 13 }}>Settings</span>}
             </div>
           )}
-          <button onClick={() => setSidebarOpen(o => !o)}
+          <button onClick={() => toggleSidebar()}
             style={{ width: "100%", marginTop: 4, background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 11, padding: "6px", borderRadius: 6, textAlign: "center" }}>
             {sidebarOpen ? "← Collapse" : "→"}
           </button>
