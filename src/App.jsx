@@ -204,8 +204,15 @@ const TASKS = []; // kept for dashboard compatibility
 const getAnnouncements = () => {
   try {
     const saved = localStorage.getItem("cpr_announcements");
-    return saved ? JSON.parse(saved) : { pinned: null, feed: [] };
-  } catch { return { pinned: null, feed: [] }; }
+    const data = saved ? JSON.parse(saved) : { pinned: null, feed: [], dismissed: [], dismissedDate: '' };
+    // Reset dismissed list each day
+    const today = new Date().toISOString().split('T')[0];
+    if (data.dismissedDate !== today) {
+      data.dismissed = [];
+      data.dismissedDate = today;
+    }
+    return data;
+  } catch { return { pinned: null, feed: [], dismissed: [], dismissedDate: '' }; }
 };
 const saveAnnouncements = (data) => {
   try { localStorage.setItem("cpr_announcements", JSON.stringify(data)); } catch {}
@@ -1134,10 +1141,17 @@ const DashboardView = ({ setView, currentUser }) => {
         </div>
 
         {/* Auto recurring announcements */}
-        {autoAnnouncements.map(a => (
+        {autoAnnouncements.filter(a => !announcements.dismissed?.includes(a.id)).map(a => (
           <div key={a.id} style={{ background: '#3B82F622', border: '1px solid #3B82F644', borderRadius: 10, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: '#3B82F6', fontWeight: 600, fontSize: 14, flex: 1 }}>{a.text}</span>
-            <span style={{ color: '#6B7280', fontSize: 11 }}>{a.time}</span>
+            <span style={{ color: '#6B7280', fontSize: 11, marginRight: 4 }}>{a.time}</span>
+            <button onClick={() => {
+              const dismissed = [...(announcements.dismissed || []), a.id];
+              updateAnnouncements({ ...announcements, dismissed });
+            }}
+              style={{ background: '#22C55E22', border: '1px solid #22C55E44', borderRadius: 6, padding: '3px 10px', color: '#22C55E', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              ✓ Done
+            </button>
           </div>
         ))}
 
