@@ -3937,54 +3937,6 @@ const ScheduleView = ({ currentUser }) => {
         })}
       </div>
 
-      {/* Calendar Subscription */}
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ fontWeight: 700, color: C.text, fontSize: 14, marginBottom: 4 }}>📅 Subscribe to Schedule</div>
-        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
-          Auto-syncs to your phone calendar when schedule is published
-        </div>
-        {currentUser && (() => {
-          const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser.name);
-          const myEmpId = emp?.id || '';
-          const webcalUrl = 'https://cpr-hub.vercel.app/api/calendar?emp=' + myEmpId;
-          const webcal = webcalUrl.replace('https://', 'webcal://');
-          return (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a href={webcal}
-                style={{ background: C.teal, color: '#fff', borderRadius: 8, padding: '8px 16px', fontWeight: 700, fontSize: 13, textDecoration: 'none', display: 'inline-block' }}>
-                📲 Subscribe (iOS/Android)
-              </a>
-              <button onClick={() => { navigator.clipboard.writeText(webcalUrl); alert('Calendar URL copied! In Google Calendar: Other calendars → + → From URL → Paste'); }}
-                style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-                📋 Copy for Google Calendar
-              </button>
-            </div>
-          );
-        })()}
-        {canEdit && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
-            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 8 }}>Share individual links with staff:</div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              {SCHEDULE_EMPLOYEES.map(emp => {
-                const webcal = ('https://cpr-hub.vercel.app/api/calendar?emp=' + emp.id).replace('https://', 'webcal://');
-                return (
-                  <div key={emp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: C.bg, borderRadius: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: emp.color }} />
-                      <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{emp.name.split(' ')[0]}</span>
-                    </div>
-                    <button onClick={() => { navigator.clipboard.writeText(webcal); alert(`${emp.name.split(' ')[0]}'s calendar link copied!`); }}
-                      style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 10px', color: C.textMuted, fontSize: 11, cursor: 'pointer' }}>
-                      Copy Link
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </Card>
-
       {canEdit && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -4059,6 +4011,54 @@ const ScheduleView = ({ currentUser }) => {
           </div>
         </div>
       )}
+
+      {/* Calendar Subscription */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, color: C.text, fontSize: 14, marginBottom: 4 }}>📅 Subscribe to Schedule</div>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
+          Auto-syncs to your phone calendar when schedule is published
+        </div>
+        {currentUser && (() => {
+          const emp = SCHEDULE_EMPLOYEES.find(e => e.name === currentUser.name);
+          const myEmpId = emp?.id || '';
+          const webcalUrl = 'https://cpr-hub.vercel.app/api/calendar?emp=' + myEmpId;
+          const webcal = webcalUrl.replace('https://', 'webcal://');
+          return (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a href={webcal}
+                style={{ background: C.teal, color: '#fff', borderRadius: 8, padding: '8px 16px', fontWeight: 700, fontSize: 13, textDecoration: 'none', display: 'inline-block' }}>
+                📲 Subscribe (iOS/Android)
+              </a>
+              <button onClick={() => { navigator.clipboard.writeText(webcalUrl); alert('Calendar URL copied! In Google Calendar: Other calendars → + → From URL → Paste'); }}
+                style={{ background: C.surface, color: C.textDim, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+                📋 Copy for Google Calendar
+              </button>
+            </div>
+          );
+        })()}
+        {canEdit && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 8 }}>Share individual links with staff:</div>
+            <div style={{ display: 'grid', gap: 6 }}>
+              {SCHEDULE_EMPLOYEES.map(emp => {
+                const webcal = ('https://cpr-hub.vercel.app/api/calendar?emp=' + emp.id).replace('https://', 'webcal://');
+                return (
+                  <div key={emp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: C.bg, borderRadius: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: emp.color }} />
+                      <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{emp.name.split(' ')[0]}</span>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(webcal); alert(`${emp.name.split(' ')[0]}'s calendar link copied!`); }}
+                      style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 10px', color: C.textMuted, fontSize: 11, cursor: 'pointer' }}>
+                      Copy Link
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Card>
 
       {/* Copy mode banner */}
       {copiedShift && (
