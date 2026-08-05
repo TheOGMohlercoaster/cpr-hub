@@ -204,15 +204,10 @@ const TASKS = []; // kept for dashboard compatibility
 const getAnnouncements = () => {
   try {
     const saved = localStorage.getItem("cpr_announcements");
-    const data = saved ? JSON.parse(saved) : { pinned: null, feed: [], dismissed: [], dismissedDate: '' };
-    // Reset dismissed list each day
-    const today = new Date().toISOString().split('T')[0];
-    if (data.dismissedDate !== today) {
-      data.dismissed = [];
-      data.dismissedDate = today;
-    }
+    const data = saved ? JSON.parse(saved) : { pinned: null, feed: [], dismissed: {} };
+    if (!data.dismissed || Array.isArray(data.dismissed)) data.dismissed = {};
     return data;
-  } catch { return { pinned: null, feed: [], dismissed: [], dismissedDate: '' }; }
+  } catch { return { pinned: null, feed: [], dismissed: {} }; }
 };
 const saveAnnouncements = (data) => {
   try { localStorage.setItem("cpr_announcements", JSON.stringify(data)); } catch {}
@@ -1058,19 +1053,27 @@ const DashboardView = ({ setView, currentUser }) => {
     const today = new Date();
     const day = today.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed
     const date = today.getDate();
+    const todayStr = today.toISOString().split('T')[0];
     const auto = [];
+    const dismissed = announcements.dismissed || {};
 
     // Every other Monday-Wednesday: Process KBBs
-    // Week number since epoch to determine even/odd weeks
     const weekNum = Math.floor(today.getTime() / (7 * 24 * 60 * 60 * 1000));
     const isEvenWeek = weekNum % 2 === 0;
     if ((day === 1 || day === 2 || day === 3) && isEvenWeek) {
-      auto.push({ id: 'auto-kbb', text: '📋 Reminder: Process KBBs today', author: 'Auto', time: 'Recurring', auto: true });
+      // Only show if not dismissed for this week
+      const kbbDismissedUntil = dismissed['auto-kbb'];
+      if (!kbbDismissedUntil || todayStr >= kbbDismissedUntil) {
+        auto.push({ id: 'auto-kbb', text: '📋 Reminder: Process KBBs today', author: 'Auto', time: 'Every other Mon-Wed' });
+      }
     }
 
-    // First week of month (days 1-7): Process parts returns
+    // First week of month: Process parts returns
     if (date >= 1 && date <= 7) {
-      auto.push({ id: 'auto-parts', text: '📦 Reminder: Process parts returns this week', author: 'Auto', time: 'Monthly', auto: true });
+      const partsDismissedUntil = dismissed['auto-parts'];
+      if (!partsDismissedUntil || todayStr >= partsDismissedUntil) {
+        auto.push({ id: 'auto-parts', text: '📦 Reminder: Process parts returns this week', author: 'Auto', time: 'First week of month' });
+      }
     }
 
     return auto;
@@ -1154,12 +1157,24 @@ const DashboardView = ({ setView, currentUser }) => {
         </div>
 
         {/* Auto recurring announcements */}
-        {autoAnnouncements.filter(a => !announcements.dismissed?.includes(a.id)).map(a => (
+        {autoAnnouncements.map(a => (
           <div key={a.id} style={{ background: '#3B82F622', border: '1px solid #3B82F644', borderRadius: 10, padding: '10px 16px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ color: '#3B82F6', fontWeight: 600, fontSize: 14, flex: 1 }}>{a.text}</span>
             <span style={{ color: '#6B7280', fontSize: 11, marginRight: 4 }}>{a.time}</span>
             <button onClick={() => {
-              const dismissed = [...(announcements.dismissed || []), a.id];
+              const today = new Date();
+              let nextOccurrence;
+              if (a.id === 'auto-kbb') {
+                // Dismiss until next Thursday (past this Mon-Wed window)
+                const next = new Date(today);
+                next.setDate(today.getDate() + (4 - today.getDay() + 7) % 7 || 7);
+                nextOccurrence = next.toISOString().split('T')[0];
+              } else if (a.id === 'auto-parts') {
+                // Dismiss until 1st of next month
+                const next = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                nextOccurrence = next.toISOString().split('T')[0];
+              }
+              const dismissed = { ...(announcements.dismissed || {}), [a.id]: nextOccurrence };
               updateAnnouncements({ ...announcements, dismissed });
             }}
               style={{ background: '#22C55E22', border: '1px solid #22C55E44', borderRadius: 6, padding: '3px 10px', color: '#22C55E', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
