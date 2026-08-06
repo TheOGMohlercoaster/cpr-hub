@@ -1160,7 +1160,7 @@ const DashboardView = ({ setView, currentUser }) => {
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 16 }}>
         <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 4 }}>
           {dateStr} · {timeStr}
         </div>
@@ -1168,8 +1168,11 @@ const DashboardView = ({ setView, currentUser }) => {
           {greeting}, CPR Team 👋
         </h1>
       </div>
-{/* Quick Access */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
+
+      {showIPhoneID && <IPhoneIdentifier onClose={() => setShowIPhoneID(false)} />}
+
+      {/* Quick Access */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 14 }}>
         {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
           <div key={n.id} onClick={() => setView(n.id)}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
@@ -1180,14 +1183,6 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         ))}
       </div>
-      {/* iPhone Identifier Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={() => setShowIPhoneID(true)}
-          style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-          🍎 Identify iPhone
-        </button>
-      </div>
-      {showIPhoneID && <IPhoneIdentifier onClose={() => setShowIPhoneID(false)} />}
 
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
@@ -1324,9 +1319,6 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
-   
-
-    
       {/* Today's Schedule */}
       <TodaySchedule />
 
