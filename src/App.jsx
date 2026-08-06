@@ -1168,15 +1168,7 @@ const DashboardView = ({ setView, currentUser }) => {
           {greeting}, CPR Team 👋
         </h1>
       </div>
-      {/* iPhone Identifier Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={() => setShowIPhoneID(true)}
-          style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
-          🍎 Identify iPhone
-        </button>
-      </div>
-      {showIPhoneID && <IPhoneIdentifier onClose={() => setShowIPhoneID(false)} />}
-
+ 
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
         <button onClick={() => setShowIPhoneID(true)}
@@ -1325,29 +1317,7 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
-      {/* Stat row - Monthly totals */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {[
-          { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: "#FF4D1C" },
-          { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: "#3B82F6" },
-          { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: "#3B82F6" },
-          { name: "Device Care", url: "https://devicecarenow.com/cpr", color: "#00C9A7" },
-          { name: "Akko", url: "https://partner.akko.app/claims/device-info", color: "#A855F7" },
-          { name: "Claims National Accounts", url: "https://franchiseeconnects.sharepoint.com/SitePages/National-Accounts.aspx", color: "#22C55E" },
-          { name: "CPR Support", url: "https://cpr.creatio.com", color: "#FFB547" },
-          { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: "#22C55E" },
-          { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: "#00C9A7" },
-          { name: "Email", url: "https://outlook.office.com", color: "#6B7280" },
-        ].map(link => (
-          <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
-            style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
-            onMouseEnter={e => e.currentTarget.style.background = link.color + "30"}
-            onMouseLeave={e => e.currentTarget.style.background = link.color + "18"}>
-            {link.name} ↗
-          </a>
-        ))}
-      </div>
-
+ 
       {/* Today's Schedule */}
       <TodaySchedule />
 
