@@ -4818,6 +4818,76 @@ const IPhoneIDButton = ({ inline }) => {
   );
 };
 
+// ── NOTIFICATION BELL ────────────────────────────────────────────────────
+const NotificationBell = ({ currentUser, onNavigate }) => {
+  const [open, setOpen] = useState(false);
+  const [lastSeen, setLastSeen] = useState(() => {
+    try { return localStorage.getItem('cpr_notif_seen') || ''; } catch { return ''; }
+  });
+
+  const ann = getAnnouncements();
+  const allNotifs = [
+    ...(ann.pinned ? [{ id: 'pinned', text: '📌 ' + ann.pinned, time: 'Pinned' }] : []),
+    ...(ann.feed || []).map(p => ({ id: p.id, text: p.text, time: p.time, author: p.author })),
+  ];
+
+  const unread = allNotifs.filter(n => n.id > lastSeen).length;
+
+  const markRead = () => {
+    const newest = allNotifs[0]?.id || '';
+    setLastSeen(newest);
+    try { localStorage.setItem('cpr_notif_seen', newest); } catch {}
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => { setOpen(!open); if (!open) markRead(); }}
+        style={{ background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: 4 }}>
+        <Icon d={Icons.bell} size={20} stroke={unread > 0 ? C.accent : C.textMuted} />
+        {unread > 0 && (
+          <div style={{ position: 'absolute', top: 0, right: 0, width: 16, height: 16, background: C.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#fff', fontSize: 9, fontWeight: 800 }}>{unread > 9 ? '9+' : unread}</span>
+          </div>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
+          <div style={{ position: 'absolute', top: 36, right: 0, width: 320, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', zIndex: 1000, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>🔔 Notifications</span>
+              <button onClick={() => { setOpen(false); onNavigate('dashboard'); }}
+                style={{ background: 'transparent', border: 'none', color: C.accent, fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+                View All
+              </button>
+            </div>
+            {allNotifs.length === 0 ? (
+              <div style={{ padding: '20px 16px', color: C.textMuted, fontSize: 13, textAlign: 'center' }}>
+                No announcements yet
+              </div>
+            ) : (
+              <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                {allNotifs.map((n, i) => (
+                  <div key={n.id} onClick={() => { setOpen(false); onNavigate('dashboard'); }}
+                    style={{ padding: '12px 16px', borderBottom: i < allNotifs.length - 1 ? `1px solid ${C.border}` : 'none', cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <div style={{ color: C.text, fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{n.text}</div>
+                    <div style={{ color: C.textMuted, fontSize: 11 }}>
+                      {n.author && `${n.author} · `}{n.time}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 // ── LOGIN SCREEN ─────────────────────────────────────────────────────────
 const LoginScreen = ({ onLogin }) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -5030,10 +5100,7 @@ export default function App() {
             {NAV.find(n => n.id === view)?.label || "Settings"}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ position: "relative" }}>
-              <Icon d={Icons.bell} size={18} stroke={C.textMuted} />
-              <div style={{ position: "absolute", top: -2, right: -2, width: 7, height: 7, background: C.accent, borderRadius: "50%" }} />
-            </div>
+            <NotificationBell currentUser={currentUser} onNavigate={setView} />
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ background: C.accentDim, borderRadius: 8, padding: "4px 12px", display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ color: C.accent, fontWeight: 700, fontSize: 13 }}>{currentUser.name}</span>
