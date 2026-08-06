@@ -1889,11 +1889,11 @@ const parseSickwResult = (resultStr) => {
 };
 
 const getSickwColor = (value) => {
-  if (!value) return '#E8EAED';
+  if (!value) return C.text;
   const v = value.toLowerCase();
   if (v.includes('on') || v.includes('locked') || v.includes('blacklisted') || v.includes('lost') || v.includes('stolen')) return '#EF4444';
   if (v.includes('off') || v.includes('unlocked') || v.includes('clean') || v.includes('ok')) return '#22C55E';
-  return '#E8EAED';
+  return C.text;
 };
 
 const SickwChecker = ({ title, icon, services, color }) => {
@@ -1966,17 +1966,17 @@ const SickwChecker = ({ title, icon, services, color }) => {
       </div>
       {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
       {results.length > 0 && status === 'done' && (
-        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px' }}>
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px' }}>
           {results.map((row, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < results.length - 1 ? '1px solid #252A3A33' : 'none' }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < results.length - 1 ? `1px solid ${C.border}` : 'none' }}>
               <span style={{ color: C.textMuted, fontSize: 13 }}>{row.label}</span>
-              <span style={{ color: getSickwColor(row.value), fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{row.value}</span>
+              <span style={{ color: getSickwColor(row.value), fontWeight: 700, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{row.value}</span>
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
             <div style={{ color: C.textMuted, fontSize: 11 }}>IMEI: {imei}</div>
             <button onClick={() => { setResults([]); setImei(''); setStatus(null); }}
-              style={{ background: 'transparent', border: '1px solid #252A3A', borderRadius: 6, padding: '3px 10px', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
+              style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 10px', color: C.textMuted, fontSize: 11, cursor: 'pointer' }}>
               ✕ Clear
             </button>
           </div>
