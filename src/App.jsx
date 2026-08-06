@@ -1168,19 +1168,15 @@ const DashboardView = ({ setView, currentUser }) => {
           {greeting}, CPR Team 👋
         </h1>
       </div>
-      {/* Quick Access */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
-        {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
-          <div key={n.id} onClick={() => setView(n.id)}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.surface; }}>
-            <Icon d={Icons[n.icon]} size={16} stroke={C.accent} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{n.label}</span>
-          </div>
-        ))}
+      {/* iPhone Identifier Button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button onClick={() => setShowIPhoneID(true)}
+          style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+          🍎 Identify iPhone
+        </button>
       </div>
- 
+      {showIPhoneID && <IPhoneIdentifier onClose={() => setShowIPhoneID(false)} />}
+
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
         <button onClick={() => setShowIPhoneID(true)}
@@ -1316,9 +1312,42 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
+      {/* Quick Access */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
+        {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
+          <div key={n.id} onClick={() => setView(n.id)}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.surface; }}>
+            <Icon d={Icons[n.icon]} size={16} stroke={C.accent} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{n.label}</span>
+          </div>
+        ))}
+      </div>
 
+      {/* Stat row - Monthly totals */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {[
+          { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: "#FF4D1C" },
+          { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: "#3B82F6" },
+          { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: "#3B82F6" },
+          { name: "Device Care", url: "https://devicecarenow.com/cpr", color: "#00C9A7" },
+          { name: "Akko", url: "https://partner.akko.app/claims/device-info", color: "#A855F7" },
+          { name: "Claims National Accounts", url: "https://franchiseeconnects.sharepoint.com/SitePages/National-Accounts.aspx", color: "#22C55E" },
+          { name: "CPR Support", url: "https://cpr.creatio.com", color: "#FFB547" },
+          { name: "Knowledge Hub", url: "https://franchiseeconnects.sharepoint.com/", color: "#22C55E" },
+          { name: "Clock In", url: "https://secure8.yourpayrollhr.com/ta/200371.login", color: "#00C9A7" },
+          { name: "Email", url: "https://outlook.office.com", color: "#6B7280" },
+        ].map(link => (
+          <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer"
+            style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
+            onMouseEnter={e => e.currentTarget.style.background = link.color + "30"}
+            onMouseLeave={e => e.currentTarget.style.background = link.color + "18"}>
+            {link.name} ↗
+          </a>
+        ))}
+      </div>
 
- 
       {/* Today's Schedule */}
       <TodaySchedule />
 
@@ -1606,7 +1635,7 @@ const DeviceInfoChecker = () => {
         <input value={imei} onChange={e => { setImei(e.target.value.replace(/[^0-9]/g, '')); setResult(null); setError(''); }}
           onKeyDown={e => e.key === 'Enter' && lookup()}
           placeholder='Enter IMEI number…' maxLength={16}
-          style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+          style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
         <button onClick={lookup} disabled={status === 'loading'}
           style={{ background: status === 'loading' ? '#252A3A' : '#3B82F6', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
           {status === 'loading' ? '⏳ Looking up...' : 'Lookup Device'}
@@ -1775,8 +1804,8 @@ const IMEIChecker = () => {
 
   return (
     <Card style={{ marginBottom: 20 }}>
-      <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>🔍 IMEI Blacklist Check</div>
-      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by M360 — check if a device is stolen or lost</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 4 }}>🔍 IMEI Blacklist Check</div>
+      <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Powered by M360 — check if a device is stolen or lost</div>
 
       {!hasCredentials && (
         <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '10px 14px', color: '#FFB547', fontSize: 12, marginBottom: 12 }}>
@@ -1947,10 +1976,10 @@ const SickwChecker = ({ title, icon, services, color }) => {
 
   return (
     <Card style={{ marginBottom: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>{icon} {title}</div>
-      <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Powered by Sickw</div>
+      <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 4 }}>{icon} {title}</div>
+      <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Powered by Sickw</div>
       {!apiKey && (
-        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '8px 12px', color: '#FFB547', fontSize: 12, marginBottom: 10 }}>
+        <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 8, padding: '8px 12px', color: C.gold, fontSize: 12, marginBottom: 10 }}>
           ⚠️ Add your Sickw API key in Settings to use this feature
         </div>
       )}
@@ -1958,7 +1987,7 @@ const SickwChecker = ({ title, icon, services, color }) => {
         <input value={imei} onChange={e => { setImei(e.target.value); setResults([]); setError(''); }}
           onKeyDown={e => e.key === 'Enter' && check()}
           placeholder='Enter IMEI number…' maxLength={16}
-          style={{ flex: 1, background: '#0F1117', border: '1px solid #252A3A', borderRadius: 8, padding: '9px 12px', color: '#E8EAED', fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+          style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 14, outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
         <button onClick={check} disabled={status === 'loading'}
           style={{ background: status === 'loading' ? '#252A3A' : color, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
           {status === 'loading' ? '⏳ Checking...' : 'Check'}
@@ -1966,15 +1995,15 @@ const SickwChecker = ({ title, icon, services, color }) => {
       </div>
       {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 8 }}>{error}</div>}
       {results.length > 0 && status === 'done' && (
-        <div style={{ background: '#0F111733', borderRadius: 10, padding: '12px 16px' }}>
+        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px' }}>
           {results.map((row, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < results.length - 1 ? '1px solid #252A3A33' : 'none' }}>
-              <span style={{ color: '#6B7280', fontSize: 13 }}>{row.label}</span>
+              <span style={{ color: C.textMuted, fontSize: 13 }}>{row.label}</span>
               <span style={{ color: getSickwColor(row.value), fontWeight: 600, fontSize: 13, textAlign: 'right', maxWidth: '65%' }}>{row.value}</span>
             </div>
           ))}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-            <div style={{ color: '#6B7280', fontSize: 11 }}>IMEI: {imei}</div>
+            <div style={{ color: C.textMuted, fontSize: 11 }}>IMEI: {imei}</div>
             <button onClick={() => { setResults([]); setImei(''); setStatus(null); }}
               style={{ background: 'transparent', border: '1px solid #252A3A', borderRadius: 6, padding: '3px 10px', color: '#6B7280', fontSize: 11, cursor: 'pointer' }}>
               ✕ Clear
