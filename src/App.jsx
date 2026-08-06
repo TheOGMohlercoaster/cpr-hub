@@ -1222,7 +1222,7 @@ const DashboardView = ({ setView, currentUser }) => {
       {/* Announcements */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>📢 Announcements</div>
+          <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5 }}>📢 Announcements</div>
           {canPost && (
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => { setShowPinnedEdit(true); setNewPinned(announcements.pinned || ""); }}
@@ -1309,7 +1309,7 @@ const DashboardView = ({ setView, currentUser }) => {
         {announcements.feed.map(post => (
           <div key={post.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ color: C.text, fontSize: 14, marginBottom: 4 }}>{post.text}</div>
+              <div style={{ color: C.text, fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{post.text}</div>
               <div style={{ color: C.textMuted, fontSize: 11 }}>{post.author} · {post.time}</div>
             </div>
             {canPost && (
