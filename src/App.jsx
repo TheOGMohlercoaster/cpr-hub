@@ -2122,10 +2122,10 @@ const BuyPhonesView = () => {
       <IMEIChecker />
 
       {/* iPhone Identifier */}
-      <IPhoneIDButton />
 
       {/* Phone Buying Quick Links */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <IPhoneIDButton inline />
         {[
           { name: "Sickw", url: "https://sickw.com" },
           { name: "T-Mobile BYOD", url: "https://www.t-mobile.com/resources/bring-your-own-phone" },
@@ -4805,13 +4805,13 @@ const IPhoneIdentifier = ({ onClose }) => {
 };
 
 // ── IPHONE ID BUTTON ─────────────────────────────────────────────────────
-const IPhoneIDButton = () => {
+const IPhoneIDButton = ({ inline }) => {
   const [show, setShow] = useState(false);
   return (
     <>
       <button onClick={() => setShow(true)}
-        style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '7px 16px', color: '#FF4D1C', fontWeight: 600, fontSize: 13, cursor: 'pointer', marginBottom: 14 }}>
-        🍎 Identify iPhone Model
+        style={{ background: '#FF4D1C22', border: '1px solid #FF4D1C44', borderRadius: 8, padding: '6px 14px', color: '#FF4D1C', fontWeight: 600, fontSize: inline ? 12 : 13, cursor: 'pointer', marginBottom: inline ? 0 : 14, whiteSpace: 'nowrap' }}>
+        🍎 {inline ? 'Identify iPhone' : 'Identify iPhone Model'}
       </button>
       {show && <IPhoneIdentifier onClose={() => setShow(false)} />}
     </>
