@@ -1434,10 +1434,10 @@ const PricingView = () => {
       </div>
 
       {/* iPhone Identifier */}
-      <IPhoneIDButton />
 
       {/* Parts Quick Links */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <IPhoneIDButton inline />
         {[
           { name: "CPR Parts", url: "https://www.cpr.parts" },
           { name: "PLP", url: "https://www.phonelcdparts.com" },
