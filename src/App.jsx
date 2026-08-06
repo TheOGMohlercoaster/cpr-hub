@@ -1285,10 +1285,11 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
-      {/* Quick access grid */}
-      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Quick Access</div>
+      </div>
+
+      {/* Quick Access */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
-        {NAV.filter(n => n.id !== "dashboard").map(n => (
+        {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
           <div key={n.id} onClick={() => setView(n.id)}
             style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
@@ -1299,7 +1300,7 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
-      {/* Claims & Quick Links Bar */}
+      {/* Stat row - Monthly totals */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {[
           { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: "#FF4D1C" },
