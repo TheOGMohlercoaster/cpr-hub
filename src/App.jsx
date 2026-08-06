@@ -209,8 +209,17 @@ const getAnnouncements = () => {
     return data;
   } catch { return { pinned: null, feed: [], dismissed: {} }; }
 };
-const saveAnnouncements = (data) => {
-  try { localStorage.setItem("cpr_announcements", JSON.stringify(data)); } catch {}
+
+const saveAnnouncements = async (data) => {
+  try {
+    localStorage.setItem("cpr_announcements", JSON.stringify(data));
+    // Sync to Google Sheets (don't await — fire and forget)
+    fetch('/api/announcements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned: data.pinned, feed: data.feed })
+    }).catch(() => {});
+  } catch {}
 };
 const SOPS = [
   {
@@ -1047,6 +1056,27 @@ const DashboardView = ({ setView, currentUser }) => {
   const salesMonth = salesData.length > 0 ? salesData[0].month : 'This Month';
 
   const [announcements, setAnnouncements] = useState(getAnnouncements);
+  const [announcementsLoaded, setAnnouncementsLoaded] = useState(false);
+
+  // Load announcements from Google Sheets on mount
+  if (!announcementsLoaded) {
+    setAnnouncementsLoaded(true);
+    fetch('/api/announcements')
+      .then(r => r.json())
+      .then(data => {
+        if (data.pinned !== undefined || data.feed?.length > 0) {
+          const local = getAnnouncements();
+          const merged = {
+            ...local,
+            pinned: data.pinned,
+            feed: data.feed || [],
+          };
+          localStorage.setItem("cpr_announcements", JSON.stringify(merged));
+          setAnnouncements(merged);
+        }
+      })
+      .catch(() => {});
+  }
 
   // Auto recurring announcements
   const getAutoAnnouncements = () => {
