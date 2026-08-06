@@ -1114,7 +1114,24 @@ const DashboardView = ({ setView, currentUser }) => {
   const [showPinnedEdit, setShowPinnedEdit] = useState(false);
   const [showNewPost, setShowNewPost] = useState(false);
 
-  const updateAnnouncements = (data) => { setAnnouncements(data); saveAnnouncements(data); };
+  const updateAnnouncements = (data) => {
+    setAnnouncements(data);
+    localStorage.setItem("cpr_announcements", JSON.stringify(data));
+    // Only sync pinned and feed to Google Sheets, not local dismissed state
+    fetch('/api/announcements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pinned: data.pinned, feed: data.feed })
+    }).catch(() => {});
+  };
+
+  const dismissAnnouncement = (id, nextOccurrence) => {
+    // Dismissals are local only - don't sync to Google Sheets
+    const dismissed = { ...(announcements.dismissed || {}), [id]: nextOccurrence };
+    const updated = { ...announcements, dismissed };
+    setAnnouncements(updated);
+    localStorage.setItem("cpr_announcements", JSON.stringify(updated));
+  };
 
   const addPost = () => {
     if (!newPost.trim()) return;
@@ -1195,17 +1212,14 @@ const DashboardView = ({ setView, currentUser }) => {
               const today = new Date();
               let nextOccurrence;
               if (a.id === 'auto-kbb') {
-                // Dismiss until next Thursday (past this Mon-Wed window)
                 const next = new Date(today);
                 next.setDate(today.getDate() + (4 - today.getDay() + 7) % 7 || 7);
                 nextOccurrence = next.toISOString().split('T')[0];
               } else if (a.id === 'auto-parts') {
-                // Dismiss until 1st of next month
                 const next = new Date(today.getFullYear(), today.getMonth() + 1, 1);
                 nextOccurrence = next.toISOString().split('T')[0];
               }
-              const dismissed = { ...(announcements.dismissed || {}), [a.id]: nextOccurrence };
-              updateAnnouncements({ ...announcements, dismissed });
+              dismissAnnouncement(a.id, nextOccurrence);
             }}
               style={{ background: '#22C55E22', border: '1px solid #22C55E44', borderRadius: 6, padding: '3px 10px', color: '#22C55E', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               ✓ Done
