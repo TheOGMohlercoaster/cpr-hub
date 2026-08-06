@@ -1168,6 +1168,18 @@ const DashboardView = ({ setView, currentUser }) => {
           {greeting}, CPR Team 👋
         </h1>
       </div>
+      {/* Quick Access */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
+        {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
+          <div key={n.id} onClick={() => setView(n.id)}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.surface; }}>
+            <Icon d={Icons[n.icon]} size={16} stroke={C.accent} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{n.label}</span>
+          </div>
+        ))}
+      </div>
  
       {/* Claims & Quick Links Bar */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
@@ -1304,18 +1316,7 @@ const DashboardView = ({ setView, currentUser }) => {
         ))}
       </div>
 
-      {/* Quick Access */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 20 }}>
-        {NAV.filter(n => n.id !== "dashboard" && ROLE_ACCESS[currentUser?.role]?.includes(n.id)).map(n => (
-          <div key={n.id} onClick={() => setView(n.id)}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "all .15s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.background = C.surfaceHover; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.surface; }}>
-            <Icon d={Icons[n.icon]} size={16} stroke={C.accent} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{n.label}</span>
-          </div>
-        ))}
-      </div>
+
 
  
       {/* Today's Schedule */}
