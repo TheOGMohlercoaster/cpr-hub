@@ -4515,10 +4515,10 @@ const IPHONE_DATA = [
   { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'flat', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
   { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
   { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, edges: 'curved', colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
-  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'both', colors: ['Space Gray', 'Silver'] },
+  { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'curved', colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
+  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'curved', speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'curved', speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'curved', speakers: 'both', colors: ['Space Gray', 'Silver'] },
   { model: 'iPhone XR', port: 'lightning', home: false, cameras: 1, layout: 'single', front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Yellow', 'Coral', 'Product Red'] },
   { model: 'iPhone SE (3rd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Midnight', 'Starlight', 'Product Red'] },
   { model: 'iPhone SE (2nd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Black', 'White', 'Product Red'] },
@@ -4590,12 +4590,12 @@ const IPhoneIdentifier = ({ onClose }) => {
         if (filtered.length <= 2) { setResults(filtered); return; }
         continue;
       }
-      // Only ask edges question for Lightning no home 2 cameras diagonal path
-      if (nextQ.key === 'edges' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'diagonal')) {
+      // Only ask edges question for Lightning no home 2 cameras vertical path (to separate 11/12 from X/XS/XS Max)
+      if (nextQ.key === 'edges' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical')) {
         nextStep++; continue;
       }
-      // Only ask speakers question for X/XS/XS Max path
-      if (nextQ.key === 'speakers' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical')) {
+      // Only ask speakers question for X/XS/XS Max path (curved edges vertical)
+      if (nextQ.key === 'speakers' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical' && newAnswers.edges === 'curved')) {
         nextStep++; continue;
       }
       if (nextQ.key === 'front' && newAnswers.home === true) {
@@ -4655,8 +4655,8 @@ const IPhoneIdentifier = ({ onClose }) => {
       key: 'layout',
       question: '4. How are the cameras arranged?',
       options: (ans) => [
-        ...(ans.cameras === 2 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max, iPhone 12', value: 'vertical' }] : []),
-        ...(ans.cameras === 2 ? [{ label: '◤ Diagonal', sublabel: 'Lenses at an angle — iPhone 11, 13, 14', value: 'diagonal' }] : []),
+        ...(ans.cameras === 2 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max, iPhone 11, iPhone 12', value: 'vertical' }] : []),
+        ...(ans.cameras === 2 ? [{ label: '◤ Diagonal', sublabel: 'Lenses at an angle — iPhone 13, 14', value: 'diagonal' }] : []),
         ...(ans.cameras === 3 && ans.port === 'lightning' ? [{ label: '⬜ Square bump', sublabel: 'Large square bump — iPhone 11 Pro/Pro Max', value: 'square' }] : []),
         ...(ans.cameras === 3 && ans.port !== 'lightning' ? [{ label: '◤ Diagonal / Triangle', sublabel: 'Triangle shape — iPhone 12 Pro and newer', value: 'diagonal' }] : []),
         ...(ans.cameras === 1 ? [{ label: '⭕ Single', sublabel: 'Just one camera', value: 'single' }] : []),
@@ -4684,7 +4684,7 @@ const IPhoneIdentifier = ({ onClose }) => {
       key: 'edges',
       question: 'Do the sides/edges of the device feel curved or flat and square?',
       options: () => [
-        { label: '⭕ Curved edges', sublabel: 'Rounded smooth sides — iPhone 11', value: 'curved' },
+        { label: '⭕ Curved edges', sublabel: 'Rounded smooth sides — iPhone X, XS, XS Max, iPhone 11', value: 'curved' },
         { label: '▭ Flat / square edges', sublabel: 'Sharp flat sides — iPhone 12, 13, 14', value: 'flat' },
       ]
     },
