@@ -3659,7 +3659,13 @@ const ScheduleView = ({ currentUser }) => {
   const getShift = (empId, date) => schedule[`${empId}_${date}`] || null;
 
   const saveShift = (empId, date, shift) => {
-    updateSchedule({ ...schedule, [`${empId}_${date}`]: shift });
+    // Auto-add Open/Close note if not already set
+    let notes = shift.notes || '';
+    if (!notes) {
+      if (shift.start === '9:30 AM') notes = 'Open';
+      else if (shift.end === '6:30 PM') notes = 'Close';
+    }
+    updateSchedule({ ...schedule, [`${empId}_${date}`]: { ...shift, notes } });
     setModal(null);
   };
 
