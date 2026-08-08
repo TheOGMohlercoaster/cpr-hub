@@ -4737,6 +4737,22 @@ const IPhoneIdentifier = ({ onClose }) => {
         {tab === 'questions' && (
           <div>
 
+        {/* Answer breadcrumb trail */}
+        {tab === 'questions' && Object.keys(answers).length > 0 && !results && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+            {questions.filter(q => answers[q.key] !== undefined).map(q => {
+              const opts = typeof q.options === 'function' ? q.options(answers) : q.options || [];
+              const chosen = opts.find(o => String(o.value) === String(answers[q.key]));
+              const label = chosen?.label || (q.isText ? answers[q.key] : String(answers[q.key]));
+              return (
+                <div key={q.key} style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '3px 10px', fontSize: 11, color: C.accent, fontWeight: 600 }}>
+                  {label}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Progress */}
         {!results && (
           <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
