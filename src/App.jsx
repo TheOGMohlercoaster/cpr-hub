@@ -4667,6 +4667,9 @@ const IPhoneIdentifier = ({ onClose }) => {
         { label: '❌ Unequal', sublabel: 'More holes on one side — iPhone XS / XS Max', value: 'one' },
       ]
     },
+    {
+      key: 'action',
+      question: '6. Does it have an Action Button on the left side?',
       sublabel: 'Replaces the mute switch — iPhone 15 Pro / 16 Pro series only',
       options: () => [
         { label: '✅ Yes', sublabel: 'Customizable button on left side', value: true },
