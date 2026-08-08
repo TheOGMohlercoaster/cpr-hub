@@ -4511,8 +4511,8 @@ const IPHONE_DATA = [
   { model: 'iPhone 13 Mini', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, edges: 'flat', colors: ['Midnight', 'Starlight', 'Blue', 'Pink', 'Green', 'Product Red'] },
   { model: 'iPhone 12 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
   { model: 'iPhone 12 Pro', port: 'lightning', home: false, cameras: 3, layout: 'diagonal', front: 'notch', action: false, colors: ['Pacific Blue', 'Silver', 'Gold', 'Graphite'] },
-  { model: 'iPhone 12', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, edges: 'flat', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
-  { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, edges: 'flat', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 12', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'flat', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
+  { model: 'iPhone 12 Mini', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, edges: 'flat', colors: ['Black', 'White', 'Blue', 'Green', 'Product Red', 'Purple'] },
   { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
   { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
   { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, edges: 'curved', colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
@@ -4582,8 +4582,8 @@ const IPhoneIdentifier = ({ onClose }) => {
         if (filtered.length <= 2) { setResults(filtered); return; }
         continue;
       }
-      // Skip front question if Lightning + no home + 2 cameras + diagonal (always notch = 11/12/13/14)
-      if (nextQ.key === 'front' && newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'diagonal') {
+      // Skip front question if Lightning + no home + 2 cameras (all have notch)
+      if (nextQ.key === 'front' && newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2) {
         newAnswers.front = 'notch';
         filtered = filtered.filter(p => p.front === 'notch');
         nextStep++;
@@ -4655,8 +4655,8 @@ const IPhoneIdentifier = ({ onClose }) => {
       key: 'layout',
       question: '4. How are the cameras arranged?',
       options: (ans) => [
-        ...(ans.cameras !== 3 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max', value: 'vertical' }] : []),
-        ...(ans.cameras === 2 ? [{ label: '◤ Diagonal', sublabel: 'Diagonal arrangement — iPhone 11, 12, 13, 14', value: 'diagonal' }] : []),
+        ...(ans.cameras === 2 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max, iPhone 12', value: 'vertical' }] : []),
+        ...(ans.cameras === 2 ? [{ label: '◤ Diagonal', sublabel: 'Lenses at an angle — iPhone 11, 13, 14', value: 'diagonal' }] : []),
         ...(ans.cameras === 3 && ans.port === 'lightning' ? [{ label: '⬜ Square bump', sublabel: 'Large square bump — iPhone 11 Pro/Pro Max', value: 'square' }] : []),
         ...(ans.cameras === 3 && ans.port !== 'lightning' ? [{ label: '◤ Diagonal / Triangle', sublabel: 'Triangle shape — iPhone 12 Pro and newer', value: 'diagonal' }] : []),
         ...(ans.cameras === 1 ? [{ label: '⭕ Single', sublabel: 'Just one camera', value: 'single' }] : []),
