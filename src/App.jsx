@@ -4642,7 +4642,7 @@ const IPhoneIdentifier = ({ onClose }) => {
       key: 'front',
       question: '5. What is at the top of the screen?',
       options: (ans) => [
-        ...(ans.home ? [] : [{ label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout — iPhone 14 standard only', value: 'island' }]),
+        ...(!ans.home && !(ans.port === 'lightning' && ans.cameras === 2 && ans.layout === 'vertical') ? [{ label: '💊 Dynamic Island', sublabel: 'Pill-shaped cutout — iPhone 14 standard only', value: 'island' }] : []),
         ...(ans.home ? [] : [{ label: '⬛ Notch', sublabel: 'Wide notch — iPhone X through 13', value: 'notch' }]),
         ...(ans.home ? [{ label: '⬜ Small notch / none', sublabel: 'SE, 8, 7, 6 series', value: 'smallnotch' }] : []),
       ]
