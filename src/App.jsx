@@ -3658,14 +3658,17 @@ const ScheduleView = ({ currentUser }) => {
 
   const getShift = (empId, date) => schedule[`${empId}_${date}`] || null;
 
-  const saveShift = (empId, date, shift) => {
-    // Auto-add Open/Close note if not already set
+  const autoNote = (shift) => {
     let notes = shift.notes || '';
     if (!notes) {
       if (shift.start === '9:30 AM') notes = 'Open';
       else if (shift.end === '6:30 PM') notes = 'Close';
     }
-    updateSchedule({ ...schedule, [`${empId}_${date}`]: { ...shift, notes } });
+    return { ...shift, notes };
+  };
+
+  const saveShift = (empId, date, shift) => {
+    updateSchedule({ ...schedule, [`${empId}_${date}`]: autoNote(shift) });
     setModal(null);
   };
 
@@ -3881,7 +3884,7 @@ const ScheduleView = ({ currentUser }) => {
                               setDraggedShift(null);
                               setTimeout(() => {
                                 const next = { ...loadSchedule(weekStart) };
-                                next[`${emp.id}_${dateStr}`] = { ...ds.shift };
+                                next[`${emp.id}_${dateStr}`] = autoNote({ ...ds.shift });
                                 if (!ds.isPreset && ds.empId && ds.date && !(ds.empId === emp.id && ds.date === dateStr)) {
                                   delete next[`${ds.empId}_${ds.date}`];
                                 }
@@ -3929,7 +3932,7 @@ const ScheduleView = ({ currentUser }) => {
                                 setDraggedShift(null);
                                 setTimeout(() => {
                                   const next = { ...loadSchedule(weekStart) };
-                                  next[`${emp.id}_${dateStr}`] = { ...ds.shift };
+                                  next[`${emp.id}_${dateStr}`] = autoNote({ ...ds.shift });
                                   // Only delete source if not a preset
                                   if (!ds.isPreset && ds.empId && ds.date) {
                                     delete next[`${ds.empId}_${ds.date}`];
