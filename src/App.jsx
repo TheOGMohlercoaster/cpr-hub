@@ -4623,7 +4623,7 @@ const IPhoneIdentifier = ({ onClose }) => {
       options: (ans) => [
         ...(ans.port !== 'usbc' ? [{ label: '1️⃣ One camera', sublabel: 'SE, 8, 7, 6 series, XR', value: 1 }] : []),
         { label: '2️⃣ Two cameras', sublabel: 'Standard models', value: 2 },
-        { label: '3️⃣ Three cameras', sublabel: 'Pro and Pro Max models', value: 3 },
+        ...(!(ans.home === true && ans.port === 'lightning') ? [{ label: '3️⃣ Three cameras', sublabel: 'Pro and Pro Max models', value: 3 }] : []),
       ]
     },
     {
