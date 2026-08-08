@@ -4581,6 +4581,14 @@ const IPhoneIdentifier = ({ onClose }) => {
         if (filtered.length <= 2) { setResults(filtered); return; }
         continue;
       }
+      // Skip front question if Lightning + no home + 2 cameras + diagonal (always notch = 11/12/13/14)
+      if (nextQ.key === 'front' && newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'diagonal') {
+        newAnswers.front = 'notch';
+        filtered = filtered.filter(p => p.front === 'notch');
+        nextStep++;
+        if (filtered.length <= 2) { setResults(filtered); return; }
+        continue;
+      }
       // Only ask speakers question for X/XS/XS Max path
       if (nextQ.key === 'speakers' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical')) {
         nextStep++; continue;
