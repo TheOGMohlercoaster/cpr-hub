@@ -4572,7 +4572,14 @@ const IPhoneIdentifier = ({ onClose }) => {
       if (nextQ.key === 'layout' && newAnswers.port === 'usbc' && newAnswers.cameras === 3) { newAnswers.layout = 'diagonal'; filtered = filtered.filter(p => p.layout === 'diagonal'); nextStep++; if (filtered.length <= 2) { setResults(filtered); return; } continue; }
       // Skip layout for 1-camera home button phones
       if (nextQ.key === 'layout' && newAnswers.home === true && newAnswers.cameras === 1) { newAnswers.layout = 'single'; filtered = filtered.filter(p => p.layout === 'single'); nextStep++; if (filtered.length <= 2) { setResults(filtered); return; } continue; }
-      // Skip front question if home button (only smallnotch applies)
+      // Skip front question if Lightning + no home + 2 cameras + vertical (always notch = X/XS/XS Max)
+      if (nextQ.key === 'front' && newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical') {
+        newAnswers.front = 'notch';
+        filtered = filtered.filter(p => p.front === 'notch');
+        nextStep++;
+        if (filtered.length <= 2) { setResults(filtered); return; }
+        continue;
+      }
       if (nextQ.key === 'front' && newAnswers.home === true) {
         newAnswers.front = 'smallnotch';
         filtered = filtered.filter(p => p.front === 'smallnotch');
