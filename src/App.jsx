@@ -4516,9 +4516,9 @@ const IPHONE_DATA = [
   { model: 'iPhone 11 Pro Max', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
   { model: 'iPhone 11 Pro', port: 'lightning', home: false, cameras: 3, layout: 'square', front: 'notch', action: false, colors: ['Midnight Green', 'Space Gray', 'Silver', 'Gold'] },
   { model: 'iPhone 11', port: 'lightning', home: false, cameras: 2, layout: 'diagonal', front: 'notch', action: false, colors: ['Black', 'White', 'Yellow', 'Green', 'Purple', 'Product Red'] },
-  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver', 'Gold'] },
-  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, colors: ['Space Gray', 'Silver'] },
+  { model: 'iPhone XS Max', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone XS', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'one', colors: ['Space Gray', 'Silver', 'Gold'] },
+  { model: 'iPhone X', port: 'lightning', home: false, cameras: 2, layout: 'vertical', front: 'notch', action: false, speakers: 'both', colors: ['Space Gray', 'Silver'] },
   { model: 'iPhone XR', port: 'lightning', home: false, cameras: 1, layout: 'single', front: 'notch', action: false, colors: ['Black', 'White', 'Blue', 'Yellow', 'Coral', 'Product Red'] },
   { model: 'iPhone SE (3rd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Midnight', 'Starlight', 'Product Red'] },
   { model: 'iPhone SE (2nd Gen)', port: 'lightning', home: true, cameras: 1, layout: 'single', front: 'smallnotch', action: false, colors: ['Black', 'White', 'Product Red'] },
@@ -4554,6 +4554,7 @@ const IPhoneIdentifier = ({ onClose }) => {
     if (newAnswers.cameras) filtered = filtered.filter(p => p.cameras === newAnswers.cameras);
     if (newAnswers.layout) filtered = filtered.filter(p => p.layout === newAnswers.layout);
     if (newAnswers.front) filtered = filtered.filter(p => p.front === newAnswers.front);
+    if (newAnswers.speakers) filtered = filtered.filter(p => !p.speakers || p.speakers === newAnswers.speakers);
     if (newAnswers.action !== undefined) filtered = filtered.filter(p => p.action === newAnswers.action);
     if (newAnswers.color) filtered = filtered.filter(p => p.colors.some(c => c.toLowerCase().includes(newAnswers.color.toLowerCase())));
 
@@ -4579,6 +4580,10 @@ const IPhoneIdentifier = ({ onClose }) => {
         nextStep++;
         if (filtered.length <= 2) { setResults(filtered); return; }
         continue;
+      }
+      // Only ask speakers question for X/XS/XS Max path
+      if (nextQ.key === 'speakers' && !(newAnswers.port === 'lightning' && newAnswers.home === false && newAnswers.cameras === 2 && newAnswers.layout === 'vertical')) {
+        nextStep++; continue;
       }
       if (nextQ.key === 'front' && newAnswers.home === true) {
         newAnswers.front = 'smallnotch';
@@ -4655,8 +4660,13 @@ const IPhoneIdentifier = ({ onClose }) => {
       ]
     },
     {
-      key: 'action',
-      question: '6. Does it have an Action Button on the left side?',
+      key: 'speakers',
+      question: '5b. Look at the bottom — are the speaker holes equal on both sides of the charging port?',
+      options: () => [
+        { label: '✅ Equal both sides', sublabel: 'Same number of holes on each side — iPhone X', value: 'both' },
+        { label: '❌ Unequal', sublabel: 'More holes on one side — iPhone XS / XS Max', value: 'one' },
+      ]
+    },
       sublabel: 'Replaces the mute switch — iPhone 15 Pro / 16 Pro series only',
       options: () => [
         { label: '✅ Yes', sublabel: 'Customizable button on left side', value: true },
