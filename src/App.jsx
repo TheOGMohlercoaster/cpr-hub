@@ -4621,7 +4621,7 @@ const IPhoneIdentifier = ({ onClose }) => {
       key: 'cameras',
       question: '3. How many cameras on the back?',
       options: (ans) => [
-        ...(ans.port !== 'usbc' ? [{ label: '1️⃣ One camera', sublabel: 'SE, 8, 7, 6 series, XR', value: 1 }] : []),
+        ...(ans.port !== 'usbc' ? [{ label: '1️⃣ One camera', sublabel: ans.home === false ? 'iPhone XR' : 'SE, 8, 7, 6 series', value: 1 }] : []),
         { label: '2️⃣ Two cameras', sublabel: 'Standard models', value: 2 },
         ...(!(ans.home === true && ans.port === 'lightning') ? [{ label: '3️⃣ Three cameras', sublabel: 'Pro and Pro Max models', value: 3 }] : []),
       ]
