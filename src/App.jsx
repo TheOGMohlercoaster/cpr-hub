@@ -4631,8 +4631,9 @@ const IPhoneIdentifier = ({ onClose }) => {
       question: '4. How are the cameras arranged?',
       options: (ans) => [
         ...(ans.cameras !== 3 ? [{ label: '📱 Vertical', sublabel: 'Stacked straight up and down — X, XS, XS Max, 8 Plus', value: 'vertical' }] : []),
-        { label: '◤ Diagonal / Triangle', sublabel: 'Triangle shape — iPhone 11 through 16 standard+', value: 'diagonal' },
+        ...(ans.cameras === 2 ? [{ label: '◤ Diagonal', sublabel: 'Diagonal arrangement — iPhone 11, 12, 13, 14', value: 'diagonal' }] : []),
         ...(ans.cameras === 3 && ans.port === 'lightning' ? [{ label: '⬜ Square bump', sublabel: 'Large square bump — iPhone 11 Pro/Pro Max', value: 'square' }] : []),
+        ...(ans.cameras === 3 && ans.port !== 'lightning' ? [{ label: '◤ Diagonal / Triangle', sublabel: 'Triangle shape — iPhone 12 Pro and newer', value: 'diagonal' }] : []),
         ...(ans.cameras === 1 ? [{ label: '⭕ Single', sublabel: 'Just one camera', value: 'single' }] : []),
         ...(ans.cameras === 2 && ans.port === 'lightning' && ans.home === true ? [{ label: '➖ Horizontal', sublabel: 'Side by side — iPhone 7 Plus', value: 'horizontal' }] : []),
       ]
