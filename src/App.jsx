@@ -3711,7 +3711,29 @@ const ScheduleView = ({ currentUser }) => {
     return { body, subject: `Work Schedule: ${weekLabel}` };
   };
 
+  const validateSchedule = () => {
+    const warnings = [];
+    days.forEach(d => {
+      const dateStr = formatDate(d);
+      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const shifts = SCHEDULE_EMPLOYEES.map(emp => schedule[`${emp.id}_${dateStr}`]).filter(Boolean);
+      if (shifts.length === 0) return; // Skip empty days
+      const openers = shifts.filter(s => s.start === '9:30 AM').length;
+      const closers = shifts.filter(s => s.end === '6:30 PM').length;
+      if (openers === 0) warnings.push(`${dayLabel}: No opener (9:30 AM shift)`);
+      if (closers < 2) warnings.push(`${dayLabel}: Only ${closers} closer${closers === 1 ? '' : 's'} (need 2 with 6:30 PM shift)`);
+    });
+    return warnings;
+  };
+
   const publishAndEmail = async () => {
+    // Validate schedule first
+    const warnings = validateSchedule();
+    if (warnings.length > 0) {
+      const msg = `Schedule warnings:\n\n${warnings.join('\n')}\n\nPublish anyway?`;
+      if (!window.confirm(msg)) return;
+    }
+
     const { body, subject } = buildEmailContent();
     setEmailBody(body);
     setEmailSubject(subject);
@@ -3797,6 +3819,33 @@ const ScheduleView = ({ currentUser }) => {
           Next Week →
         </button>
       </div>
+
+      {/* Coverage Summary */}
+      {canEdit && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ color: C.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>📋 Coverage Check</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {days.map((d, di) => {
+              const dateStr = formatDate(d);
+              const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+              const shifts = SCHEDULE_EMPLOYEES.map(emp => schedule[`${emp.id}_${dateStr}`]).filter(Boolean);
+              if (shifts.length === 0) return null;
+              const openers = shifts.filter(s => s.start === '9:30 AM').length;
+              const closers = shifts.filter(s => s.end === '6:30 PM').length;
+              const ok = openers >= 1 && closers >= 2;
+              const warn = openers === 0 || closers < 2;
+              return (
+                <div key={di} style={{ background: ok ? C.greenDim : C.redDim, border: `1px solid ${ok ? C.green : C.red}44`, borderRadius: 8, padding: '6px 10px', fontSize: 11 }}>
+                  <div style={{ color: ok ? C.green : C.red, fontWeight: 700 }}>{dayLabel}</div>
+                  <div style={{ color: ok ? C.green : C.red, fontSize: 10 }}>
+                    {openers >= 1 ? '✓' : '✗'} Open · {closers >= 2 ? '✓' : `✗ ${closers}/2`} Close
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Copy Last Week / Clear Schedule / Save Draft buttons */}
       {canEdit && (
