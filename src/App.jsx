@@ -945,6 +945,160 @@ WARRANTY PROCESS IN REPAIRQ
    • This decreases inventory of glass consumed
    • Customer is charged $12 for glass or $10 for ISOD`
   },
+  {
+    id: 11,
+    title: "Parts & Inventory Ordering SOP",
+    category: "Operations",
+    updated: "Aug 2026",
+    content: `📘 PARTS & INVENTORY ORDERING SOP
+Store-Level Employee Guide | CPR Cell Phone Repair
+
+Purpose: To ensure parts are easy to locate, inventory stays accurate, special orders are handled correctly, and defective/core parts are returned on time.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. PARTS STORAGE & BIN COLORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Most parts inventory is located in labeled bins on the two parts shelves in the back room.
+
+🔵 Blue Bins — Samsung Parts
+🔴 Red Bins — iPhone Parts
+🟡 Yellow Bins — Consignment Apple & Samsung Parts
+• Consignment inventory is owned by Assurant
+• All other standard inventory is owned by the store
+
+Parts should always be returned to the correct labeled bin.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. FINDING A PART
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1 — Check the Appropriate Bin
+Go to the bin for the device/model you need.
+Example: Need an iPhone 16 battery → Locate the bin labeled iPhone 16.
+
+Step 2 — Check RepairQ
+If you cannot find the part in the bin, do not assume we are out of stock.
+• Log in to RepairQ
+• Select the barcode icon in the upper-right corner
+• Type the part into the Search Inventory box
+• Select Go — be as specific as possible
+Example: If you need an XO7 aftermarket screen, include XO7 in your search.
+
+Step 3 — RepairQ Shows It In Stock
+• Go back to the appropriate bin and look again
+• Ask another employee for a second pair of eyes if needed
+• Check special-order bins and technician desks/work areas
+
+Step 4 — Inventory Discrepancy
+If RepairQ shows the part in stock but it still cannot be located:
+• Notify the Inventory Manager
+• The discrepancy needs to be corrected in RepairQ
+Why this matters: If RepairQ incorrectly shows a part in stock, it may never be reordered — resulting in missed repairs and lost sales.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. SPECIAL ORDERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Special-order parts are stored in designated tubs on the parts shelf.
+
+Creating a Special Order:
+• Open the CPR Hub → Select Special Orders → Select New Order
+• Complete the required order information
+• Existing special orders can be viewed from the Special Orders section of CPR Hub
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. CHECKING PART AVAILABILITY & REPAIR PRICING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Open the CPR Hub → Select Repair Pricing → Locate the device and repair
+
+If a Repair Price Is Not Listed:
+• Use the supplier links in CPR Hub to check part availability and verify cost
+• Ask the Manager or Lead Technician for the repair price
+
+General Pricing Guideline:
+We typically add approximately $130 to the cost of the part to determine the repair price.
+This is a guideline — not a fixed rule. Some repairs may have a lower markup depending on difficulty and time required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. PARTS ORDERING SCHEDULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Regular parts orders are placed: Every Monday — Overnight Delivery
+
+Batteries: Generally ship using 2-day delivery.
+
+Expedited Customer Orders:
+• Verify the supplier has the part in stock
+• Verify the supplier's shipping cutoff time
+• Enter the part into the New Order form on the Special Orders page of CPR Hub
+• Notify the Manager that the special order needs to be overnighted
+Expedited shipping can usually be added for approximately $10 when submitted before the supplier cutoff.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. RETURNING UNUSED PARTS TO INVENTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If you pull a part but do not use it:
+• Put the part back in the correct bag/package
+• Make sure it is facing/stored in the proper direction
+• Return it to the correct labeled bin
+• Pay special attention to adhesives and fragile components
+
+⚠️ Important: Adhesives shoved carelessly back into a bag can bend, stick together, or damage other adhesives — making otherwise good inventory unusable.
+Treat every part as if it were being installed in your next repair.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. DEFECTIVE PARTS & SUPPLIER RETURNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Any defective part should be placed in the designated Returns Bin on the parts shelves
+• Do NOT return defective parts to regular inventory
+• Supplier returns should be processed monthly per each supplier's return/RMA process
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. KBB/CORE RETURNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KBBs are replaced Apple parts that must be returned as cores.
+KBB returns should be processed: Every Other Week
+⚠️ Failure to return KBBs within the required timeframe can result in the store being charged a core fee.
+KBB parts should be placed in the designated KBB Return Tub until processed.
+
+Mobile Sentrix KBB Process:
+1. Log in to Mobile Sentrix
+2. Select My Account → Dashboard
+3. Scroll to KBB Services on the left side
+4. Select Create a KBB Return
+5. Select all eligible KBB parts currently in the KBB Return Tub
+6. Create an RMA Tracking invoice through RepairQ
+
+RepairQ RMA Process:
+1. Log in to RepairQ → Highlight Inventory → Select RMA Tracking
+2. Increase items displayed so all KBBs appear on one page
+3. Select all applicable KBBs
+4. Select the checkmark in the upper-right area → Select Send Selected
+5. RepairQ will generate an RMA number
+6. Use this RMA number on Mobile Sentrix to complete the KBB return
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTS STANDARDS — QUICK RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Look in the correct labeled bin first
+• If you can't find it, check RepairQ
+• If RepairQ says it's in stock, look again and get a second pair of eyes
+• Never ignore an inventory discrepancy — notify the Inventory Manager
+• Enter all special orders through the CPR Hub
+• Handle and repackage unused parts carefully
+• Defective parts go into the Returns Bin
+• Supplier returns are processed monthly
+• KBB/core returns are processed every other week
+• Accurate inventory is everyone's responsibility
+
+🎯 The Goal: Right Part • Right Bin • Accurate Inventory • No Lost Sales`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
