@@ -2390,6 +2390,10 @@ const SOPView = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
   const [selected, setSelected] = useState(null);
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiAnswer, setAiAnswer] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [showAI, setShowAI] = useState(false);
   const cats = ["All", "Repair", "Sales", "Operations", "POS"];
   const filtered = SOPS.filter(s =>
     (filter === "All" || s.category === filter) &&
@@ -2397,6 +2401,32 @@ const SOPView = () => {
      (s.content && s.content.toLowerCase().includes(search.toLowerCase())))
   );
   const catColor = { Repair: C.accent, Sales: C.teal, Operations: C.gold, POS: C.blue };
+
+  const askAI = async () => {
+    if (!aiQuery.trim()) return;
+    setAiLoading(true);
+    setAiAnswer("");
+    try {
+      const allContent = SOPS.filter(s => s.content).map(s =>
+        `=== ${s.title} ===\n${s.content}`
+      ).join('\n\n');
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: `You are a helpful assistant for CPR Cell Phone Repair Springfield MO. Answer questions using ONLY the following SOPs. Be concise and practical. If the answer isn't in the SOPs, say so.\n\nSOPS:\n${allContent}`,
+          messages: [{ role: "user", content: aiQuery }]
+        })
+      });
+      const data = await response.json();
+      setAiAnswer(data.content?.[0]?.text || "No answer found.");
+    } catch (e) {
+      setAiAnswer("Error connecting to AI. Please try again.");
+    }
+    setAiLoading(false);
+  };
 
   if (selected) return (
     <div>
@@ -2433,6 +2463,45 @@ const SOPView = () => {
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>SOPs</h2>
         <div style={{ color: C.textMuted, fontSize: 13 }}>Standard Operating Procedures — searchable by all staff</div>
       </div>
+
+      {/* AI Search */}
+      <Card style={{ marginBottom: 16, background: showAI ? C.accentDim : C.surface, border: `1px solid ${showAI ? C.accent + '44' : C.border}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showAI ? 14 : 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18 }}>🤖</span>
+            <div>
+              <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>Ask AI</div>
+              <div style={{ color: C.textMuted, fontSize: 11 }}>Get instant answers from all SOPs</div>
+            </div>
+          </div>
+          <button onClick={() => { setShowAI(!showAI); setAiAnswer(""); }}
+            style={{ background: showAI ? C.accent : C.accentDim, color: showAI ? '#fff' : C.accent, border: 'none', borderRadius: 8, padding: '6px 14px', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>
+            {showAI ? 'Close' : 'Ask a Question'}
+          </button>
+        </div>
+        {showAI && (
+          <div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <input value={aiQuery} onChange={e => setAiQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && askAI()}
+                placeholder='e.g. How do I process a KBB return? Where do defective parts go?'
+                style={{ flex: 1, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 13, outline: 'none' }} />
+              <button onClick={askAI} disabled={aiLoading}
+                style={{ background: aiLoading ? C.surface : C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+                {aiLoading ? '⏳ Thinking...' : 'Ask'}
+              </button>
+            </div>
+            {aiAnswer && (
+              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px 16px' }}>
+                <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 8, fontWeight: 600 }}>🤖 AI Answer</div>
+                <div style={{ color: C.text, fontSize: 13, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{aiAnswer}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* Keyword Search + Filter */}
       <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search SOPs…"
           style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "9px 12px", color: C.text, fontSize: 14, outline: "none" }} />
@@ -2467,9 +2536,6 @@ const SOPView = () => {
             </div>
           </div>
         ))}
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <button style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "9px 18px", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>+ Upload SOP</button>
       </div>
     </div>
   );
