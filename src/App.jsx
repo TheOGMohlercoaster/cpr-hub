@@ -2410,18 +2410,13 @@ const SOPView = () => {
       const allContent = SOPS.filter(s => s.content).map(s =>
         `=== ${s.title} ===\n${s.content}`
       ).join('\n\n');
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          system: `You are a helpful assistant for CPR Cell Phone Repair Springfield MO. Answer questions using ONLY the following SOPs. Be concise and practical. If the answer isn't in the SOPs, say so.\n\nSOPS:\n${allContent}`,
-          messages: [{ role: "user", content: aiQuery }]
-        })
+      const response = await fetch('/api/ask-sop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: aiQuery, sopContent: allContent })
       });
       const data = await response.json();
-      setAiAnswer(data.content?.[0]?.text || "No answer found.");
+      setAiAnswer(data.answer || data.error || 'No answer found.');
     } catch (e) {
       setAiAnswer("Error connecting to AI. Please try again.");
     }
