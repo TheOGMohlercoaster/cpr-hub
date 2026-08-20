@@ -1825,16 +1825,13 @@ const IMEIChecker = () => {
   const postM360 = (action, extra = {}) => fetch('/api/imei-check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, imei: imei.replace(/[^0-9]/g, ''), authCode: creds.authCode, authToken: creds.authToken, ...extra })
+    body: JSON.stringify({ action, imei: imei.replace(/[^0-9]/g, ''), ...extra })
   }).then(r => r.json());
 
   const checkIMEI = async () => {
     const cleaned = imei.replace(/[^0-9]/g, '');
     if (cleaned.length < 14 || cleaned.length > 16) {
       setError('Please enter a valid IMEI (14-16 digits)'); return;
-    }
-    if (!hasCredentials) {
-      setError('Add your M360 credentials in Settings first'); return;
     }
     setStatus('loading');
     setError('');

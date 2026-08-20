@@ -5,10 +5,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { imei, authCode, authToken, action, batchId } = req.body;
+  const { imei, action, batchId } = req.body;
+
+  // Use server-side credentials from environment variables
+  const authCode = process.env.M360_AUTH_CODE;
+  const authToken = process.env.M360_AUTH_TOKEN;
 
   if (!authCode || !authToken) {
-    return res.status(400).json({ error: 'Missing authCode or authToken' });
+    return res.status(500).json({ error: 'M360 credentials not configured on server' });
   }
 
   // V2 Bearer auth: AuthCode-AuthToken
@@ -24,29 +28,20 @@ export default async function handler(req, res) {
     let url, body;
 
     if (action === 'history') {
-      // Search history for this IMEI's blacklist check result
       url = `${BASE}/getHistory`;
       body = { imei: [imei], limit: 1, hasBlacklistCheck: true };
-
     } else if (action === 'historyAll') {
-      // Get history without blacklist filter (to find device info)
       url = `${BASE}/getHistory`;
       body = { imei: [imei], limit: 1 };
-
     } else if (action === 'schedule') {
-      // Schedule new blacklist check
       url = `${BASE}/scheduleBlacklistCheck`;
       body = { imeiList: [imei] };
-
     } else if (action === 'getResult') {
-      // Get batch result by batchId
       url = `${BASE}/getBlacklistChecksByBatchId`;
       body = { batchId };
-
     } else if (action === 'test') {
       url = `${BASE}/getHistory`;
       body = { limit: 1 };
-
     } else {
       return res.status(400).json({ error: 'Invalid action' });
     }
