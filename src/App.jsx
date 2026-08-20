@@ -2059,12 +2059,9 @@ const SickwChecker = ({ title, icon, services, color }) => {
   const [status, setStatus] = useState(null);
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
-  const apiKey = getSickwKey();
-
   const check = async () => {
     const cleaned = imei.replace(/[^0-9]/g, '');
     if (cleaned.length < 14) { setError('Please enter a valid IMEI (14+ digits)'); return; }
-    if (!apiKey) { setError('Add your Sickw API key in Settings first'); return; }
     setStatus('loading'); setError(''); setResults([]);
 
     try {
@@ -2073,7 +2070,7 @@ const SickwChecker = ({ title, icon, services, color }) => {
         fetch('/api/sickw-check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imei: cleaned, apiKey, service: svc })
+          body: JSON.stringify({ imei: cleaned, service: svc })
         }).then(r => r.json())
       ));
 
@@ -2107,11 +2104,7 @@ const SickwChecker = ({ title, icon, services, color }) => {
     <Card style={{ marginBottom: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 4 }}>{icon} {title}</div>
       <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Powered by Sickw</div>
-      {!apiKey && (
-        <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 8, padding: '8px 12px', color: C.gold, fontSize: 12, marginBottom: 10 }}>
-          ⚠️ Add your Sickw API key in Settings to use this feature
-        </div>
-      )}
+
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input value={imei} onChange={e => { setImei(e.target.value); setResults([]); setError(''); }}
           onKeyDown={e => e.key === 'Enter' && check()}

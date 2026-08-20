@@ -5,10 +5,17 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { imei, apiKey, service } = req.body;
+  const { imei, service } = req.body;
 
-  if (!apiKey || !imei || !service) {
-    return res.status(400).json({ error: 'Missing apiKey, imei, or service' });
+  // Use server-side API key from environment variable
+  const apiKey = process.env.SICKW_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Sickw API key not configured on server' });
+  }
+
+  if (!imei || !service) {
+    return res.status(400).json({ error: 'Missing imei or service' });
   }
 
   try {
