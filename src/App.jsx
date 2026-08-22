@@ -34,15 +34,28 @@ const Icons = {
 };
 
 // ── Employees & Auth ─────────────────────────────────────────────────────
-const EMPLOYEES = [
-  { id: 1, name: "Jason Mohler",    pin: "1111", role: "Owner" },
-  { id: 2, name: "Cindy Leek",      pin: "2222", role: "Owner" },
-  { id: 3, name: "Aliyah Mohler",   pin: "3333", role: "Owner" },
-  { id: 4, name: "Nate Williams",   pin: "4444", role: "Tech/Sales" },
-  { id: 5, name: "Alex Smith",      pin: "5555", role: "Tech" },
-  { id: 6, name: "Galen Chandler",  pin: "6666", role: "Sales" },
-  { id: 7, name: "Dillon Greene",   pin: "7777", role: "Sales" },
+const DEFAULT_EMPLOYEES = [
+  { id: 1, name: "Jason Mohler",    pin: "1111", role: "Owner",      color: "#FF4D1C" },
+  { id: 2, name: "Cindy Leek",      pin: "2222", role: "Owner",      color: "#00C9A7" },
+  { id: 3, name: "Aliyah Mohler",   pin: "3333", role: "Owner",      color: "#3B82F6" },
+  { id: 4, name: "Nate Williams",   pin: "4444", role: "Tech/Sales",  color: "#FFB547" },
+  { id: 5, name: "Alex Smith",      pin: "5555", role: "Tech",        color: "#A855F7" },
+  { id: 6, name: "Galen Chandler",  pin: "6666", role: "Sales",       color: "#22C55E" },
+  { id: 7, name: "Dillon Greene",   pin: "7777", role: "Sales",       color: "#EF4444" },
 ];
+
+const getEmployees = () => {
+  try {
+    const saved = localStorage.getItem('cpr_employees');
+    return saved ? JSON.parse(saved) : DEFAULT_EMPLOYEES;
+  } catch { return DEFAULT_EMPLOYEES; }
+};
+
+const saveEmployees = (emps) => {
+  try { localStorage.setItem('cpr_employees', JSON.stringify(emps)); } catch {}
+};
+
+const EMPLOYEES = getEmployees();
 
 // What each role can see
 const ROLE_ACCESS = {
@@ -3097,6 +3110,136 @@ const SickwKeyForm = () => {
   );
 };
 
+// ── EMPLOYEE MANAGER ─────────────────────────────────────────────────────
+const ROLE_COLORS = ['#FF4D1C','#00C9A7','#3B82F6','#FFB547','#A855F7','#22C55E','#EF4444','#EC4899','#14B8A6','#F59E0B'];
+const ROLES = ['Owner', 'Tech/Sales', 'Tech', 'Sales'];
+
+const EmployeeManager = ({ onUpdate }) => {
+  const [employees, setEmployees] = useState(getEmployees);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [newRole, setNewRole] = useState('Sales');
+  const [newColor, setNewColor] = useState('#22C55E');
+  const [saved, setSaved] = useState(false);
+
+  const save = (emps) => {
+    setEmployees(emps);
+    saveEmployees(emps);
+    onUpdate && onUpdate(emps);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const addEmployee = () => {
+    if (!newName.trim() || !newPin.trim()) return;
+    if (newPin.length < 4) { alert('PIN must be at least 4 digits'); return; }
+    const maxId = Math.max(...employees.map(e => e.id), 0);
+    const emp = { id: maxId + 1, name: newName.trim(), pin: newPin.trim(), role: newRole, color: newColor };
+    save([...employees, emp]);
+    setNewName(''); setNewPin(''); setShowAdd(false);
+  };
+
+  const deleteEmployee = (id) => {
+    if (!window.confirm('Remove this employee from CPR Hub?')) return;
+    save(employees.filter(e => e.id !== id));
+  };
+
+  const updateRole = (id, role) => {
+    save(employees.map(e => e.id === id ? { ...e, role } : e));
+  };
+
+  const updatePin = (id, pin) => {
+    save(employees.map(e => e.id === id ? { ...e, pin } : e));
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ color: C.textMuted, fontSize: 12 }}>{employees.length} employees</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {saved && <span style={{ color: C.green, fontSize: 12, fontWeight: 600 }}>✓ Saved!</span>}
+          <button onClick={() => setShowAdd(!showAdd)}
+            style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>
+            + Add Employee
+          </button>
+        </div>
+      </div>
+
+      {/* Add employee form */}
+      {showAdd && (
+        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Full Name</div>
+              <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. John Smith"
+                style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>PIN (4+ digits)</div>
+              <input value={newPin} onChange={e => setNewPin(e.target.value.replace(/[^0-9]/g, ''))} placeholder="e.g. 8888" maxLength={8}
+                style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Role</div>
+              <select value={newRole} onChange={e => setNewRole(e.target.value)}
+                style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Color</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {ROLE_COLORS.map(c => (
+                  <div key={c} onClick={() => setNewColor(c)}
+                    style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: newColor === c ? '3px solid white' : '2px solid transparent', boxSizing: 'border-box' }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={addEmployee}
+              style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+              Add Employee
+            </button>
+            <button onClick={() => setShowAdd(false)}
+              style={{ background: C.surface, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 18px', cursor: 'pointer', fontSize: 13 }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Employee list */}
+      <div style={{ display: 'grid', gap: 8 }}>
+        {employees.map(emp => (
+          <div key={emp.id} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: emp.color || C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>{emp.name.charAt(0)}</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>{emp.name}</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
+                <select value={emp.role} onChange={e => updateRole(emp.id, e.target.value)}
+                  style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 8px', color: C.text, fontSize: 11, outline: 'none' }}>
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <span style={{ color: C.textMuted, fontSize: 11 }}>PIN:</span>
+                <input value={emp.pin} onChange={e => updatePin(emp.id, e.target.value.replace(/[^0-9]/g, ''))}
+                  maxLength={8} style={{ width: 60, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 8px', color: C.text, fontSize: 11, outline: 'none' }} />
+              </div>
+            </div>
+            <button onClick={() => deleteEmployee(emp.id)}
+              style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '5px 12px', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}>
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ── SETTINGS ──────────────────────────────────────────────────────────────
 const SettingsView = () => {
   const [msCreds, setMsCreds] = useState(() => {
@@ -3201,6 +3344,13 @@ const SettingsView = () => {
           </Card>
         ))}
       </div>
+
+      {/* Employee Management */}
+      <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Employee Management</div>
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Add or remove employees. Changes apply to login, schedule, and leaderboard.</div>
+        <EmployeeManager onUpdate={() => window.location.reload()} />
+      </Card>
 
       {/* PIN Management */}
       <div style={{ marginBottom: 8, color: C.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Employee PINs</div>
