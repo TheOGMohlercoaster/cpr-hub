@@ -3735,15 +3735,22 @@ const SpecialOrdersView = ({ currentUser }) => {
 };
 
 // ── SCHEDULE MAKER ───────────────────────────────────────────────────────
-const SCHEDULE_EMPLOYEES = [
-  { id: 1, name: "Jason Mohler",   color: "#FF4D1C", email: "jmohler@wirelesstrendz.net" },
-  { id: 2, name: "Cindy Leek",     color: "#00C9A7", email: "cleek@cpr-stores.com" },
-  { id: 3, name: "Aliyah Mohler",  color: "#3B82F6", email: "aliyah.mohler@wirelesstrendz.net" },
-  { id: 4, name: "Nate Williams",  color: "#FFB547", email: "nathanielwilliams1483@gmail.com" },
-  { id: 5, name: "Alex Smith",     color: "#A855F7", email: "alex@wirelesstrendz.net" },
-  { id: 6, name: "Galen Chandler", color: "#22C55E", email: "gchandler@cpr-stores.com" },
-  { id: 7, name: "Dillon Greene",  color: "#EF4444", email: "DGreene1@cpr-stores.com" },
-];
+const EMPLOYEE_EMAILS = {
+  1: "jmohler@wirelesstrendz.net",
+  2: "cleek@cpr-stores.com",
+  3: "aliyah.mohler@wirelesstrendz.net",
+  4: "nathanielwilliams1483@gmail.com",
+  5: "alex@wirelesstrendz.net",
+  6: "gchandler@cpr-stores.com",
+  7: "DGreene1@cpr-stores.com",
+};
+
+const SCHEDULE_EMPLOYEES = getEmployees().map(e => ({
+  id: e.id,
+  name: e.name,
+  color: e.color || '#FF4D1C',
+  email: EMPLOYEE_EMAILS[e.id] || '',
+}));
 
 const getWeekStart = (date) => {
   const d = new Date(date);
