@@ -51,8 +51,28 @@ const getEmployees = () => {
   } catch { return DEFAULT_EMPLOYEES; }
 };
 
-const saveEmployees = (emps) => {
-  try { localStorage.setItem('cpr_employees', JSON.stringify(emps)); } catch {}
+const saveEmployees = async (emps) => {
+  try {
+    localStorage.setItem('cpr_employees', JSON.stringify(emps));
+    // Sync to Google Sheets
+    await fetch('/api/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employees: emps })
+    });
+  } catch {}
+};
+
+const loadEmployeesFromSheet = async () => {
+  try {
+    const res = await fetch('/api/employees');
+    const data = await res.json();
+    if (data.employees && data.employees.length > 0) {
+      localStorage.setItem('cpr_employees', JSON.stringify(data.employees));
+      return data.employees;
+    }
+  } catch {}
+  return null;
 };
 
 const EMPLOYEES = getEmployees();
@@ -3123,9 +3143,9 @@ const EmployeeManager = ({ onUpdate }) => {
   const [newColor, setNewColor] = useState('#22C55E');
   const [saved, setSaved] = useState(false);
 
-  const save = (emps) => {
+  const save = async (emps) => {
     setEmployees(emps);
-    saveEmployees(emps);
+    await saveEmployees(emps);
     onUpdate && onUpdate(emps);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -5482,6 +5502,18 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('cpr_sidebar') !== 'closed'; } catch { return true; }
   });
+
+  // Load employees from Google Sheets on startup
+  useEffect(() => {
+    loadEmployeesFromSheet().then(emps => {
+      if (emps) {
+        // Only reload if employees changed
+        const current = JSON.stringify(getEmployees());
+        const fresh = JSON.stringify(emps);
+        if (current !== fresh) window.location.reload();
+      }
+    });
+  }, []);
 
   const toggleSidebar = (val) => {
     const next = val !== undefined ? val : !sidebarOpen;
