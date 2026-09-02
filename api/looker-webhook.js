@@ -23,11 +23,11 @@ export default async function handler(req, res) {
     const raw = req.body?.attachment?.data;
     if (!raw) return res.status(400).json({ error: 'no attachment data' });
 
-    const rows = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
     const leaderboard = [];
     let storeTotal = null;
 
-    for (const r of rows) {
+    for (const r of parsed) {
       const employee = get(r, 'Employee');
       const entry = {
         employee: employee || 'STORE TOTAL',
@@ -42,24 +42,25 @@ export default async function handler(req, res) {
 
     leaderboard.sort((a, b) => b.deviceSales - a.deviceSales);
 
-    const payload = {
-      action: 'saveDeviceSales',
-      updatedAt: new Date().toISOString(),
-      leaderboard,
-      storeTotal,
-    };
+    const updatedAt = new Date().toISOString();
+    const rows = [['Employee', 'Device Sales', 'COGS', 'Gross Profit', 'GP%', 'Updated']];
+
+    leaderboard.forEach((r) =>
+      rows.push([r.employee, r.deviceSales, r.cogs, r.grossProfit, r.gpPercent, updatedAt])
+    );
+    if (storeTotal) {
+      rows.push(['STORE TOTAL', storeTotal.deviceSales, storeTotal.cogs,
+                 storeTotal.grossProfit, storeTotal.gpPercent, updatedAt]);
+    }
 
     const gs = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ sheet: 'DeviceSales', rows }),
     });
 
-    return res.status(200).json({
-      ok: true,
-      rows: leaderboard.length,
-      sheet: (await gs.text()).slice(0, 200),
-    });
+    const sheetReply = (await gs.text()).slice(0, 200);
+    return res.status(200).json({ ok: true, rows: rows.length - 1, sheet: sheetReply });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
