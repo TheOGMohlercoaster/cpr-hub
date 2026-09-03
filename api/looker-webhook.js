@@ -5,6 +5,7 @@ const ROUTES = [
   { match: 'device',    tab: 'DeviceSales' },
   { match: 'repair',    tab: 'RepairSales' },
   { match: 'accessory', tab: 'AccessorySales' },
+  { match: 'purchase',  tab: 'PurchaseOrders' },
   { match: 'total',     tab: 'TotalSales' },
 ];
 
