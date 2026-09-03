@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// ── Icons (inline SVGs to avoid dependencies) ──────────────────────────────
+// ── Icons (inline SVGs toconst NewLeads = () => { avoid dependencies) ──────────────────────────────
 const Icon = ({ d, size = 20, stroke = "currentColor", fill = "none" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -1277,8 +1277,6 @@ const OpenPurchaseOrders = () => {
 // ── NEW LEADS ────────────────────────────────────────────────────────────
 const NewLeads = () => {
   const [leads, setLeads] = useState([]);
-  const NewLeads = () => {
-  const [leads, setLeads] = useState([]);
 
   const load = () => {
     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
@@ -1304,26 +1302,7 @@ const NewLeads = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (leads.length === 0) return null;
-    setMounted(true);
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
-      .then(r => r.json())
-      .then(json => {
-        const rows = (json.values || []).slice(1);
-        setLeads(rows
-          .filter(r => r[1] && r[0] !== 'STORE TOTAL')
-          .map(r => ({
-            ticket:  r[1] || '',
-            device:  r[2] || '',
-            problem: r[3] || '',
-            created: r[8] || '',
-          }))
-          .sort((a, b) => (a.created < b.created ? 1 : -1)));
-      })
-      .catch(() => {});
-  }
-
-  if (leads.length === 0) return null;
+    if (leads.length === 0) return null;
 
   const hoursOld = (s) => {
     const t = Date.parse(String(s).replace(' ', 'T'));
