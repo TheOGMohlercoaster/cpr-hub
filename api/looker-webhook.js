@@ -2,6 +2,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfA
 
 // Look title (lowercased, must contain) → destination tab
 const ROUTES = [
+  { match: 'lead', tab: 'Leads' }
   { match: 'device',    tab: 'DeviceSales' },
   { match: 'repair',    tab: 'RepairSales' },
   { match: 'accessory', tab: 'AccessorySales' },
