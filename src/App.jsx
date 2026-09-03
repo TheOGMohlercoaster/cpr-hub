@@ -4837,10 +4837,10 @@ const LeaderboardView = () => {
 
   if (!mounted) { setMounted(true); fetchData(); }
 
-  const tabs = [
+   const tabs = [
     { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
-    { id: "accessory", label: "Accessory Sales", key: "accessorySales",     format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    { id: "devices",   label: "Device Sales",    key: "deviceSales",        format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,  color: "#FFB547" },
+    { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,  color: "#3B82F6" },
   ];
 
   const activeTab = tabs.find(t => t.id === tab);
