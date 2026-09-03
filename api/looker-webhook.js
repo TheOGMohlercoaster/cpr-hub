@@ -5,6 +5,7 @@ const ROUTES = [
   { match: 'device',    tab: 'DeviceSales' },
   { match: 'repair',    tab: 'RepairSales' },
   { match: 'accessory', tab: 'AccessorySales' },
+  { match: 'total',     tab: 'TotalSales' },
 ];
 
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, '');
