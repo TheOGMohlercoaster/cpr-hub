@@ -1277,9 +1277,34 @@ const OpenPurchaseOrders = () => {
 // ── NEW LEADS ────────────────────────────────────────────────────────────
 const NewLeads = () => {
   const [leads, setLeads] = useState([]);
-  const [mounted, setMounted] = useState(false);
+  const NewLeads = () => {
+  const [leads, setLeads] = useState([]);
 
-  if (!mounted) {
+  const load = () => {
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        setLeads(rows
+          .filter(r => r[1] && r[0] !== 'STORE TOTAL')
+          .map(r => ({
+            ticket:  r[1] || '',
+            device:  r[2] || '',
+            problem: r[3] || '',
+            created: r[8] || '',
+          }))
+          .sort((a, b) => (a.created < b.created ? 1 : -1)));
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 600000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (leads.length === 0) return null;
     setMounted(true);
     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
       .then(r => r.json())
