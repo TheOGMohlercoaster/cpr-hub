@@ -1216,6 +1216,7 @@ const OpenPurchaseOrders = () => {
             created:  r[0] || '',
             status:   r[1] || '',
             supplier: (r[2] || '').replace(/\s*\(Integrated\)/i, ''),
+            poNumber: r[4] || '',
             tracking: r[5] || '',
             cost:     parseFloat(r[7]) || 0,
           })));
@@ -1243,7 +1244,16 @@ const OpenPurchaseOrders = () => {
           <div key={i} style={{ background: C.surface, border: `1px solid ${aged ? C.gold + '66' : C.border}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ color: C.text, fontSize: 14, fontWeight: 600 }}>
-                {po.supplier} · ${po.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {po.poNumber
+                  ? <a href={`https://cpr.repairq.io/purchaseOrder/${po.poNumber}`} target="_blank" rel="noopener noreferrer"
+                      style={{ color: C.accent, textDecoration: 'none' }}>
+                      PO #{po.poNumber} ↗
+                    </a>
+                  : <span style={{ color: C.textMuted }}>PO —</span>}
+                <span style={{ color: C.textMuted, fontWeight: 400 }}> · </span>
+                {po.supplier}
+                <span style={{ color: C.textMuted, fontWeight: 400 }}> · </span>
+                ${po.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
                 {po.status} · {age === null ? po.created : age === 0 ? 'today' : `${age} day${age === 1 ? '' : 's'} ago`}
