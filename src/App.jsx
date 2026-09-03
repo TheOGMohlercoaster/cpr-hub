@@ -1513,38 +1513,39 @@ const DashboardView = ({ setView, currentUser }) => {
       {/* Today's Schedule */}
       <TodaySchedule />
 
-      {/* Top tech + top sales */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
-        <Card>
-          <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🔧 Top Tech — {salesMonth}</div>
-          {salesData.length > 0
-            ? [...salesData].sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5).map((e, i) => {
-                return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {e.firstName}</span>
-                    <span style={{ color: C.teal, fontWeight: 700 }}>{e.repairUnits} units</span>
-                  </div>
-                );
-              })
-            : REPAIR_TOTALS.sort((a, b) => b.completed - a.completed).map((t, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < REPAIR_TOTALS.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ color: C.textDim, fontSize: 13 }}>{t.name}</span>
-                  <span style={{ color: C.teal, fontWeight: 700 }}>{t.completed} repairs</span>
-                </div>
-              ))
-          }
-        </Card>
-        <Card>
-          <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>💰 Top Sales — {salesMonth}</div>
-          {salesData.length > 0
-            ? [...salesData].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5).map((e, i) => {
-                return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {e.firstName}</span>
-                    <span style={{ color: C.gold, fontWeight: 700 }}>${e.totalSales.toLocaleString()}</span>
-                  </div>
-                );
-              })
+           {/* Top tech + top accessory */}
+      {(() => {
+        const people = salesData.filter(e => e.name && !e.name.includes("CPR "));
+        const topTech = [...people].filter(e => e.repairUnits > 0)
+          .sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5);
+        const topAccy = [...people].filter(e => e.accessorySales > 0)
+          .sort((a, b) => b.accessorySales - a.accessorySales).slice(0, 5);
+        const row = (label, value, color, i, len) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < len - 1 ? `1px solid ${C.border}` : "none" }}>
+            <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {label}</span>
+            <span style={{ color, fontWeight: 700 }}>{value}</span>
+          </div>
+        );
+        const empty = (
+          <div style={{ color: C.textMuted, fontSize: 13, padding: "8px 0" }}>No data yet</div>
+        );
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
+            <Card>
+              <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🔧 Top Tech — {salesMonth}</div>
+              {topTech.length > 0
+                ? topTech.map((e, i) => row(e.firstName, `${e.repairUnits} units`, C.teal, i, topTech.length))
+                : empty}
+            </Card>
+            <Card>
+              <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🎧 Top Accessory Sales — {salesMonth}</div>
+              {topAccy.length > 0
+                ? topAccy.map((e, i) => row(e.firstName, `$${e.accessorySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, C.gold, i, topAccy.length))
+                : empty}
+            </Card>
+          </div>
+        );
+      })()}
             : TODAY_SALES.sort((a, b) => b.sales - a.sales).map((s, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < TODAY_SALES.length - 1 ? `1px solid ${C.border}` : "none" }}>
                   <span style={{ color: C.textDim, fontSize: 13 }}>{s.name}</span>
