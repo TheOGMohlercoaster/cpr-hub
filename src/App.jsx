@@ -2575,7 +2575,7 @@ const RepairsView = () => {
         firstName:   row[0] ? (row[0].includes(", ") ? row[0].split(", ")[1] : row[0].split(" ")[0]) : "",
         repairUnits: parseInt(row[2]) || 0,
         month:       row[5] || "",
-      })).filter(r => r.name);
+            })).filter(r => r.name && !r.name.includes("CPR "));
       setRepairs(parsed.sort((a, b) => b.repairUnits - a.repairUnits));
       if (parsed.length > 0) setMonth(parsed[0].month);
     } catch(e) { console.error(e); }
@@ -4828,7 +4828,7 @@ const LeaderboardView = () => {
         accessorySales: parseFloat(row[3]) || 0,
         deviceSales:  parseFloat(row[4]) || 0,
         month:        row[5] || "",
-      })).filter(r => r.name);
+           })).filter(r => r.name && !r.name.includes("CPR "));
       setData(parsed);
       if (parsed.length > 0) setMonth(parsed[0].month);
     } catch(e) { setError(e.message); }
@@ -4838,10 +4838,9 @@ const LeaderboardView = () => {
   if (!mounted) { setMounted(true); fetchData(); }
 
   const tabs = [
-    { id: "sales",     label: "Total Sales",     key: "totalSales",     format: v => `$${v.toLocaleString()}`,  color: "#00C9A7" },
     { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
-    { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString()}`,  color: "#FFB547" },
-    { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString()}`,  color: "#3B82F6" },
+    { id: "accessory", label: "Accessory Sales", key: "accessorySales",     format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    { id: "devices",   label: "Device Sales",    key: "deviceSales",        format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
   ];
 
   const activeTab = tabs.find(t => t.id === tab);
