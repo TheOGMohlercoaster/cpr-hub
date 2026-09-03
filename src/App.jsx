@@ -1274,6 +1274,84 @@ const OpenPurchaseOrders = () => {
     </div>
   );
 };
+// ── NEW LEADS ────────────────────────────────────────────────────────────
+const NewLeads = () => {
+  const [leads, setLeads] = useState([]);
+  const [mounted, setMounted] = useState(false);
+
+  if (!mounted) {
+    setMounted(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        setLeads(rows
+          .filter(r => r[1] && r[0] !== 'STORE TOTAL')
+          .map(r => ({
+            ticket:  r[1] || '',
+            device:  r[2] || '',
+            problem: r[3] || '',
+            created: r[8] || '',
+          }))
+          .sort((a, b) => (a.created < b.created ? 1 : -1)));
+      })
+      .catch(() => {});
+  }
+
+  if (leads.length === 0) return null;
+
+  const hoursOld = (s) => {
+    const t = Date.parse(String(s).replace(' ', 'T'));
+    return isNaN(t) ? null : (Date.now() - t) / 3600000;
+  };
+  const ageLabel = (h) => {
+    if (h === null) return '';
+    if (h < 1) return 'just now';
+    if (h < 24) return `${Math.floor(h)}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d} day${d === 1 ? '' : 's'} ago`;
+  };
+
+  const stale = leads.filter(l => { const h = hoursOld(l.created); return h !== null && h >= 48; }).length;
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5 }}>
+          🔔 New Leads — Not Yet Contacted ({leads.length})
+        </div>
+        {stale > 0 && (
+          <span style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+            {stale} over 48h
+          </span>
+        )}
+      </div>
+      {leads.map((l, i) => {
+        const h = hoursOld(l.created);
+        const urgent = h !== null && h >= 48;
+        const warn = h !== null && h >= 24 && h < 48;
+        const edge = urgent ? C.red : warn ? C.gold : C.border;
+        return (
+          <div key={i} style={{ background: C.surface, border: `1px solid ${urgent || warn ? edge + '66' : edge}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: C.text, fontSize: 14, fontWeight: 600 }}>
+                {l.device || 'Device not specified'}
+                {l.problem ? <span style={{ color: C.textDim, fontWeight: 400 }}> · {l.problem}</span> : null}
+              </div>
+              <div style={{ color: urgent ? C.red : C.textMuted, fontSize: 11, marginTop: 2, fontWeight: urgent ? 700 : 400 }}>
+                {urgent ? '⚠️ ' : ''}{ageLabel(h)} · #{l.ticket}
+              </div>
+            </div>
+            <a href={`https://cpr.repairq.io/ticket/${l.ticket}`} target="_blank" rel="noopener noreferrer"
+              style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '4px 12px', color: C.accent, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Open ↗
+            </a>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 const DashboardView = ({ setView, currentUser }) => {
   const [now, setNow] = useState(new Date());
@@ -1581,10 +1659,15 @@ const DashboardView = ({ setView, currentUser }) => {
               <button onClick={() => deletePost(post.id)} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>×</button>
             )}
           </div>
-        ))}
+              ))}
       </div>
-{/* Open Purchase Orders */}
+
+      {/* New Leads */}
+      <NewLeads />
+
+      {/* Open Purchase Orders */}
       <OpenPurchaseOrders />
+
       {/* Today's Schedule */}
       <TodaySchedule />
 
