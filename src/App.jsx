@@ -1546,15 +1546,7 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         );
       })()}
-            : TODAY_SALES.sort((a, b) => b.sales - a.sales).map((s, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < TODAY_SALES.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ color: C.textDim, fontSize: 13 }}>{s.name}</span>
-                  <span style={{ color: C.gold, fontWeight: 700 }}>${s.sales.toLocaleString()}</span>
-                </div>
-              ))
-          }
-        </Card>
-      </div>
+    
     </div>
   );
 };
