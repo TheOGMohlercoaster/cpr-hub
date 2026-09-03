@@ -1199,7 +1199,71 @@ const StatCard = ({ label, value, sub, color = C.accent, icon }) => (
     </div>
   </Card>
 );
+// ── OPEN PURCHASE ORDERS ─────────────────────────────────────────────────
+const OpenPurchaseOrders = () => {
+  const [pos, setPos] = useState([]);
+  const [mounted, setMounted] = useState(false);
 
+  if (!mounted) {
+    setMounted(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/PurchaseOrders!A:I?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        setPos(rows
+          .filter(r => r[0] && r[0] !== 'STORE TOTAL')
+          .map(r => ({
+            created:  r[0] || '',
+            status:   r[1] || '',
+            supplier: (r[2] || '').replace(/\s*\(Integrated\)/i, ''),
+            tracking: r[5] || '',
+            cost:     parseFloat(r[7]) || 0,
+          })));
+      })
+      .catch(() => {});
+  }
+
+  if (pos.length === 0) return null;
+
+  const ageOf = (d) => {
+    const t = Date.parse(d + 'T00:00:00');
+    if (isNaN(t)) return null;
+    return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5, marginBottom: 10 }}>
+        📦 Open Purchase Orders ({pos.length})
+      </div>
+      {pos.map((po, i) => {
+        const age = ageOf(po.created);
+        const aged = age !== null && age >= 7;
+        return (
+          <div key={i} style={{ background: C.surface, border: `1px solid ${aged ? C.gold + '66' : C.border}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: C.text, fontSize: 14, fontWeight: 600 }}>
+                {po.supplier} · ${po.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
+                {po.status} · {age === null ? po.created : age === 0 ? 'today' : `${age} day${age === 1 ? '' : 's'} ago`}
+                {po.tracking ? ` · ${po.tracking}` : ' · no tracking yet'}
+              </div>
+            </div>
+            {po.tracking
+              ? <a href={`https://www.google.com/search?q=${encodeURIComponent(po.tracking)}`} target="_blank" rel="noopener noreferrer"
+                  style={{ background: C.blueDim, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: '4px 12px', color: C.blue, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  Track ↗
+                </a>
+              : <span style={{ color: aged ? C.gold : C.textMuted, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {aged ? '⚠️ No tracking' : 'Awaiting tracking'}
+                </span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 const DashboardView = ({ setView, currentUser }) => {
   const [now, setNow] = useState(new Date());
@@ -1509,7 +1573,8 @@ const DashboardView = ({ setView, currentUser }) => {
           </div>
         ))}
       </div>
-
+{/* Open Purchase Orders */}
+      <OpenPurchaseOrders />
       {/* Today's Schedule */}
       <TodaySchedule />
 
@@ -3511,7 +3576,7 @@ const TodaySchedule = () => {
 // ── SPECIAL ORDERS ───────────────────────────────────────────────────────
 const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
-const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
+const SCHEDULE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfABZuj90C8bGeBtPo0zLXDEgzU67ekf9BibqA7o4wV78XR81JKG3Q5/exec";
 const SCHEDULE_WRITE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
