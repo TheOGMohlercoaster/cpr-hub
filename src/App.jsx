@@ -1136,6 +1136,87 @@ PARTS STANDARDS — QUICK RULES
 
 🎯 The Goal: Right Part • Right Bin • Accurate Inventory • No Lost Sales`
   },
+  {
+    id: 12,
+    title: "New Employee Checklist",
+    category: "Operations",
+    updated: "Sep 2026",
+    content: `👋 NEW EMPLOYEE CHECKLIST
+Welcome to the CPR Team! Below is a checklist to help get you started. If you have any questions don't be afraid to ask any team members.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. NEW EMPLOYEE FORMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Aplus Payroll New Employee Information
+☐ I-9 Form (Employment Eligibility Verification)
+☐ MO W4 Employee Withholding
+☐ Federal W4 Employee Withholding
+☐ Employee Direct Deposit
+☐ Customer and Company Confidentiality Agreement
+☐ Policy and Procedures Manual and Acknowledgement
+☐ Summary of Policies and Procedures — Read and sign
+☐ Sick Days Policy — Read
+☐ Longevity and Paid Vacations Benefits — Read
+☐ Sales Associate Duties List
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. LOGIN CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify logins and change passwords for:
+
+• Email: https://office.com
+• Docebo (Learning): assurantlearning.com/cpr
+• Creatio: cpr.creatio.com
+• RepairQ: cpr.repairq.io
+• Genesis (Clock In/Out): https://secure8.yourpayrollhr.com/ta/200371.login
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. ONLINE TRAINING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CPR Knowledge Hub (via Creatio):
+1. Go to https://cpr.creatio.com/0/Shell/
+2. Log in with Single Sign On (CPR Store Users) — below the green LOG IN button
+3. Select Knowledge Hub on left side
+4. Select Click to Launch → Access CPR Learning
+5. Select Course Catalog and complete:
+   ☐ Service Essentials — modules 1-10
+   ☐ Zagg Preferred Partner — modules 1-6
+   ☐ Invisibleshield — modules 1-4
+   ☐ Zagg Warranty — complete training
+   ☐ Assurant Walk In Repairs — complete training
+
+CellBotics Online (https://www.cellboticsonline.com/):
+Log in, select your initials → Products, complete:
+   ☐ Customer Service
+   ☐ How to answer a phone call for retail repair store staff
+   ☐ SOP Customer Service
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. STORE SHADOWING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A lead employee will be assigned to shadow. Start with a store walk through:
+
+Front:
+• Computers • Center island • Devices for sale • Accessories • ISOD
+
+Back:
+• Parts • Extra accessories • Cage • Tech desks
+• New repairs • Repairs ready for pickup
+• Bathroom • Break room • Back door • Trash
+
+Learn:
+☐ Clocking in and out
+☐ Using RepairQ
+☐ Sales — Devices & Accessories
+☐ Repair Check In
+☐ Warranty process
+☐ Open process
+☐ Closing process`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
