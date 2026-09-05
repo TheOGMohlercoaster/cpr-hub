@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// ── Icons (inline SVGs to avoid dependencies) ──────────────────────────────
+// ── Icons (inline SVGs toconst NewLeads = () => { avoid dependencies) ──────────────────────────────
 const Icon = ({ d, size = 20, stroke = "currentColor", fill = "none" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -1199,7 +1199,184 @@ const StatCard = ({ label, value, sub, color = C.accent, icon }) => (
     </div>
   </Card>
 );
+// ── OPEN PURCHASE ORDERS ─────────────────────────────────────────────────
+const OpenPurchaseOrders = () => {
+  const [pos, setPos] = useState([]);
+  const [mounted, setMounted] = useState(false);
 
+  if (!mounted) {
+    setMounted(true);
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/PurchaseOrders!A:I?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        setPos(rows
+          .filter(r => r[0] && r[0] !== 'STORE TOTAL')
+          .map(r => ({
+            created:  r[0] || '',
+            status:   r[1] || '',
+            supplier: (r[2] || '').replace(/\s*\(Integrated\)/i, ''),
+            poNumber: r[4] || '',
+            tracking: r[5] || '',
+            cost:     parseFloat(r[7]) || 0,
+          })));
+      })
+      .catch(() => {});
+  }
+
+  if (pos.length === 0) return null;
+
+  const ageOf = (d) => {
+    const t = Date.parse(d + 'T00:00:00');
+    if (isNaN(t)) return null;
+    return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5, marginBottom: 10 }}>
+        📦 Open Purchase Orders ({pos.length})
+      </div>
+      {pos.map((po, i) => {
+        const age = ageOf(po.created);
+        const aged = age !== null && age >= 7;
+        return (
+          <div key={i} style={{ background: C.surface, border: `1px solid ${aged ? C.gold + '66' : C.border}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ color: C.text, fontSize: 14, fontWeight: 600 }}>
+                {po.poNumber
+                  ? <a href={`https://cpr.repairq.io/purchaseOrder/${po.poNumber}`} target="_blank" rel="noopener noreferrer"
+                      style={{ color: C.accent, textDecoration: 'none' }}>
+                      PO #{po.poNumber} ↗
+                    </a>
+                  : <span style={{ color: C.textMuted }}>PO —</span>}
+                <span style={{ color: C.textMuted, fontWeight: 400 }}> · </span>
+                {po.supplier}
+                <span style={{ color: C.textMuted, fontWeight: 400 }}> · </span>
+                ${po.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
+                {po.status} · {age === null ? po.created : age === 0 ? 'today' : `${age} day${age === 1 ? '' : 's'} ago`}
+                {po.tracking ? ` · ${po.tracking}` : ' · no tracking yet'}
+              </div>
+            </div>
+            {po.tracking
+              ? <a href={`https://www.google.com/search?q=${encodeURIComponent(po.tracking)}`} target="_blank" rel="noopener noreferrer"
+                  style={{ background: C.blueDim, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: '4px 12px', color: C.blue, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  Track ↗
+                </a>
+              : <span style={{ color: aged ? C.gold : C.textMuted, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {aged ? '⚠️ No tracking' : 'Awaiting tracking'}
+                </span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+// ── NEW LEADS ────────────────────────────────────────────────────────────
+const NewLeads = () => {
+  const [leads, setLeads] = useState([]);
+  const [initials, setInitials] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cpr_lead_initials') || '{}'); } catch { return {}; }
+  });
+
+  const load = () => {
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const rows = (json.values || []).slice(1);
+        setLeads(rows
+          .filter(r => r[1] && r[0] !== 'STORE TOTAL')
+          .map(r => ({
+            ticket:  r[1] || '',
+            device:  r[2] || '',
+            problem: r[3] || '',
+            created: r[8] || '',
+          }))
+          .sort((a, b) => (a.created < b.created ? 1 : -1))
+          .slice(0, 10));
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 600000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (leads.length === 0) return null;
+
+  const hoursOld = (s) => {
+    const t = Date.parse(String(s).replace(' ', 'T'));
+    return isNaN(t) ? null : (Date.now() - t) / 3600000;
+  };
+  const ageLabel = (h) => {
+    if (h === null) return '';
+    if (h < 1) return 'just now';
+    if (h < 24) return `${Math.floor(h)}h ago`;
+    const d = Math.floor(h / 24);
+    return `${d} day${d === 1 ? '' : 's'} ago`;
+  };
+
+  const saveInitials = (ticket, val) => {
+    const updated = { ...initials, [ticket]: val };
+    setInitials(updated);
+    try { localStorage.setItem('cpr_lead_initials', JSON.stringify(updated)); } catch {}
+  };
+
+  const stale = leads.filter(l => { const h = hoursOld(l.created); return h !== null && h >= 48; }).length;
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5 }}>
+          🔔 New Leads — Not Yet Contacted ({leads.length})
+        </div>
+        {stale > 0 && (
+          <span style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+            {stale} over 48h
+          </span>
+        )}
+      </div>
+      {leads.map((l, i) => {
+        const h = hoursOld(l.created);
+        const urgent = h !== null && h >= 48;
+        const warn = h !== null && h >= 24 && h < 48;
+        const edge = urgent ? C.red : warn ? C.gold : C.border;
+        const contacted = initials[l.ticket];
+        return (
+          <div key={i} style={{ background: C.surface, border: `1px solid ${contacted ? C.green + '66' : urgent || warn ? edge + '66' : edge}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ color: contacted ? C.textMuted : C.text, fontSize: 14, fontWeight: 600, textDecoration: contacted ? 'line-through' : 'none' }}>
+                {l.device || 'Device not specified'}
+                {l.problem ? <span style={{ color: C.textDim, fontWeight: 400 }}> · {l.problem}</span> : null}
+              </div>
+              <div style={{ color: urgent ? C.red : C.textMuted, fontSize: 11, marginTop: 2, fontWeight: urgent ? 700 : 400 }}>
+                {urgent ? '⚠️ ' : ''}{ageLabel(h)} · #{l.ticket}
+                {contacted && <span style={{ color: C.green, marginLeft: 8 }}>✓ Contacted by {contacted}</span>}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                value={initials[l.ticket] || ''}
+                onChange={e => saveInitials(l.ticket, e.target.value.toUpperCase().slice(0, 4))}
+                placeholder="Init."
+                maxLength={4}
+                style={{ width: 52, background: C.bg, border: `1px solid ${contacted ? C.green + '88' : C.border}`, borderRadius: 6, padding: '4px 8px', color: contacted ? C.green : C.text, fontSize: 12, fontWeight: 700, outline: 'none', textAlign: 'center' }}
+              />
+              <a href={`https://cpr.repairq.io/ticket/${l.ticket}`} target="_blank" rel="noopener noreferrer"
+                style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '4px 12px', color: C.accent, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                Open ↗
+              </a>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 const DashboardView = ({ setView, currentUser }) => {
   const [now, setNow] = useState(new Date());
@@ -1507,53 +1684,52 @@ const DashboardView = ({ setView, currentUser }) => {
               <button onClick={() => deletePost(post.id)} style={{ background: "transparent", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 16, padding: "0 4px", flexShrink: 0 }}>×</button>
             )}
           </div>
-        ))}
+              ))}
       </div>
+
+      {/* New Leads */}
+      <NewLeads />
+
+      {/* Open Purchase Orders */}
+      <OpenPurchaseOrders />
 
       {/* Today's Schedule */}
       <TodaySchedule />
 
-      {/* Top tech + top sales */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
-        <Card>
-          <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🔧 Top Tech — {salesMonth}</div>
-          {salesData.length > 0
-            ? [...salesData].sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5).map((e, i) => {
-                return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {e.firstName}</span>
-                    <span style={{ color: C.teal, fontWeight: 700 }}>{e.repairUnits} units</span>
-                  </div>
-                );
-              })
-            : REPAIR_TOTALS.sort((a, b) => b.completed - a.completed).map((t, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < REPAIR_TOTALS.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ color: C.textDim, fontSize: 13 }}>{t.name}</span>
-                  <span style={{ color: C.teal, fontWeight: 700 }}>{t.completed} repairs</span>
-                </div>
-              ))
-          }
-        </Card>
-        <Card>
-          <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>💰 Top Sales — {salesMonth}</div>
-          {salesData.length > 0
-            ? [...salesData].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5).map((e, i) => {
-                return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-                    <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {e.firstName}</span>
-                    <span style={{ color: C.gold, fontWeight: 700 }}>${e.totalSales.toLocaleString()}</span>
-                  </div>
-                );
-              })
-            : TODAY_SALES.sort((a, b) => b.sales - a.sales).map((s, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < TODAY_SALES.length - 1 ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ color: C.textDim, fontSize: 13 }}>{s.name}</span>
-                  <span style={{ color: C.gold, fontWeight: 700 }}>${s.sales.toLocaleString()}</span>
-                </div>
-              ))
-          }
-        </Card>
-      </div>
+           {/* Top tech + top accessory */}
+      {(() => {
+        const people = salesData.filter(e => e.name && !e.name.includes("CPR "));
+        const topTech = [...people].filter(e => e.repairUnits > 0)
+          .sort((a, b) => b.repairUnits - a.repairUnits).slice(0, 5);
+        const topAccy = [...people].filter(e => e.accessorySales > 0)
+          .sort((a, b) => b.accessorySales - a.accessorySales).slice(0, 5);
+        const row = (label, value, color, i, len) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < len - 1 ? `1px solid ${C.border}` : "none" }}>
+            <span style={{ color: C.textDim, fontSize: 13 }}>{["🥇","🥈","🥉"][i] || (i+1)+"."} {label}</span>
+            <span style={{ color, fontWeight: 700 }}>{value}</span>
+          </div>
+        );
+        const empty = (
+          <div style={{ color: C.textMuted, fontSize: 13, padding: "8px 0" }}>No data yet</div>
+        );
+        return (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, flexWrap: "wrap" }}>
+            <Card>
+              <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🔧 Top Tech — {salesMonth}</div>
+              {topTech.length > 0
+                ? topTech.map((e, i) => row(e.firstName, `${e.repairUnits} units`, C.teal, i, topTech.length))
+                : empty}
+            </Card>
+            <Card>
+              <div style={{ fontWeight: 700, marginBottom: 14, color: C.text }}>🎧 Top Accessory Sales — {salesMonth}</div>
+              {topAccy.length > 0
+                ? topAccy.map((e, i) => row(e.firstName, `$${e.accessorySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, C.gold, i, topAccy.length))
+                : empty}
+            </Card>
+          </div>
+        );
+      })()}
+    
     </div>
   );
 };
@@ -2582,7 +2758,7 @@ const RepairsView = () => {
         firstName:   row[0] ? (row[0].includes(", ") ? row[0].split(", ")[1] : row[0].split(" ")[0]) : "",
         repairUnits: parseInt(row[2]) || 0,
         month:       row[5] || "",
-      })).filter(r => r.name);
+            })).filter(r => r.name && !r.name.includes("CPR "));
       setRepairs(parsed.sort((a, b) => b.repairUnits - a.repairUnits));
       if (parsed.length > 0) setMonth(parsed[0].month);
     } catch(e) { console.error(e); }
@@ -3518,7 +3694,7 @@ const TodaySchedule = () => {
 // ── SPECIAL ORDERS ───────────────────────────────────────────────────────
 const SO_SHEET_ID = "17bpYFOxo-DCnizwG0gLkFiD2bUru7-CpIa_xcgQKcvw";
 const SO_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdiLcbkkTbW04GfoFaPDxUdfpPZUAxfE0nj3yntIsv4y9vKtw/viewform";
-const SCHEDULE_SHEET_ID = "1mCjFLbK7LrEVldDWyuT3OaDDWY_curoa6GlcPI8cDCc";
+const SCHEDULE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfABZuj90C8bGeBtPo0zLXDEgzU67ekf9BibqA7o4wV78XR81JKG3Q5/exec";
 const SCHEDULE_WRITE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
@@ -4835,7 +5011,7 @@ const LeaderboardView = () => {
         accessorySales: parseFloat(row[3]) || 0,
         deviceSales:  parseFloat(row[4]) || 0,
         month:        row[5] || "",
-      })).filter(r => r.name);
+           })).filter(r => r.name && !r.name.includes("CPR "));
       setData(parsed);
       if (parsed.length > 0) setMonth(parsed[0].month);
     } catch(e) { setError(e.message); }
@@ -4844,11 +5020,10 @@ const LeaderboardView = () => {
 
   if (!mounted) { setMounted(true); fetchData(); }
 
-  const tabs = [
-    { id: "sales",     label: "Total Sales",     key: "totalSales",     format: v => `$${v.toLocaleString()}`,  color: "#00C9A7" },
+   const tabs = [
     { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
-    { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString()}`,  color: "#FFB547" },
-    { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString()}`,  color: "#3B82F6" },
+    { id: "accessory", label: "Accessory Sales", key: "accessorySales", format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,  color: "#FFB547" },
+    { id: "devices",   label: "Device Sales",    key: "deviceSales",    format: v => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,  color: "#3B82F6" },
   ];
 
   const activeTab = tabs.find(t => t.id === tab);
