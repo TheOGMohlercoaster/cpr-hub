@@ -79,10 +79,10 @@ const EMPLOYEES = getEmployees();
 
 // What each role can see
 const ROLE_ACCESS = {
-  "Owner":      ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard","settings"],
-  "Tech/Sales": ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
-  "Tech":       ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
-  "Sales":      ["dashboard","pricing","buyphones","sop","tasks","orders","schedule","links","leaderboard"],
+  "Owner":      ["dashboard","pricing","buyphones","resale","sop","tasks","orders","schedule","links","leaderboard","settings"],
+  "Tech/Sales": ["dashboard","pricing","buyphones","resale","sop","tasks","orders","schedule","links","leaderboard"],
+  "Tech":       ["dashboard","pricing","buyphones","resale","sop","tasks","orders","schedule","links","leaderboard"],
+  "Sales":      ["dashboard","pricing","buyphones","resale","sop","tasks","orders","schedule","links","leaderboard"],
 };
 
 // ── Color tokens ─────────────────────────────────────────────────────────
@@ -1238,6 +1238,7 @@ const NAV = [
   { id: "dashboard",   label: "Dashboard",      icon: "dashboard" },
   { id: "pricing",     label: "Repair Pricing",  icon: "tool" },
   { id: "buyphones",   label: "Buy Phones",      icon: "buyphones" },
+  { id: "resale",      label: "Resale Pricing",  icon: "dollar" },
   { id: "orders",      label: "Special Orders",  icon: "register" },
   { id: "links",       label: "Quick Links",     icon: "link" },
   { id: "tasks",       label: "Daily Tasks",     icon: "tasks" },
@@ -5263,6 +5264,7 @@ const VIEWS = {
   dashboard: DashboardView,
   pricing: PricingView,
   buyphones: BuyPhonesView,
+  resale: ResalePricingView,
   sop: SOPView,
   tasks: TasksView,
   pos: POSView,
@@ -5728,6 +5730,240 @@ const NotificationBell = ({ currentUser, onNavigate }) => {
           </div>
         </>
       )}
+    </div>
+  );
+};
+
+// ── RESALE PRICING ───────────────────────────────────────────────────────
+// Two halves: a launcher that opens the comparison sites with the model
+// pre-filled, and a shared price sheet so research is done once, not per person.
+const COMPARE_SITES = [
+  { name: 'eBay Sold',   color: '#E53238', url: q => `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Sold=1&LH_Complete=1` },
+  { name: 'Swappa',      color: '#00A99D', url: q => `https://swappa.com/search?q=${encodeURIComponent(q)}` },
+  { name: 'Back Market', color: '#7C3AED', url: q => `https://www.backmarket.com/en-us/search?q=${encodeURIComponent(q)}` },
+  { name: 'Gazelle',     color: '#F26722', url: q => `https://www.gazelle.com/shop?q=${encodeURIComponent(q)}` },
+];
+
+const CONDITIONS = ['A - Excellent', 'B - Good', 'C - Fair', 'D - Poor'];
+
+const ResalePricingView = ({ currentUser }) => {
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [compareQuery, setCompareQuery] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ model: '', storage: '', condition: CONDITIONS[0], price: '' });
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
+    fetch('/api/device-pricing')
+      .then(r => r.json())
+      .then(d => { setDevices(d.devices || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const ageDays = (iso) => {
+    const t = Date.parse(iso);
+    return isNaN(t) ? null : Math.floor((Date.now() - t) / 86400000);
+  };
+  const ageLabel = (d) => {
+    if (d === null) return '—';
+    if (d === 0) return 'today';
+    if (d === 1) return '1 day ago';
+    if (d < 30) return `${d} days ago`;
+    const m = Math.floor(d / 30);
+    return `${m} month${m === 1 ? '' : 's'} ago`;
+  };
+  const ageColor = (d) => {
+    if (d === null) return C.textMuted;
+    if (d <= 14) return C.green;
+    if (d <= 30) return C.gold;
+    return C.red;
+  };
+
+  const save = async (next) => {
+    setSaving(true);
+    setDevices(next);
+    try {
+      await fetch('/api/device-pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ devices: next }),
+      });
+    } catch {}
+    setSaving(false);
+  };
+
+  const addDevice = () => {
+    if (!form.model.trim() || !form.price) return;
+    const entry = {
+      model: form.model.trim(),
+      storage: form.storage.trim(),
+      condition: form.condition,
+      price: parseFloat(String(form.price).replace(/[$,\s]/g, '')) || 0,
+      updatedBy: (currentUser?.name || '').split(' ')[0] || '',
+      updated: new Date().toISOString().split('T')[0],
+    };
+    // Replace an existing row for the same model/storage/condition
+    const rest = devices.filter(d =>
+      !(d.model.toLowerCase() === entry.model.toLowerCase() &&
+        d.storage.toLowerCase() === entry.storage.toLowerCase() &&
+        d.condition === entry.condition));
+    save([entry, ...rest]);
+    setForm({ model: '', storage: '', condition: CONDITIONS[0], price: '' });
+    setShowAdd(false);
+  };
+
+  const removeDevice = (idx) => {
+    if (!window.confirm('Remove this price?')) return;
+    save(devices.filter((_, i) => i !== idx));
+  };
+
+  const filtered = devices.filter(d =>
+    `${d.model} ${d.storage} ${d.condition}`.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 4px' }}>Resale Pricing</h2>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>Shared sell prices — look it up before you research it</div>
+      </div>
+
+      {/* Comparison launcher */}
+      <Card style={{ marginBottom: 20 }}>
+        <div style={{ color: C.text, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>🔎 Check the Market</div>
+        <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
+          Type a model and open all four sites with the search pre-filled
+        </div>
+        <input
+          value={compareQuery}
+          onChange={e => setCompareQuery(e.target.value)}
+          placeholder='e.g. iPhone 14 Pro 256GB unlocked'
+          style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', marginBottom: 10 }}
+        />
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {COMPARE_SITES.map(site => (
+            <a key={site.name}
+              href={compareQuery.trim() ? site.url(compareQuery.trim()) : undefined}
+              target="_blank" rel="noopener noreferrer"
+              onClick={e => { if (!compareQuery.trim()) e.preventDefault(); }}
+              style={{
+                background: site.color + '18', border: `1px solid ${site.color}44`, borderRadius: 8,
+                padding: '7px 16px', fontSize: 12, fontWeight: 700, color: site.color,
+                textDecoration: 'none', opacity: compareQuery.trim() ? 1 : 0.45,
+                cursor: compareQuery.trim() ? 'pointer' : 'not-allowed',
+              }}>
+              {site.name} ↗
+            </a>
+          ))}
+          <button
+            onClick={() => {
+              const q = compareQuery.trim();
+              if (!q) return;
+              COMPARE_SITES.forEach(s => window.open(s.url(q), '_blank', 'noopener'));
+            }}
+            disabled={!compareQuery.trim()}
+            style={{
+              background: compareQuery.trim() ? C.accent : C.surface, color: compareQuery.trim() ? '#fff' : C.textMuted,
+              border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 700,
+              cursor: compareQuery.trim() ? 'pointer' : 'not-allowed',
+            }}>
+            Open All 4
+          </button>
+        </div>
+      </Card>
+
+      {/* Saved prices */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder='Search saved prices…'
+          style={{ flex: 1, minWidth: 200, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 14, outline: 'none' }} />
+        <button onClick={() => setShowAdd(!showAdd)}
+          style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+          {showAdd ? 'Cancel' : '+ Add Price'}
+        </button>
+      </div>
+
+      {showAdd && (
+        <Card style={{ marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 1fr auto', gap: 10, alignItems: 'end' }}>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Model</div>
+              <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}
+                placeholder='iPhone 14 Pro'
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage</div>
+              <input value={form.storage} onChange={e => setForm({ ...form, storage: e.target.value })}
+                placeholder='128GB'
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Condition</div>
+              <select value={form.condition} onChange={e => setForm({ ...form, condition: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Sell Price</div>
+              <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
+                onKeyDown={e => e.key === 'Enter' && addDevice()}
+                placeholder='449'
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <button onClick={addDevice}
+              style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+              Save
+            </button>
+          </div>
+          <div style={{ color: C.textMuted, fontSize: 11, marginTop: 10 }}>
+            Saving the same model, storage and condition again replaces the old price.
+          </div>
+        </Card>
+      )}
+
+      {loading ? (
+        <Card><div style={{ color: C.textMuted, fontSize: 13, textAlign: 'center', padding: 24 }}>Loading prices…</div></Card>
+      ) : filtered.length === 0 ? (
+        <Card><div style={{ color: C.textMuted, fontSize: 13, textAlign: 'center', padding: 24 }}>
+          {devices.length === 0 ? 'No prices saved yet — research one above and add it.' : 'No matches.'}
+        </div></Card>
+      ) : (
+        <div style={{ display: 'grid', gap: 8 }}>
+          {filtered.map((d, i) => {
+            const age = ageDays(d.updated);
+            return (
+              <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>
+                    {d.model}{d.storage ? ` · ${d.storage}` : ''}
+                  </div>
+                  <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
+                    {d.condition}{d.updatedBy ? ` · ${d.updatedBy}` : ''}
+                  </div>
+                </div>
+                <div style={{ color: ageColor(age), fontSize: 11, fontWeight: 600, minWidth: 90, textAlign: 'right' }}>
+                  {ageLabel(age)}
+                </div>
+                <div style={{ color: C.teal, fontWeight: 800, fontSize: 18, minWidth: 70, textAlign: 'right' }}>
+                  ${d.price.toLocaleString()}
+                </div>
+                <button onClick={() => removeDevice(devices.indexOf(d))}
+                  style={{ background: 'transparent', border: 'none', color: C.textMuted, cursor: 'pointer', fontSize: 16, padding: '0 4px' }}>
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ color: C.textMuted, fontSize: 11, marginTop: 14 }}>
+        {saving ? 'Saving…' : 'Green means priced within 2 weeks · gold within a month · red older than that'}
+      </div>
     </div>
   );
 };
