@@ -3776,7 +3776,7 @@ const lookerNum = (v) => {
 
 const fetchLookerSales = async () => {
   const getTab = (name) =>
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${name}!A:F?key=${SHEETS_API_KEY}`)
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${name}!A:Z?key=${SHEETS_API_KEY}`)
       .then(r => r.json())
       .catch(() => ({}));
 
