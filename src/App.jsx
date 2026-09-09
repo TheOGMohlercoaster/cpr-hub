@@ -1479,23 +1479,29 @@ const DashboardView = ({ setView, currentUser }) => {
   const [salesLoaded, setSalesLoaded] = useState(false);
 
   const [storeNetSales, setStoreNetSales] = useState(0);
+  const [storeTotals, setStoreTotals] = useState({ repairUnits: 0, accessorySales: 0, deviceSales: 0 });
   const [salesMonth, setSalesMonth] = useState('This Month');
 
   if (!salesLoaded) {
     setSalesLoaded(true);
     fetchLookerSales()
-      .then(({ employees, storeNetSales, month }) => {
+      .then(({ employees, storeNetSales, storeRepairUnits, storeAccessorySales, storeDeviceSales, month }) => {
         setSalesData(employees);
         setStoreNetSales(storeNetSales);
+        setStoreTotals({
+          repairUnits: storeRepairUnits,
+          accessorySales: storeAccessorySales,
+          deviceSales: storeDeviceSales,
+        });
         setSalesMonth(month);
       })
       .catch(() => {});
   }
 
   const totalSalesAmt = storeNetSales;
-  const totalRepairUnits = salesData.reduce((a, e) => a + e.repairUnits, 0);
-  const totalAccessory = salesData.reduce((a, e) => a + e.accessorySales, 0);
-  const totalDevices = salesData.reduce((a, e) => a + e.deviceSales, 0);
+  const totalRepairUnits = storeTotals.repairUnits;
+  const totalAccessory = storeTotals.accessorySales;
+  const totalDevices = storeTotals.deviceSales;
 
   const [announcements, setAnnouncements] = useState(getAnnouncements);
   const [announcementsLoaded, setAnnouncementsLoaded] = useState(false);
@@ -3823,6 +3829,24 @@ const fetchLookerSales = async () => {
     e.totalSales = e.repairRevenue + e.accessorySales + e.deviceSales;
   });
 
+  // Looker's own STORE TOTAL row is authoritative for the dashboard cards.
+  // Summing the per-employee rows can overcount — a repair ticket worked by
+  // two techs credits both in the breakdown but counts once in the total.
+  const storeTotalOf = (tab, colIdx) => {
+    const rows = (tab?.values || []).slice(1);
+    const row = rows.find(r => String(r[0] || '').trim() === 'STORE TOTAL');
+    return row ? lookerNum(row[colIdx]) : null;
+  };
+
+  const sumBy = (field) => employees.reduce((a, e) => a + e[field], 0);
+
+  const storeRepairUnits =
+    storeTotalOf(rep, 1) ?? sumBy('repairUnits');
+  const storeAccessorySales =
+    storeTotalOf(acc, 1) ?? sumBy('accessorySales');
+  const storeDeviceSales =
+    storeTotalOf(dev, 1) ?? sumBy('deviceSales');
+
   // Store-level net sales comes from the TotalSales tab (Closed Net Sales)
   const totRows = (tot?.values || []).slice(1);
   const totRow = totRows.find(r => String(r[0] || '').trim() === 'STORE TOTAL') || totRows[0];
@@ -3840,7 +3864,14 @@ const fetchLookerSales = async () => {
     }
   }
 
-  return { employees, storeNetSales, month };
+  return {
+    employees,
+    storeNetSales,
+    storeRepairUnits,
+    storeAccessorySales,
+    storeDeviceSales,
+    month,
+  };
 };
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
