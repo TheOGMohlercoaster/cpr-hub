@@ -1482,8 +1482,7 @@ const DashboardView = ({ setView, currentUser }) => {
   const [storeTotals, setStoreTotals] = useState({ repairUnits: 0, accessorySales: 0, deviceSales: 0 });
   const [salesMonth, setSalesMonth] = useState('This Month');
 
-  if (!salesLoaded) {
-    setSalesLoaded(true);
+  const loadSales = () => {
     fetchLookerSales()
       .then(({ employees, storeNetSales, storeRepairUnits, storeAccessorySales, storeDeviceSales, month }) => {
         setSalesData(employees);
@@ -1496,7 +1495,14 @@ const DashboardView = ({ setView, currentUser }) => {
         setSalesMonth(month);
       })
       .catch(() => {});
-  }
+  };
+
+  // Refresh sales figures every 10 minutes so a dashboard left open stays current
+  useEffect(() => {
+    loadSales();
+    const timer = setInterval(loadSales, 600000);
+    return () => clearInterval(timer);
+  }, []);
 
   const totalSalesAmt = storeNetSales;
   const totalRepairUnits = storeTotals.repairUnits;
@@ -5166,7 +5172,12 @@ const LeaderboardView = () => {
   const [error, setError] = useState(null);
   const [month, setMonth] = useState("");
   const [tab, setTab] = useState("repairs");
-  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+    const timer = setInterval(fetchData, 600000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -5181,7 +5192,6 @@ const LeaderboardView = () => {
     setLoading(false);
   };
 
-  if (!mounted) { setMounted(true); fetchData(); }
 
    const tabs = [
     { id: "repairs",   label: "Repair Units",    key: "repairUnits",    format: v => v + " units",              color: "#FF4D1C" },
