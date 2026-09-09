@@ -1217,6 +1217,142 @@ Learn:
 ☐ Open process
 ☐ Closing process`
   },
+  {
+    id: 13,
+    title: "New Hire Process (Manager)",
+    category: "Operations",
+    updated: "Sep 2026",
+    content: `📘 NEW HIRE SOP — MANAGER / OWNER
+Requires manager or owner access throughout.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. SUBMIT NEW HIRE TO CREATIO SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Select Support
+☐ Select Ops / IT & New Hires
+☐ Select Location (CPR Springfield MO)
+☐ Select New Hire
+☐ Fill in First Name and Last Name
+☐ Select Location (CPR Springfield MO)
+☐ Submit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. NEW HIRE PAPERWORK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Forms are available at: https://www.apluspayroll.com/hr-resources/
+
+☐ Aplus Payroll New Employee Information
+☐ I-9 Form (Employment Eligibility Verification)
+☐ MO W4 Employee Withholding
+☐ Dept. of Treasury W4 Withholding
+☐ Employee Direct Deposit
+☐ Customer and Company Confidentiality Agreement
+☐ Policy and Procedures Manual and Acknowledgement
+☐ Summary of Policies and Procedures — read and sign
+☐ Sick Days Policy — read
+☐ Longevity and Paid Vacations Benefits — read
+☐ Sales Associate Duties List
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. ENROLL IN GENESIS (A+ PAYROLL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Complete the paperwork first, then enroll for clock in/out and payroll.
+
+Go to https://secure8.yourpayrollhr.com/ta/200371.login
+
+☐ Login
+☐ Select the 3 lines, top left corner
+☐ Select Team
+☐ Select Employee Information
+☐ Select Hire, top right of screen
+☐ Enter new employee information
+☐ Have the new employee log in to confirm access
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. VERIFY LOGINS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Support emails login details to the new employee. Have them verify each
+and change the password.
+
+• Email: https://office.com
+• Docebo: assurantlearning.com/cpr
+• Creatio: cpr.creatio.com
+• RepairQ: cpr.repairq.io
+
+⚠️ Note: employees are given the Technician and Sales roles in your RepairQ
+location, plus a wildcard IP address so they can log in from any location.
+Update this on the Staff page if needed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. ADD TO CELLBOTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Requires manager or owner access.
+
+☐ Log in to rfamembers.com
+☐ Click Products
+☐ Click CellBotics
+☐ Click New User
+☐ Fill out the Training Platform User Sign Up Form
+☐ Submit
+
+Login details are sent to the new employee's email address.
+
+That covers all logins — now start training.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. ONLINE TRAINING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CPR Knowledge Hub, via Creatio:
+☐ Access https://cpr.creatio.com/0/Shell/#Desktop
+☐ Log in with username and password
+☐ Select Knowledge Hub on the left side
+☐ Select Click to Launch
+☐ Access CPR Learning
+
+From Course Catalog, complete:
+☐ Service Essentials — modules 1-10
+☐ Zagg Preferred Partner — modules 1-6
+☐ Invisibleshield — modules 1-4
+☐ Zagg Warranty — complete training
+☐ Assurant Walk In Repairs — complete training
+
+Then CellBotics Online — https://www.cellboticsonline.com/
+☐ Customer Service
+☐ How to answer a phone for retail repair store staff
+☐ SOP Customer Service
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. SHADOWING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Assign the new employee to a lead employee. Start with a store walk through
+so they know where everything is.
+
+Front:
+• Computers • Center island • Devices for sale
+• Accessories • ISOD • Back computer • TVs
+
+Back:
+• Parts • Extra accessories • Cage • Tech desks
+• New repairs • Repairs ready for pickup
+• Bathroom • Back/Break room • Back door • Trash
+
+Then show them:
+☐ Clocking in and out
+☐ Using RepairQ
+☐ Sales — Devices
+☐ Sales — Accessories
+☐ Repair Check In
+☐ Warranty process
+☐ Open process
+☐ Closing process`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
