@@ -5267,7 +5267,7 @@ const COMPARE_SITES = [
   { name: 'eBay Sold',   color: '#E53238', url: q => `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Sold=1&LH_Complete=1` },
   { name: 'Swappa',      color: '#00A99D', url: q => `https://swappa.com/search?q=${encodeURIComponent(q)}` },
   { name: 'Back Market', color: '#7C3AED', url: q => `https://www.backmarket.com/en-us/search?q=${encodeURIComponent(q)}` },
-  { name: 'Gazelle',     color: '#F26722', url: q => `https://www.gazelle.com/shop?q=${encodeURIComponent(q)}` },
+  { name: 'Amazon Renewed', color: '#FF9900', url: q => `https://www.amazon.com/s?k=${encodeURIComponent(q)}&i=amazon-renewed` },
 ];
 
 const CONDITIONS = ['A - Excellent', 'B - Good', 'C - Fair', 'D - Poor'];
