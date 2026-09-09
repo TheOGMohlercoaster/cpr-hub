@@ -1646,6 +1646,7 @@ const DashboardView = ({ setView, currentUser }) => {
         </button>
         {[
           { name: "T-Mobile Claims", url: "https://mytmoclaim.com/", color: "#FF4D1C" },
+          { name: "SquareTrade / Allstate", url: "https://www.squaretrade.com/frontend/repair-portal/#/", color: "#0072CE", note: "Store #891039070" },
           { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile", color: "#3B82F6" },
           { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile", color: "#3B82F6" },
           { name: "Device Care", url: "https://devicecarenow.com/cpr", color: "#00C9A7" },
@@ -1660,7 +1661,7 @@ const DashboardView = ({ setView, currentUser }) => {
             style={{ background: link.color + "18", border: `1px solid ${link.color}44`, borderRadius: 8, padding: "6px 14px", fontSize: 12, fontWeight: 600, color: link.color, textDecoration: "none", whiteSpace: "nowrap" }}
             onMouseEnter={e => e.currentTarget.style.background = link.color + "30"}
             onMouseLeave={e => e.currentTarget.style.background = link.color + "18"}>
-            {link.name} ↗
+            {link.name}{link.note ? ` · ${link.note}` : ''} ↗
           </a>
         ))}
       </div>
@@ -5086,6 +5087,7 @@ const LINK_CATEGORIES = [
     icon: "📋",
     links: [
       { name: "T-Mobile Claims", url: "https://mytmoclaim.com/" },
+      { name: "SquareTrade / Allstate", url: "https://www.squaretrade.com/frontend/repair-portal/#/", note: "Store #891039070" },
       { name: "Xfinity Mobile", url: "https://fastclaims.com/xfinitymobile" },
       { name: "Spectrum Mobile", url: "https://fastclaims.com/spectrummobile" },
       { name: "Device Care", url: "https://devicecarenow.com/cpr" },
@@ -5101,7 +5103,10 @@ const LinkCard = ({ link, color }) => (
     onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = color + "11"; }}
     onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg; }}>
     <div style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0 }} />
-    <span style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{link.name}</span>
+    <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <span style={{ color: C.text, fontSize: 13, fontWeight: 500 }}>{link.name}</span>
+      {link.note && <span style={{ color: C.textMuted, fontSize: 11, marginTop: 1 }}>{link.note}</span>}
+    </span>
     <span style={{ color: C.textMuted, fontSize: 11, marginLeft: "auto" }}>↗</span>
   </a>
 );
