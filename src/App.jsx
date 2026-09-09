@@ -1986,20 +1986,17 @@ const DeviceInfoChecker = () => {
   const [status, setStatus] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const creds = getM360Creds();
-  const hasCredentials = creds.authCode && creds.authToken;
 
   const lookup = async () => {
     const cleaned = imei.replace(/[^0-9]/g, '');
     if (cleaned.length < 14 || cleaned.length > 16) { setError('Please enter a valid IMEI (14-16 digits)'); return; }
-    if (!hasCredentials) { setError('Add your M360 credentials in Settings first'); return; }
     setStatus('loading'); setError(''); setResult(null);
 
     try {
       const res = await fetch('/api/imei-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'historyAll', imei: cleaned, authCode: creds.authCode, authToken: creds.authToken })
+        body: JSON.stringify({ action: 'historyAll', imei: cleaned })
       });
       const data = await res.json();
       const rec = (data?.data?.records || [])[0];
@@ -2048,12 +2045,6 @@ const DeviceInfoChecker = () => {
     <Card style={{ marginBottom: 20 }}>
       <div style={{ fontWeight: 700, fontSize: 15, color: '#E8EAED', marginBottom: 4 }}>📱 Device Info Lookup</div>
       <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 14 }}>Pull device details from M360 history — no tokens used</div>
-
-      {!hasCredentials && (
-        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '10px 14px', color: '#FFB547', fontSize: 12, marginBottom: 12 }}>
-          ⚠️ Add your M360 credentials in Settings to use this feature
-        </div>
-      )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input value={imei} onChange={e => { setImei(e.target.value.replace(/[^0-9]/g, '')); setResult(null); setError(''); }}
@@ -2114,8 +2105,6 @@ const IMEIChecker = () => {
   const [status, setStatus] = useState(null); // null | 'loading' | 'polling' | 'done' | 'error'
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const creds = getM360Creds();
-  const hasCredentials = creds.authCode && creds.authToken;
 
   const postM360 = (action, extra = {}) => fetch('/api/imei-check', {
     method: 'POST',
@@ -2227,12 +2216,6 @@ const IMEIChecker = () => {
     <Card style={{ marginBottom: 20 }}>
       <div style={{ fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 4 }}>🔍 IMEI Blacklist Check</div>
       <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 14 }}>Powered by M360 — check if a device is stolen or lost</div>
-
-      {!hasCredentials && (
-        <div style={{ background: '#FFB54720', border: '1px solid #FFB54744', borderRadius: 8, padding: '10px 14px', color: '#FFB547', fontSize: 12, marginBottom: 12 }}>
-          ⚠️ Add your M360 credentials in Settings → Integrations to use this feature
-        </div>
-      )}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <input
