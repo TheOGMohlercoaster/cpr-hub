@@ -1422,9 +1422,9 @@ const NewLeads = () => {
         )}
       </div>
       <a href="https://cpr.creatio.com/0/Shell/#Page/Page_Store_Homepage_V2" target="_blank" rel="noopener noreferrer"
-        style={{ display: 'inline-block', background: '#FFB54718', border: '1px solid #FFB54744', borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, color: '#FFB547', textDecoration: 'none', marginBottom: 10 }}
-        onMouseEnter={e => e.currentTarget.style.background = '#FFB54730'}
-        onMouseLeave={e => e.currentTarget.style.background = '#FFB54718'}>
+        style={{ display: 'inline-block', background: C.blueDim, border: `1px solid ${C.blue}44`, borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, color: C.blue, textDecoration: 'none', marginBottom: 10 }}
+        onMouseEnter={e => e.currentTarget.style.background = C.blue + '30'}
+        onMouseLeave={e => e.currentTarget.style.background = C.blueDim}>
         Creatio Store Homepage ↗
       </a>
       {leads.map((l, i) => {
