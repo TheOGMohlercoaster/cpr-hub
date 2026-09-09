@@ -1478,31 +1478,24 @@ const DashboardView = ({ setView, currentUser }) => {
   const [salesData, setSalesData] = useState([]);
   const [salesLoaded, setSalesLoaded] = useState(false);
 
+  const [storeNetSales, setStoreNetSales] = useState(0);
+  const [salesMonth, setSalesMonth] = useState('This Month');
+
   if (!salesLoaded) {
     setSalesLoaded(true);
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
-      .then(r => r.json())
-      .then(json => {
-        const rows = (json.values || []).slice(1);
-        const parsed = rows.map(row => ({
-          name:           row[0] || '',
-          firstName:      row[0] ? (row[0].includes(', ') ? row[0].split(', ')[1] : row[0].split(' ')[0]) : '',
-          totalSales:     parseFloat(row[1]) || 0,
-          repairUnits:    parseInt(row[2]) || 0,
-          accessorySales: parseFloat(row[3]) || 0,
-          deviceSales:    parseFloat(row[4]) || 0,
-          month:          row[5] || '',
-        }));
-        setSalesData(parsed);
+    fetchLookerSales()
+      .then(({ employees, storeNetSales, month }) => {
+        setSalesData(employees);
+        setStoreNetSales(storeNetSales);
+        setSalesMonth(month);
       })
       .catch(() => {});
   }
 
-  const totalSalesAmt = salesData.reduce((a, e) => a + e.totalSales, 0);
+  const totalSalesAmt = storeNetSales;
   const totalRepairUnits = salesData.reduce((a, e) => a + e.repairUnits, 0);
   const totalAccessory = salesData.reduce((a, e) => a + e.accessorySales, 0);
   const totalDevices = salesData.reduce((a, e) => a + e.deviceSales, 0);
-  const salesMonth = salesData.length > 0 ? salesData[0].month : 'This Month';
 
   const [announcements, setAnnouncements] = useState(getAnnouncements);
   const [announcementsLoaded, setAnnouncementsLoaded] = useState(false);
@@ -2830,18 +2823,10 @@ const RepairsView = () => {
   const fetchRepairs = async () => {
     setLoading(true);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      const rows = (json.values || []).slice(1);
-      const parsed = rows.map(row => ({
-        name:        row[0] || "",
-        firstName:   row[0] ? (row[0].includes(", ") ? row[0].split(", ")[1] : row[0].split(" ")[0]) : "",
-        repairUnits: parseInt(row[2]) || 0,
-        month:       row[5] || "",
-            })).filter(r => r.name && !r.name.includes("CPR "));
+      const { employees, month } = await fetchLookerSales();
+      const parsed = employees.filter(r => r.name && !r.name.includes("CPR "));
       setRepairs(parsed.sort((a, b) => b.repairUnits - a.repairUnits));
-      if (parsed.length > 0) setMonth(parsed[0].month);
+      setMonth(month);
     } catch(e) { console.error(e); }
     setLoading(false);
   };
@@ -3779,6 +3764,84 @@ const SCHEDULE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SCHEDULE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfABZuj90C8bGeBtPo0zLXDEgzU67ekf9BibqA7o4wV78XR81JKG3Q5/exec";
 const SCHEDULE_WRITE_SHEET_ID = "1NglgDsYsZaw80Zl8fB1_SkwuyHdffUlGX770H7vdLqQ";
 const SALES_SHEET_ID = "1KhmrHUGyouovfbxat2unb8WEoMRFwigX5IltYHnzMBA";
+
+// ── LOOKER-FED SALES DATA ────────────────────────────────────────────────
+// Reads the four Looker-populated tabs in the Schedule Sync sheet and merges
+// them into one per-employee list. Column A is the employee name in each tab,
+// column B is the headline metric. STORE TOTAL rows are skipped.
+const lookerNum = (v) => {
+  const n = parseFloat(String(v ?? '').replace(/[$,%\s]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+
+const fetchLookerSales = async () => {
+  const getTab = (name) =>
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${name}!A:F?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .catch(() => ({}));
+
+  const [dev, rep, acc, tot] = await Promise.all([
+    getTab('DeviceSales'),
+    getTab('RepairSales'),
+    getTab('AccessorySales'),
+    getTab('TotalSales'),
+  ]);
+
+  const byName = {};
+  const ensure = (name) => {
+    if (!byName[name]) {
+      byName[name] = {
+        name,
+        firstName: name.split(' ')[0],
+        totalSales: 0,
+        repairUnits: 0,
+        repairRevenue: 0,
+        accessorySales: 0,
+        deviceSales: 0,
+      };
+    }
+    return byName[name];
+  };
+
+  const eachRow = (tab, fn) => {
+    (tab?.values || []).slice(1).forEach(r => {
+      const name = String(r[0] || '').trim();
+      if (!name || name === 'STORE TOTAL') return;
+      fn(ensure(name), r);
+    });
+  };
+
+  eachRow(dev, (e, r) => { e.deviceSales = lookerNum(r[1]); });
+  eachRow(acc, (e, r) => { e.accessorySales = lookerNum(r[1]); });
+  eachRow(rep, (e, r) => {
+    e.repairUnits = Math.round(lookerNum(r[1]));
+    e.repairRevenue = lookerNum(r[2]);
+  });
+
+  const employees = Object.values(byName);
+  employees.forEach(e => {
+    e.totalSales = e.repairRevenue + e.accessorySales + e.deviceSales;
+  });
+
+  // Store-level net sales comes from the TotalSales tab (Closed Net Sales)
+  const totRows = (tot?.values || []).slice(1);
+  const totRow = totRows.find(r => String(r[0] || '').trim() === 'STORE TOTAL') || totRows[0];
+  const storeNetSales = totRow ? lookerNum(totRow[2]) : 0;
+
+  // Derive the reporting month from the webhook's Updated timestamp
+  let month = 'This Month';
+  const header = (dev?.values || [])[0] || [];
+  const updIdx = header.indexOf('Updated');
+  const sampleRow = (dev?.values || [])[1] || (rep?.values || [])[1];
+  if (sampleRow && updIdx >= 0 && sampleRow[updIdx]) {
+    const d = new Date(sampleRow[updIdx]);
+    if (!isNaN(d.getTime())) {
+      month = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+  }
+
+  return { employees, storeNetSales, month };
+};
 const SO_COLS = ["Timestamp","Customer Name","Phone","Device Make","Device Model","Problem","Parts Needed","Date Promised","Supplier","Customer Paid","Device Left","Part Number","Quoted Price","Rep","Color","Item Ordered","Expected Delivery","Part In","Customer Called"];
 
 const SpecialOrdersView = ({ currentUser }) => {
@@ -5078,23 +5141,11 @@ const LeaderboardView = () => {
     setLoading(true);
     setError(null);
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SALES_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const rows = json.values || [];
-      if (rows.length < 2) { setData([]); setLoading(false); return; }
-      const parsed = rows.slice(1).map(row => ({
-        name:         row[0] || "",
-        firstName:    row[0] ? (row[0].includes(", ") ? row[0].split(", ")[1] : row[0].split(" ")[0]) : "",
-        totalSales:   parseFloat(row[1]) || 0,
-        repairUnits:  parseInt(row[2]) || 0,
-        accessorySales: parseFloat(row[3]) || 0,
-        deviceSales:  parseFloat(row[4]) || 0,
-        month:        row[5] || "",
-           })).filter(r => r.name && !r.name.includes("CPR "));
+      const { employees, month } = await fetchLookerSales();
+      const parsed = employees.filter(r => r.name && !r.name.includes("CPR "));
+      if (parsed.length === 0) { setData([]); setLoading(false); return; }
       setData(parsed);
-      if (parsed.length > 0) setMonth(parsed[0].month);
+      setMonth(month);
     } catch(e) { setError(e.message); }
     setLoading(false);
   };
