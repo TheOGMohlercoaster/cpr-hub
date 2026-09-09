@@ -1425,7 +1425,7 @@ const NewLeads = () => {
         style={{ display: 'inline-block', background: C.blueDim, border: `1px solid ${C.blue}44`, borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, color: C.blue, textDecoration: 'none', marginBottom: 10 }}
         onMouseEnter={e => e.currentTarget.style.background = C.blue + '30'}
         onMouseLeave={e => e.currentTarget.style.background = C.blueDim}>
-        Creatio Store Homepage ↗
+        Creatio Store Leads ↗
       </a>
       {leads.map((l, i) => {
         const h = hoursOld(l.created);
