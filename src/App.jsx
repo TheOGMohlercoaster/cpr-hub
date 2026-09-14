@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// ── Icons (inline SVGs toconst NewLeads = () => { avoid dependencies) ──────────────────────────────
+// ── Icons (inline SVGs to avoid dependencies) ──────────────────────────────
 const Icon = ({ d, size = 20, stroke = "currentColor", fill = "none" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -3829,7 +3829,7 @@ const TodaySchedule = () => {
             seen.add(key);
             return true;
           });
-          setShifts(parsed.sort((a, b) => a.startTime.localeCompare(b.startTime)));
+          setShifts(parsed.sort((a, b) => a.firstName.localeCompare(b.firstName)));
           setLoading(false);
         })
         .catch(() => {
@@ -4249,12 +4249,14 @@ const EMPLOYEE_EMAILS = {
   7: "DGreene1@cpr-stores.com",
 };
 
-const SCHEDULE_EMPLOYEES = getEmployees().map(e => ({
-  id: e.id,
-  name: e.name,
-  color: e.color || '#FF4D1C',
-  email: EMPLOYEE_EMAILS[e.id] || '',
-}));
+const SCHEDULE_EMPLOYEES = getEmployees()
+  .map(e => ({
+    id: e.id,
+    name: e.name,
+    color: e.color || '#FF4D1C',
+    email: EMPLOYEE_EMAILS[e.id] || '',
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 const getWeekStart = (date) => {
   const d = new Date(date);
