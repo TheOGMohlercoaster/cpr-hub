@@ -4492,6 +4492,17 @@ const ScheduleView = ({ currentUser }) => {
     }
   };
 
+  const fmtRequestedAt = (iso) => {
+    if (!iso) return 'date unknown';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const datePart = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // Older rows were saved as date-only, so there's no meaningful time to show
+    return iso.includes('T')
+      ? `${datePart} at ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+      : datePart;
+  };
+
   // Any request covering this employee on this date (denied ones don't count)
   const timeOffFor = (empId, dateStr) => timeOff.find(r =>
     String(r.empId) === String(empId) &&
@@ -4509,7 +4520,7 @@ const ScheduleView = ({ currentUser }) => {
       endDate: toForm.endDate || toForm.startDate,
       reason: toForm.reason.trim(),
       status: 'pending',
-      requestedAt: new Date().toISOString().split('T')[0],
+      requestedAt: new Date().toISOString(),
     };
     const ok = await saveTimeOff([entry, ...timeOff]);
     if (ok) { setToForm({ startDate: '', endDate: '', reason: '' }); setShowTimeOff(false); }
@@ -5187,7 +5198,6 @@ const ScheduleView = ({ currentUser }) => {
           <div style={{ display: 'grid', gap: 8 }}>
             {[...timeOff]
               .sort((a, b) => a.startDate.localeCompare(b.startDate))
-              .filter(r => canEdit || String(r.empId) === String(currentUser?.id))
               .map(r => {
                 const tone = r.status === 'approved' ? C.green : r.status === 'denied' ? C.red : C.gold;
                 const range = r.endDate && r.endDate !== r.startDate
@@ -5198,7 +5208,9 @@ const ScheduleView = ({ currentUser }) => {
                       <div style={{ color: C.text, fontWeight: 600, fontSize: 13 }}>
                         {r.empName} · {range}
                       </div>
-                      {r.reason && <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>{r.reason}</div>}
+                      <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
+                        {r.reason ? `${r.reason} · ` : ''}requested {fmtRequestedAt(r.requestedAt)}
+                      </div>
                     </div>
                     <span style={{ background: tone + '22', color: tone, border: `1px solid ${tone}44`, borderRadius: 6, padding: '2px 10px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
                       {r.status}
