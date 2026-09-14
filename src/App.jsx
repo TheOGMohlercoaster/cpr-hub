@@ -4458,6 +4458,71 @@ const ScheduleView = ({ currentUser }) => {
   });
   const [presetsLoaded, setPresetsLoaded] = useState(false);
 
+  // ── Time off ──
+  const [timeOff, setTimeOff] = useState([]);
+  const [showTimeOff, setShowTimeOff] = useState(false);
+  const [toForm, setToForm] = useState({ startDate: '', endDate: '', reason: '' });
+  const [toError, setToError] = useState('');
+
+  const loadTimeOff = () => {
+    fetch('/api/timeoff')
+      .then(r => r.json())
+      .then(d => setTimeOff(d.requests || []))
+      .catch(() => {});
+  };
+  useEffect(() => { loadTimeOff(); }, []);
+
+  const saveTimeOff = async (next) => {
+    setTimeOff(next);
+    setToError('');
+    try {
+      const res = await fetch('/api/timeoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: next }),
+      });
+      if (!res.ok) {
+        setToError("Couldn't save the request — it will be lost on refresh.");
+        return false;
+      }
+      return true;
+    } catch {
+      setToError("Couldn't save the request — it will be lost on refresh.");
+      return false;
+    }
+  };
+
+  // Any request covering this employee on this date (denied ones don't count)
+  const timeOffFor = (empId, dateStr) => timeOff.find(r =>
+    String(r.empId) === String(empId) &&
+    r.status !== 'denied' &&
+    dateStr >= r.startDate &&
+    dateStr <= (r.endDate || r.startDate));
+
+  const submitTimeOff = async () => {
+    if (!toForm.startDate) { setToError('Pick a start date.'); return; }
+    const entry = {
+      id: `to${Date.now()}`,
+      empId: currentUser?.id ?? '',
+      empName: currentUser?.name || '',
+      startDate: toForm.startDate,
+      endDate: toForm.endDate || toForm.startDate,
+      reason: toForm.reason.trim(),
+      status: 'pending',
+      requestedAt: new Date().toISOString().split('T')[0],
+    };
+    const ok = await saveTimeOff([entry, ...timeOff]);
+    if (ok) { setToForm({ startDate: '', endDate: '', reason: '' }); setShowTimeOff(false); }
+  };
+
+  const setTimeOffStatus = (id, status) =>
+    saveTimeOff(timeOff.map(r => (r.id === id ? { ...r, status } : r)));
+
+  const deleteTimeOff = (id) => {
+    if (!window.confirm('Delete this time off request?')) return;
+    saveTimeOff(timeOff.filter(r => r.id !== id));
+  };
+
   // Load presets from Google Sheets on mount
   if (!presetsLoaded) {
     setPresetsLoaded(true);
@@ -4563,6 +4628,12 @@ const ScheduleView = ({ currentUser }) => {
   };
 
   const saveShift = (empId, date, shift) => {
+    const req = timeOffFor(empId, date);
+    if (req) {
+      const who = req.empName || 'This employee';
+      const label = req.status === 'approved' ? 'approved time off' : 'a pending time off request';
+      if (!window.confirm(`${who} has ${label} on ${date}${req.reason ? ` (${req.reason})` : ''}.\n\nSchedule anyway?`)) return;
+    }
     updateSchedule({ ...schedule, [`${empId}_${date}`]: autoNote(shift) });
     setModal(null);
   };
@@ -4862,9 +4933,33 @@ const ScheduleView = ({ currentUser }) => {
                           <div style={{ color: emp.color, fontSize: 11 }}>{shift.end}</div>
                           <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
                             {shift.notes && <span style={{ fontSize: 9 }}>📝</span>}
+                            {timeOffFor(emp.id, dateStr) && (
+                              <span title="Time off requested for this day" style={{ fontSize: 9 }}>⚠️</span>
+                            )}
                             {canEdit && <span style={{ fontSize: 9, color: C.textMuted }}>⠿</span>}
                           </div>
                         </div>
+                      ) : timeOffFor(emp.id, dateStr) ? (
+                        (() => {
+                          const req = timeOffFor(emp.id, dateStr);
+                          const approved = req.status === 'approved';
+                          const tint = approved ? C.red : C.gold;
+                          return (
+                            <div
+                              title={`${approved ? 'Time off approved' : 'Time off requested'}${req.reason ? ' — ' + req.reason : ''}`}
+                              onClick={() => { if (canEdit) setModal({ day: d, employee: emp }); }}
+                              style={{
+                                background: tint + '18', border: `1px dashed ${tint}88`,
+                                borderRadius: 6, padding: '6px 4px', textAlign: 'center',
+                                cursor: canEdit ? 'pointer' : 'default',
+                              }}>
+                              <div style={{ fontSize: 12 }}>{approved ? '🚫' : '🕓'}</div>
+                              <div style={{ color: tint, fontSize: 9, fontWeight: 700, marginTop: 1 }}>
+                                {approved ? 'OFF' : 'REQ'}
+                              </div>
+                            </div>
+                          );
+                        })()
                       ) : (
                         canEdit && (
                           <div
@@ -5033,6 +5128,105 @@ const ScheduleView = ({ currentUser }) => {
           </div>
         </div>
       )}
+
+      {/* Time Off */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: timeOff.length || showTimeOff ? 12 : 0 }}>
+          <div>
+            <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>🕓 Time Off</div>
+            <div style={{ color: C.textMuted, fontSize: 12, marginTop: 2 }}>
+              Requests show on the schedule grid before anyone gets scheduled
+            </div>
+          </div>
+          <button onClick={() => { setShowTimeOff(!showTimeOff); setToError(''); }}
+            style={{ background: showTimeOff ? C.surface : C.accent, color: showTimeOff ? C.textMuted : '#fff', border: showTimeOff ? `1px solid ${C.border}` : 'none', borderRadius: 8, padding: '7px 14px', fontWeight: 700, cursor: 'pointer', fontSize: 12, whiteSpace: 'nowrap' }}>
+            {showTimeOff ? 'Cancel' : '+ Request Time Off'}
+          </button>
+        </div>
+
+        {toError && (
+          <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '9px 12px', color: C.red, fontSize: 12, marginBottom: 10, fontWeight: 600 }}>
+            ⚠️ {toError}
+          </div>
+        )}
+
+        {showTimeOff && (
+          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: 10, alignItems: 'end' }}>
+              <div>
+                <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>First day off</div>
+                <input type="date" value={toForm.startDate}
+                  onChange={e => setToForm({ ...toForm, startDate: e.target.value })}
+                  style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 10px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Last day off</div>
+                <input type="date" value={toForm.endDate}
+                  onChange={e => setToForm({ ...toForm, endDate: e.target.value })}
+                  style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 10px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Reason (optional)</div>
+                <input value={toForm.reason} onChange={e => setToForm({ ...toForm, reason: e.target.value })}
+                  onKeyDown={e => e.key === 'Enter' && submitTimeOff()}
+                  placeholder="Vacation, appointment…"
+                  style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 10px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <button onClick={submitTimeOff}
+                style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                Submit
+              </button>
+            </div>
+            <div style={{ color: C.textMuted, fontSize: 11, marginTop: 10 }}>
+              Leave the last day blank for a single day off.
+            </div>
+          </div>
+        )}
+
+        {timeOff.length > 0 && (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {[...timeOff]
+              .sort((a, b) => a.startDate.localeCompare(b.startDate))
+              .filter(r => canEdit || String(r.empId) === String(currentUser?.id))
+              .map(r => {
+                const tone = r.status === 'approved' ? C.green : r.status === 'denied' ? C.red : C.gold;
+                const range = r.endDate && r.endDate !== r.startDate
+                  ? `${r.startDate} → ${r.endDate}` : r.startDate;
+                return (
+                  <div key={r.id} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 150 }}>
+                      <div style={{ color: C.text, fontWeight: 600, fontSize: 13 }}>
+                        {r.empName} · {range}
+                      </div>
+                      {r.reason && <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>{r.reason}</div>}
+                    </div>
+                    <span style={{ background: tone + '22', color: tone, border: `1px solid ${tone}44`, borderRadius: 6, padding: '2px 10px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+                      {r.status}
+                    </span>
+                    {canEdit && r.status === 'pending' && (
+                      <>
+                        <button onClick={() => setTimeOffStatus(r.id, 'approved')}
+                          style={{ background: C.greenDim, color: C.green, border: `1px solid ${C.green}44`, borderRadius: 6, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          Approve
+                        </button>
+                        <button onClick={() => setTimeOffStatus(r.id, 'denied')}
+                          style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 6, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                          Deny
+                        </button>
+                      </>
+                    )}
+                    {(canEdit || String(r.empId) === String(currentUser?.id)) && (
+                      <button onClick={() => deleteTimeOff(r.id)}
+                        style={{ background: 'transparent', border: 'none', color: C.textMuted, cursor: 'pointer', fontSize: 15, padding: '0 2px' }}>
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+      </Card>
 
       {/* Calendar Subscription */}
       <Card style={{ marginBottom: 16 }}>
