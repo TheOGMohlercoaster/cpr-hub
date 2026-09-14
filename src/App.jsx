@@ -51,16 +51,27 @@ const getEmployees = () => {
   } catch { return DEFAULT_EMPLOYEES; }
 };
 
+// Returns true only if the change reached the Employees sheet. A failed write
+// must be surfaced — the startup sync treats the sheet as authoritative, so a
+// silent failure would erase the change on the next page load.
 const saveEmployees = async (emps) => {
+  try { localStorage.setItem('cpr_employees', JSON.stringify(emps)); } catch {}
+
   try {
-    localStorage.setItem('cpr_employees', JSON.stringify(emps));
-    // Sync to Google Sheets
-    await fetch('/api/employees', {
+    const res = await fetch('/api/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employees: emps })
     });
-  } catch {}
+    if (!res.ok) return false;
+
+    // Confirm the sheet actually took it — the Apps Script hop can fail quietly
+    const check = await fetch('/api/employees').then(r => r.json()).catch(() => null);
+    if (!check || !Array.isArray(check.employees)) return false;
+    return check.employees.length === emps.length;
+  } catch {
+    return false;
+  }
 };
 
 const loadEmployeesFromSheet = async () => {
@@ -3523,10 +3534,16 @@ const EmployeeManager = ({ onUpdate }) => {
   const [newRole, setNewRole] = useState('Sales');
   const [newColor, setNewColor] = useState('#22C55E');
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const save = async (emps) => {
     setEmployees(emps);
-    await saveEmployees(emps);
+    setSaveError('');
+    const ok = await saveEmployees(emps);
+    if (!ok) {
+      setSaveError("Couldn't save to the Employees sheet — this change will be lost on refresh. Check the sheet and try again.");
+      return;
+    }
     onUpdate && onUpdate(emps);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -3566,6 +3583,12 @@ const EmployeeManager = ({ onUpdate }) => {
           </button>
         </div>
       </div>
+
+      {saveError && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '10px 14px', color: C.red, fontSize: 12, marginBottom: 12, fontWeight: 600 }}>
+          ⚠️ {saveError}
+        </div>
+      )}
 
       {/* Add employee form */}
       {showAdd && (
