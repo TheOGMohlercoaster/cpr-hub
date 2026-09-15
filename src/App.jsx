@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // ── Icons (inline SVGs to avoid dependencies) ──────────────────────────────
 const Icon = ({ d, size = 20, stroke = "currentColor", fill = "none" }) => (
@@ -3162,22 +3162,42 @@ const TasksView = ({ currentUser }) => {
     saveTaskState(next);
   };
 
+  // Writes run one at a time. Two ticks in quick succession would otherwise
+  // both read the sheet before either had written, and the second would win.
+  const writeChain = useRef(Promise.resolve());
+  const inFlight = useRef(0);
+
   // Load shared state and keep it fresh — several people work tasks at once
   useEffect(() => {
     let alive = true;
-    const pull = () => fetchTaskState(todayStr)
-      .then(srv => { if (alive) { applyServer(srv); setSyncError(''); } })
-      .catch(() => { if (alive) setSyncError('Offline — changes may not be shared.'); });
+    const pull = () => {
+      // Never refresh over a write still in progress; it would undo the tick
+      if (inFlight.current > 0) return;
+      fetchTaskState(todayStr)
+        .then(srv => { if (alive && inFlight.current === 0) { applyServer(srv); setSyncError(''); } })
+        .catch(() => { if (alive) setSyncError('Offline — changes may not be shared.'); });
+    };
     pull();
     const timer = setInterval(pull, 45000);
     return () => { alive = false; clearInterval(timer); };
   }, [todayStr]);
 
-  const commit = async (change) => {
-    const merged = await mergeTaskChange(todayStr, change);
-    if (!merged) { setSyncError("Couldn't save — other people won't see this change."); return; }
-    setSyncError('');
-    applyServer(merged);
+  const commit = (change) => {
+    inFlight.current += 1;
+    writeChain.current = writeChain.current
+      .then(async () => {
+        const merged = await mergeTaskChange(todayStr, change);
+        if (!merged) {
+          setSyncError("Couldn't save — other people won't see this change.");
+          return;
+        }
+        setSyncError('');
+        // Only reconcile on the last queued write, so rapid ticks don't flicker
+        if (inFlight.current === 1) applyServer(merged);
+      })
+      .catch(() => setSyncError("Couldn't save — other people won't see this change."))
+      .finally(() => { inFlight.current -= 1; });
+    return writeChain.current;
   };
 
   const updateState = (next) => { setState(next); saveTaskState(next); };
