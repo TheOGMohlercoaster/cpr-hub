@@ -246,6 +246,49 @@ const saveTaskState = (state) => {
   try { localStorage.setItem("cpr_tasks", JSON.stringify(state)); } catch {}
 };
 
+// Shared task state. Several people tick tasks at the same time, so every write
+// re-reads the sheet first and merges rather than overwriting what others did.
+const fetchTaskState = async (date) => {
+  const r = await fetch(`/api/daily-tasks?date=${encodeURIComponent(date)}`);
+  if (!r.ok) throw new Error('read failed');
+  return r.json();
+};
+
+const pushTaskState = async (date, done, custom) => {
+  const r = await fetch('/api/daily-tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, done, custom }),
+  });
+  return r.ok;
+};
+
+// Applies one change on top of the newest server state.
+const mergeTaskChange = async (date, change) => {
+  let server;
+  try { server = await fetchTaskState(date); }
+  catch { return null; }
+
+  const done = [...(server.done || [])];
+  const custom = [...(server.custom || [])];
+
+  if (change.type === 'toggle') {
+    const idx = done.findIndex(d => d.taskId === change.taskId);
+    if (idx >= 0) done.splice(idx, 1);
+    else done.push({ taskId: change.taskId, by: change.by || '', at: new Date().toISOString() });
+  } else if (change.type === 'addCustom') {
+    custom.push(change.task);
+  } else if (change.type === 'deleteCustom') {
+    const ci = custom.findIndex(c => c.id === change.id);
+    if (ci >= 0) custom.splice(ci, 1);
+    const di = done.findIndex(d => d.taskId === change.id);
+    if (di >= 0) done.splice(di, 1);
+  }
+
+  const ok = await pushTaskState(date, done, custom);
+  return ok ? { done, custom } : null;
+};
+
 const TASKS = []; // kept for dashboard compatibility
 
 // ── Announcements helpers ─────────────────────────────────────────────────
@@ -3094,8 +3137,41 @@ const TasksView = ({ currentUser }) => {
     }
     return saved;
   });
+  const [doneBy, setDoneBy] = useState({});   // taskId -> who checked it
+  const [syncError, setSyncError] = useState('');
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("med");
+
+  const applyServer = (server) => {
+    const next = {
+      date: todayStr,
+      done: (server.done || []).map(d => d.taskId),
+      custom: server.custom || [],
+    };
+    const by = {};
+    (server.done || []).forEach(d => { if (d.by) by[d.taskId] = d.by; });
+    setDoneBy(by);
+    setState(next);
+    saveTaskState(next);
+  };
+
+  // Load shared state and keep it fresh — several people work tasks at once
+  useEffect(() => {
+    let alive = true;
+    const pull = () => fetchTaskState(todayStr)
+      .then(srv => { if (alive) { applyServer(srv); setSyncError(''); } })
+      .catch(() => { if (alive) setSyncError('Offline — changes may not be shared.'); });
+    pull();
+    const timer = setInterval(pull, 45000);
+    return () => { alive = false; clearInterval(timer); };
+  }, [todayStr]);
+
+  const commit = async (change) => {
+    const merged = await mergeTaskChange(todayStr, change);
+    if (!merged) { setSyncError("Couldn't save — other people won't see this change."); return; }
+    setSyncError('');
+    applyServer(merged);
+  };
 
   const updateState = (next) => { setState(next); saveTaskState(next); };
 
@@ -3112,21 +3188,27 @@ const TasksView = ({ currentUser }) => {
   const totalPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
 
   const toggle = (id) => {
+    // Optimistic locally, then merge against the sheet
     const done = state.done.includes(id) ? state.done.filter(d => d !== id) : [...state.done, id];
-    updateState({ ...state, done });
+    setState({ ...state, done });
+    commit({ type: 'toggle', taskId: id, by: (currentUser?.name || '').split(' ')[0] });
   };
 
   const addCustom = () => {
     if (!newTask.trim()) return;
-    const custom = [...state.custom, { id: `c${Date.now()}`, text: newTask, priority: newPriority, role: activeTab }];
-    updateState({ ...state, custom });
+    const task = { id: `c${Date.now()}`, text: newTask, priority: newPriority, role: activeTab };
+    setState({ ...state, custom: [...state.custom, task] });
     setNewTask("");
+    commit({ type: 'addCustom', task });
   };
 
   const deleteCustom = (id) => {
-    const custom = state.custom.filter(t => t.id !== id);
-    const done = state.done.filter(d => d !== id);
-    updateState({ ...state, custom, done });
+    setState({
+      ...state,
+      custom: state.custom.filter(t => t.id !== id),
+      done: state.done.filter(d => d !== id),
+    });
+    commit({ type: 'deleteCustom', id });
   };
 
   const TaskItem = ({ task }) => {
@@ -3139,6 +3221,9 @@ const TasksView = ({ currentUser }) => {
         </div>
         <div style={{ flex: 1 }}>
           <span style={{ color: isDone ? C.textMuted : C.text, fontSize: 13, textDecoration: isDone ? "line-through" : "none" }}>{task.text}</span>
+          {isDone && doneBy[task.id] && (
+            <span style={{ color: C.green, fontSize: 11, marginLeft: 8, fontWeight: 600 }}>✓ {doneBy[task.id]}</span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Tag color={priColor[task.priority] || C.textMuted}>{task.priority}</Tag>
@@ -3157,6 +3242,12 @@ const TasksView = ({ currentUser }) => {
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Daily Tasks</h2>
         <div style={{ color: C.textMuted, fontSize: 13 }}>{totalDone} of {totalTasks} complete across all categories · resets at midnight</div>
       </div>
+
+      {syncError && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '9px 12px', color: C.red, fontSize: 12, marginBottom: 12, fontWeight: 600 }}>
+          ⚠️ {syncError}
+        </div>
+      )}
 
       {/* Overall progress */}
       <Card style={{ marginBottom: 16 }}>
@@ -3215,6 +3306,11 @@ const TasksView = ({ currentUser }) => {
                 )}
                 {catOpen.length === 0 && (
                   <div style={{ color: C.green, fontSize: 12 }}>✅ All tasks complete!</div>
+                )}
+                {catDone.length > 0 && (
+                  <div style={{ color: C.textMuted, fontSize: 11, marginTop: 6 }}>
+                    Completed by {[...new Set(catDone.map(t => doneBy[t.id]).filter(Boolean))].join(', ') || 'unknown'}
+                  </div>
                 )}
               </div>
             );
