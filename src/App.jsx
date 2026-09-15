@@ -1506,23 +1506,40 @@ const OpenPurchaseOrders = () => {
 // ── NEW LEADS ────────────────────────────────────────────────────────────
 const NewLeads = () => {
   const [leads, setLeads] = useState([]);
-  const [initials, setInitials] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('cpr_lead_initials') || '{}'); } catch { return {}; }
-  });
+
+  // Looker writes "lead from site" when nobody has touched it yet; anything
+  // else in the Note column is a staff note, which means someone reached out.
+  const isStaffNote = (note) => {
+    const t = String(note || '').trim();
+    return t.length > 0 && t.toLowerCase() !== 'lead from site';
+  };
 
   const load = () => {
     fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Leads!A:L?key=${SHEETS_API_KEY}`)
       .then(r => r.json())
       .then(json => {
-        const rows = (json.values || []).slice(1);
-        setLeads(rows
-          .filter(r => r[1] && r[0] !== 'STORE TOTAL')
-          .map(r => ({
-            ticket:  r[1] || '',
+        const rows = (json.values || []).slice(1)
+          .filter(r => r[1] && r[0] !== 'STORE TOTAL');
+
+        // The same ticket can appear twice — once with the placeholder note and
+        // once with a staff note. Keep one row per ticket, preferring the note.
+        const byTicket = {};
+        rows.forEach(r => {
+          const ticket = r[1];
+          const entry = {
+            ticket,
             device:  r[2] || '',
             problem: r[3] || '',
             created: r[8] || '',
-          }))
+            note:    r[9] || '',
+          };
+          const existing = byTicket[ticket];
+          if (!existing || (!isStaffNote(existing.note) && isStaffNote(entry.note))) {
+            byTicket[ticket] = entry;
+          }
+        });
+
+        setLeads(Object.values(byTicket)
           .sort((a, b) => (a.created < b.created ? 1 : -1))
           .slice(0, 10));
       })
@@ -1549,19 +1566,14 @@ const NewLeads = () => {
     return `${d} day${d === 1 ? '' : 's'} ago`;
   };
 
-  const saveInitials = (ticket, val) => {
-    const updated = { ...initials, [ticket]: val };
-    setInitials(updated);
-    try { localStorage.setItem('cpr_lead_initials', JSON.stringify(updated)); } catch {}
-  };
-
-  const stale = leads.filter(l => { const h = hoursOld(l.created); return h !== null && h >= 48; }).length;
+  const uncontacted = leads.filter(l => !isStaffNote(l.note));
+  const stale = uncontacted.filter(l => { const h = hoursOld(l.created); return h !== null && h >= 48; }).length;
 
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ color: C.text, fontSize: 14, fontWeight: 800, letterSpacing: 0.5 }}>
-          🔔 New Leads — Not Yet Contacted ({leads.length})
+          🔔 New Leads — {uncontacted.length} Not Yet Contacted
         </div>
         {stale > 0 && (
           <span style={{ background: C.redDim, color: C.red, border: `1px solid ${C.red}44`, borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
@@ -1577,35 +1589,30 @@ const NewLeads = () => {
       </a>
       {leads.map((l, i) => {
         const h = hoursOld(l.created);
-        const urgent = h !== null && h >= 48;
-        const warn = h !== null && h >= 24 && h < 48;
-        const edge = urgent ? C.red : warn ? C.gold : C.border;
-        const contacted = initials[l.ticket];
+        const contacted = isStaffNote(l.note);
+        const urgent = !contacted && h !== null && h >= 48;
+        const warn = !contacted && h !== null && h >= 24 && h < 48;
+        const edge = contacted ? C.green : urgent ? C.red : warn ? C.gold : C.border;
         return (
-          <div key={i} style={{ background: C.surface, border: `1px solid ${contacted ? C.green + '66' : urgent || warn ? edge + '66' : edge}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div key={i} style={{ background: C.surface, border: `1px solid ${edge}${contacted || urgent || warn ? '66' : ''}`, borderRadius: 10, padding: '10px 16px', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ color: contacted ? C.textMuted : C.text, fontSize: 14, fontWeight: 600, textDecoration: contacted ? 'line-through' : 'none' }}>
+              <div style={{ color: contacted ? C.textMuted : C.text, fontSize: 14, fontWeight: 600 }}>
                 {l.device || 'Device not specified'}
                 {l.problem ? <span style={{ color: C.textDim, fontWeight: 400 }}> · {l.problem}</span> : null}
               </div>
               <div style={{ color: urgent ? C.red : C.textMuted, fontSize: 11, marginTop: 2, fontWeight: urgent ? 700 : 400 }}>
                 {urgent ? '⚠️ ' : ''}{ageLabel(h)} · #{l.ticket}
-                {contacted && <span style={{ color: C.green, marginLeft: 8 }}>✓ Contacted by {contacted}</span>}
               </div>
+              {contacted && (
+                <div style={{ color: C.green, fontSize: 11, marginTop: 3, fontWeight: 600 }}>
+                  ✓ {l.note.trim()}
+                </div>
+              )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <input
-                value={initials[l.ticket] || ''}
-                onChange={e => saveInitials(l.ticket, e.target.value.toUpperCase().slice(0, 4))}
-                placeholder="Init."
-                maxLength={4}
-                style={{ width: 52, background: C.bg, border: `1px solid ${contacted ? C.green + '88' : C.border}`, borderRadius: 6, padding: '4px 8px', color: contacted ? C.green : C.text, fontSize: 12, fontWeight: 700, outline: 'none', textAlign: 'center' }}
-              />
-              <a href={`https://cpr.repairq.io/ticket/${l.ticket}`} target="_blank" rel="noopener noreferrer"
-                style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '4px 12px', color: C.accent, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                Open ↗
-              </a>
-            </div>
+            <a href={`https://cpr.repairq.io/ticket/${l.ticket}`} target="_blank" rel="noopener noreferrer"
+              style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: '4px 12px', color: C.accent, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Open ↗
+            </a>
           </div>
         );
       })}
