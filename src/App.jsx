@@ -3142,6 +3142,13 @@ const TasksView = ({ currentUser }) => {
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("med");
 
+  // Tech tasks are per person — each tech has their own bench and queue, so
+  // their IDs are scoped to the employee. Opener/Closer stay shared: one store.
+  const PER_PERSON = ['TechOpen', 'TechClose'];
+  const scopeId = (taskId, cat, empId) =>
+    PER_PERSON.includes(cat) ? `${taskId}@${empId}` : taskId;
+  const myId = (taskId, cat) => scopeId(taskId, cat, currentUser?.id ?? '');
+
   const applyServer = (server) => {
     const next = {
       date: todayStr,
@@ -3178,17 +3185,20 @@ const TasksView = ({ currentUser }) => {
   const tabTasks = RECURRING_TASKS.filter(t => t.role === activeTab);
   const customTasks = state.custom.filter(t => t.role === activeTab || t.role === 'Custom');
   const allTabTasks = [...tabTasks, ...customTasks];
-  const doneTasks = allTabTasks.filter(t => state.done.includes(t.id));
-  const openTasks = allTabTasks.filter(t => !state.done.includes(t.id));
+  const doneTasks = allTabTasks.filter(t => state.done.includes(myId(t.id, activeTab)));
+  const openTasks = allTabTasks.filter(t => !state.done.includes(myId(t.id, activeTab)));
   const pct = allTabTasks.length ? Math.round((doneTasks.length / allTabTasks.length) * 100) : 0;
 
   // Overall progress across all tasks
-  const totalTasks = RECURRING_TASKS.length + state.custom.length;
-  const totalDone = state.done.length;
+  const myTaskIds = [...RECURRING_TASKS, ...state.custom]
+    .filter(t => displayCategories.some(c => c.id === t.role))
+    .map(t => myId(t.id, t.role));
+  const totalTasks = myTaskIds.length;
+  const totalDone = myTaskIds.filter(id => state.done.includes(id)).length;
   const totalPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
 
-  const toggle = (id) => {
-    // Optimistic locally, then merge against the sheet
+  const toggle = (rawId) => {
+    const id = myId(rawId, activeTab);
     const done = state.done.includes(id) ? state.done.filter(d => d !== id) : [...state.done, id];
     setState({ ...state, done });
     commit({ type: 'toggle', taskId: id, by: (currentUser?.name || '').split(' ')[0] });
@@ -3212,7 +3222,8 @@ const TasksView = ({ currentUser }) => {
   };
 
   const TaskItem = ({ task }) => {
-    const isDone = state.done.includes(task.id);
+    const sid = myId(task.id, activeTab);
+    const isDone = state.done.includes(sid);
     return (
       <div onClick={() => toggle(task.id)}
         style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: isDone ? C.greenDim : C.surface, border: `1px solid ${isDone ? C.green + '44' : C.border}`, borderRadius: 10, cursor: "pointer", marginBottom: 8, transition: "all .15s" }}>
@@ -3221,8 +3232,8 @@ const TasksView = ({ currentUser }) => {
         </div>
         <div style={{ flex: 1 }}>
           <span style={{ color: isDone ? C.textMuted : C.text, fontSize: 13, textDecoration: isDone ? "line-through" : "none" }}>{task.text}</span>
-          {isDone && doneBy[task.id] && (
-            <span style={{ color: C.green, fontSize: 11, marginLeft: 8, fontWeight: 600 }}>✓ {doneBy[task.id]}</span>
+          {isDone && doneBy[sid] && !PER_PERSON.includes(activeTab) && (
+            <span style={{ color: C.green, fontSize: 11, marginLeft: 8, fontWeight: 600 }}>✓ {doneBy[sid]}</span>
           )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -3265,7 +3276,7 @@ const TasksView = ({ currentUser }) => {
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {displayCategories.map(cat => {
           const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
-          const catDone = catTasks.filter(t => state.done.includes(t.id)).length;
+          const catDone = catTasks.filter(t => state.done.includes(myId(t.id, cat.id))).length;
           return (
             <button key={cat.id} onClick={() => setActiveTab(cat.id)}
               style={{ background: activeTab === cat.id ? cat.color : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? cat.color : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
@@ -3287,6 +3298,48 @@ const TasksView = ({ currentUser }) => {
           <div style={{ fontWeight: 700, color: C.text, fontSize: 15, marginBottom: 14 }}>📊 Task Completion Report — Today</div>
           {allCategories.map(cat => {
             const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
+
+            // Tech categories report per person; store categories report once
+            if (PER_PERSON.includes(cat.id)) {
+              const techs = EMPLOYEES.filter(e =>
+                ['Tech', 'Tech/Sales'].includes(e.role) ||
+                catTasks.some(t => state.done.includes(`${t.id}@${e.id}`)));
+              return (
+                <div key={cat.id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+                  <div style={{ color: cat.color, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{cat.label}</div>
+                  {techs.length === 0 && (
+                    <div style={{ color: C.textMuted, fontSize: 12 }}>No techs on the roster.</div>
+                  )}
+                  {techs.map(tech => {
+                    const tDone = catTasks.filter(t => state.done.includes(`${t.id}@${tech.id}`));
+                    const tOpen = catTasks.filter(t => !state.done.includes(`${t.id}@${tech.id}`));
+                    const tPct = catTasks.length ? Math.round((tDone.length / catTasks.length) * 100) : 0;
+                    return (
+                      <div key={tech.id} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <span style={{ color: C.text, fontSize: 13, fontWeight: 600 }}>{tech.name.split(' ')[0]}</span>
+                          <span style={{ color: tPct === 100 ? C.green : C.textMuted, fontWeight: 700, fontSize: 12 }}>
+                            {tDone.length}/{catTasks.length} ({tPct}%)
+                          </span>
+                        </div>
+                        <div style={{ background: C.border, borderRadius: 4, height: 5, overflow: 'hidden' }}>
+                          <div style={{ width: `${tPct}%`, background: tPct === 100 ? C.green : cat.color, height: '100%', borderRadius: 4 }} />
+                        </div>
+                        {tOpen.length > 0 && tDone.length > 0 && (
+                          <div style={{ color: C.red, fontSize: 11, marginTop: 4 }}>
+                            ❌ {tOpen.map(t => t.text).join(' · ')}
+                          </div>
+                        )}
+                        {tDone.length === 0 && (
+                          <div style={{ color: C.textMuted, fontSize: 11, marginTop: 4 }}>Not started</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+
             const catDone = catTasks.filter(t => state.done.includes(t.id));
             const catOpen = catTasks.filter(t => !state.done.includes(t.id));
             const pctCat = catTasks.length ? Math.round((catDone.length / catTasks.length) * 100) : 0;
