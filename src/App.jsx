@@ -6798,8 +6798,13 @@ export default function App() {
           </div>
         </div>
         {/* Content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
-          <ViewComponent setView={setView} currentUser={currentUser} />
+        <div style={{ flex: 1, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column" }}>
+          <div style={{ flex: 1 }}>
+            <ViewComponent setView={setView} currentUser={currentUser} />
+          </div>
+          <div style={{ textAlign: "center", color: C.textMuted, fontSize: 11, paddingTop: 28, paddingBottom: 4, letterSpacing: 0.5 }}>
+            Powered by TORTA!
+          </div>
         </div>
       </div>
     </div>
