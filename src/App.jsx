@@ -6803,7 +6803,7 @@ export default function App() {
             <ViewComponent setView={setView} currentUser={currentUser} />
           </div>
           <div style={{ textAlign: "center", color: C.textMuted, fontSize: 11, paddingTop: 28, paddingBottom: 4, letterSpacing: 0.5 }}>
-            Powered by TORTA!
+            Powered by Tortas
           </div>
         </div>
       </div>
