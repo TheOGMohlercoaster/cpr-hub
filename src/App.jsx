@@ -3099,15 +3099,28 @@ const TasksView = ({ currentUser }) => {
 
   // Determine if this employee is scheduled to open or close today
   const todayStr = localDateKey();
-  const mySchedule = (() => {
-    try {
-      const shifts = JSON.parse(localStorage.getItem('cpr_today_shifts') || '[]');
-      const myShift = shifts.find(s => s.firstName === currentUser?.name?.split(' ')[0]);
-      return myShift || null;
-    } catch { return null; }
-  })();
-  const isOpener = mySchedule?.startTime === '9:30 AM' || mySchedule?.startTime === '9:30AM';
-  const isCloser = mySchedule?.endTime === '6:30 PM' || mySchedule?.endTime === '6:30PM';
+  // Read today's published schedule so openers and closers get the right tabs.
+  // This used to read localStorage, which stopped being written once Today's
+  // Schedule moved to the sheet — so nobody but owners saw Opener/Closer.
+  const [myShift, setMyShift] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        if (!alive) return;
+        const rows = (json.values || []).slice(1);
+        const mine = rows.find(r =>
+          String(r[0]) === String(currentUser?.id) && r[2] === todayStr);
+        if (mine) setMyShift({ startTime: mine[3] || '', endTime: mine[4] || '' });
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [currentUser?.id, todayStr]);
+
+  const norm = (t) => String(t || '').replace(/\s+/g, '').toUpperCase();
+  const isOpener = norm(myShift?.startTime) === '9:30AM';
+  const isCloser = norm(myShift?.endTime) === '6:30PM';
 
   // Build available categories based on role and schedule
   const CATEGORIES = [
@@ -3132,6 +3145,13 @@ const TasksView = ({ currentUser }) => {
   const displayCategories = isOwner ? allCategories : CATEGORIES;
   const [activeTab, setActiveTab] = useState(displayCategories[0]?.id || 'Opener');
   const [showReport, setShowReport] = useState(false);
+
+  // Tabs appear once the schedule loads, so the initial tab may not exist yet
+  useEffect(() => {
+    if (displayCategories.length && !displayCategories.some(c => c.id === activeTab)) {
+      setActiveTab(displayCategories[0].id);
+    }
+  }, [displayCategories.map(c => c.id).join(','), activeTab]);
   const [state, setState] = useState(() => {
     const saved = getTaskState();
     const today = getTodayKey();
@@ -3288,6 +3308,14 @@ const TasksView = ({ currentUser }) => {
         <h2 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: "0 0 4px" }}>Daily Tasks</h2>
         <div style={{ color: C.textMuted, fontSize: 13 }}>{totalDone} of {totalTasks} complete across all categories · resets at midnight</div>
       </div>
+
+      {displayCategories.length === 0 && (
+        <Card style={{ marginBottom: 16 }}>
+          <div style={{ color: C.textMuted, fontSize: 13, textAlign: 'center', padding: 20 }}>
+            No tasks assigned to you today — you're not scheduled to open or close.
+          </div>
+        </Card>
+      )}
 
       {syncError && (
         <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '9px 12px', color: C.red, fontSize: 12, marginBottom: 12, fontWeight: 600 }}>
