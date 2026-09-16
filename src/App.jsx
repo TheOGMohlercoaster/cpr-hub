@@ -232,7 +232,12 @@ const RECURRING_TASKS = [
   { id: "tclose14", text: "Recycled parts bin emptied if full",                   role: "TechClose", priority: "med"  },
 ];
 
-const getTodayKey = () => new Date().toISOString().split("T")[0]; // "2026-07-09"
+// Local date, not UTC. toISOString() would roll the task day over at 7pm
+// Central, splitting closing tasks across two days.
+const localDateKey = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const getTodayKey = () => localDateKey();
 
 const getTaskState = () => {
   try {
@@ -3093,7 +3098,7 @@ const TasksView = ({ currentUser }) => {
   const isOwner = currentUser?.role === 'Owner' || currentUser?.role === 'Tech/Sales';
 
   // Determine if this employee is scheduled to open or close today
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDateKey();
   const mySchedule = (() => {
     try {
       const shifts = JSON.parse(localStorage.getItem('cpr_today_shifts') || '[]');
@@ -3210,11 +3215,21 @@ const TasksView = ({ currentUser }) => {
   const pct = allTabTasks.length ? Math.round((doneTasks.length / allTabTasks.length) * 100) : 0;
 
   // Overall progress across all tasks
-  const myTaskIds = [...RECURRING_TASKS, ...state.custom]
+  // Owners track the whole store: shared tasks once, tech tasks per tech.
+  // Everyone else tracks only what they're responsible for.
+  const techRoster = EMPLOYEES.filter(e => ['Tech', 'Tech/Sales'].includes(e.role));
+  const trackedIds = [];
+  [...RECURRING_TASKS, ...state.custom]
     .filter(t => displayCategories.some(c => c.id === t.role))
-    .map(t => myId(t.id, t.role));
-  const totalTasks = myTaskIds.length;
-  const totalDone = myTaskIds.filter(id => state.done.includes(id)).length;
+    .forEach(t => {
+      if (isOwner && PER_PERSON.includes(t.role)) {
+        techRoster.forEach(tech => trackedIds.push(`${t.id}@${tech.id}`));
+      } else {
+        trackedIds.push(myId(t.id, t.role));
+      }
+    });
+  const totalTasks = trackedIds.length;
+  const totalDone = trackedIds.filter(id => state.done.includes(id)).length;
   const totalPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
 
   const toggle = (rawId) => {
@@ -3296,11 +3311,16 @@ const TasksView = ({ currentUser }) => {
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {displayCategories.map(cat => {
           const catTasks = RECURRING_TASKS.filter(t => t.role === cat.id);
-          const catDone = catTasks.filter(t => state.done.includes(myId(t.id, cat.id))).length;
+          const perPersonForOwner = isOwner && PER_PERSON.includes(cat.id);
+          const catTotal = perPersonForOwner ? catTasks.length * techRoster.length : catTasks.length;
+          const catDone = perPersonForOwner
+            ? catTasks.reduce((n, t) =>
+                n + techRoster.filter(tech => state.done.includes(`${t.id}@${tech.id}`)).length, 0)
+            : catTasks.filter(t => state.done.includes(myId(t.id, cat.id))).length;
           return (
             <button key={cat.id} onClick={() => setActiveTab(cat.id)}
               style={{ background: activeTab === cat.id ? cat.color : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? cat.color : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              {cat.label} <span style={{ opacity: 0.8, fontSize: 11 }}>({catDone}/{catTasks.length})</span>
+              {cat.label} <span style={{ opacity: 0.8, fontSize: 11 }}>({catDone}/{catTotal})</span>
             </button>
           );
         })}
