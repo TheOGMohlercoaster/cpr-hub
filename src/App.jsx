@@ -3123,14 +3123,22 @@ const TasksView = ({ currentUser }) => {
   const isCloser = norm(myShift?.endTime) === '6:30PM';
 
   // Build available categories based on role and schedule
+  // Opener and Closer are visible to everyone — shifts get swapped and whoever
+  // is actually there needs the checklist. Tech tabs stay role-based.
   const CATEGORIES = [
-    ...(isOpener || isOwner ? [{ id: 'Opener',    label: '🌅 Opener',    color: '#22C55E' }] : []),
-    ...(isCloser || isOwner ? [{ id: 'Closer',    label: '🌙 Closer',    color: '#3B82F6' }] : []),
-    ...(isTech             ? [{ id: 'TechOpen',  label: '🔧 Tech Start', color: '#FF4D1C' }] : []),
-    ...(isTech             ? [{ id: 'TechClose', label: '🔧 Tech End',   color: '#FFB547' }] : []),
-    // Owners always see all
-    ...(!isOpener && !isCloser && !isTech && isOwner ? [] : []),
-  ].filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+    { id: 'Opener',    label: '🌅 Opener',     color: '#22C55E' },
+    { id: 'Closer',    label: '🌙 Closer',     color: '#3B82F6' },
+    ...(isTech ? [{ id: 'TechOpen',  label: '🔧 Tech Start', color: '#FF4D1C' }] : []),
+    ...(isTech ? [{ id: 'TechClose', label: '🔧 Tech End',   color: '#FFB547' }] : []),
+  ];
+
+  // What counts toward your own progress bar — only what you're scheduled for
+  const isMine = (catId) => {
+    if (isOwner) return true;
+    if (catId === 'Opener') return isOpener;
+    if (catId === 'Closer') return isCloser;
+    return isTech;
+  };
 
   // Owners always see all categories
   const allCategories = isOwner
@@ -3240,7 +3248,7 @@ const TasksView = ({ currentUser }) => {
   const techRoster = EMPLOYEES.filter(e => ['Tech', 'Tech/Sales'].includes(e.role));
   const trackedIds = [];
   [...RECURRING_TASKS, ...state.custom]
-    .filter(t => displayCategories.some(c => c.id === t.role))
+    .filter(t => displayCategories.some(c => c.id === t.role) && isMine(t.role))
     .forEach(t => {
       if (isOwner && PER_PERSON.includes(t.role)) {
         techRoster.forEach(tech => trackedIds.push(`${t.id}@${tech.id}`));
@@ -3349,6 +3357,9 @@ const TasksView = ({ currentUser }) => {
             <button key={cat.id} onClick={() => setActiveTab(cat.id)}
               style={{ background: activeTab === cat.id ? cat.color : C.surface, color: activeTab === cat.id ? "#fff" : C.textDim, border: `1px solid ${activeTab === cat.id ? cat.color : C.border}`, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               {cat.label} <span style={{ opacity: 0.8, fontSize: 11 }}>({catDone}/{catTotal})</span>
+              {!isOwner && isMine(cat.id) && (
+                <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.9 }} title="You're scheduled for this">●</span>
+              )}
             </button>
           );
         })}
