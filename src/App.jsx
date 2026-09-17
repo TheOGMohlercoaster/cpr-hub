@@ -1038,7 +1038,6 @@ FINAL CLOSING CHECKLIST
 
 Failure to complete any portion of the closing procedure may result in disciplinary action.`
   },
-  { id: 6, title: "RepairQ Ticket Creation Guide", category: "POS", updated: "Mar 30", content: "" },
   { id: 7, title: "Handling Warranty Claims", category: "Sales", updated: "Jun 5", content: "" },
   { id: 8, title: "Customer Complaint Escalation", category: "Operations", updated: "May 10", content: "" },
   {
@@ -1529,6 +1528,272 @@ Then show them:
 ☐ Warranty process
 ☐ Open process
 ☐ Closing process`
+  },
+  {
+    id: 20,
+    title: "RepairQ Ticket Creation Guide",
+    category: "POS",
+    updated: "Sep 2026",
+    content: `📘 REPAIRQ TICKET CREATION GUIDE
+Store-Level Employee Guide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT IS REPAIRQ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RepairQ is a point of sale system built for repair shops. You'll use it
+for inventory management, device check-in, sales, returns and more.
+
+WHY YOU LOG IN AS YOURSELF
+Always log into your own account before starting a repair or checking in
+a customer.
+
+• If another tech takes over your repair, they know who to ask
+• It keeps rework rate accurate — partners use this to measure techs.
+  WISE requires it for Level 2 technician certification
+• Working under someone else's login skews their numbers, not yours
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TICKET TYPES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tickets hold the repair history for a device and the sales history for a
+customer. They also log trade-ins and track refurbishment.
+
+Click the Tickets menu for the dropdown.
+
+CHECK IN — self-check-in programs: Apple IRP, Samsung ISP, SquareTrade
+QUICK SALE — anything that isn't a repair or trade-in: devices,
+             accessories, services
+REPAIR — any device repair: phone, tablet, computer, gaming console
+TRADE-IN — customer selling a device to you
+TICKET QUEUE — history of your tickets, sortable and filterable
+
+⚠️ Your VCT must be assigned before you can process a payment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUICK SALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Log in and confirm your VCT is assigned
+2. Tickets → Quick Sale
+3. Attach a customer:
+   • New customer → click New Customer
+   • Existing → search by first name, last name, phone or email
+   • Sales can be anonymous, but collect customer info when selling a device
+4. Scroll to Ticket Items and add what's being sold:
+   • Scan the item whenever possible — fewer mistakes, accurate inventory
+   • Or search by SKU or UPC
+   • Or click Look Up Item To Add
+5. Once added you can adjust quantity, discount and unit price
+   • Teacher and veteran discounts go here
+   • Discount a single item or apply a ticket-wide discount
+6. Add a transaction:
+   • Cash → enter the exact amount, change populates automatically
+   • Credit/debit → select Pay In Full, add a note if needed
+   • Split payments across two or more methods are supported
+7. Other options: Hold/Backordered, Layaway, Waiting for Payment
+8. Select Close to close the ticket
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRADE-IN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Used when a customer sells you a device, trades toward store credit, or
+recycles. Creates a record of the trade-in, issues the credit, and starts
+the refurbishment process.
+
+1. Tickets → Trade In
+2. Attach a customer — not mandatory, but strongly advised in case there's
+   a problem with the device later
+3. Scroll down and click Add Trade-In Item
+4. Fill in the device information:
+   • Serial number is the IMEI on most devices
+   • Price = what YOU are paying for it
+   • Item type (Device – Phone), manufacturer, catalog item, carrier
+   • Note the required fields
+5. Click Add Item
+6. Default status is Pending Refurb — trade-ins usually need repair or
+   cleaning before sale
+   • Adjust condition and resale price accordingly
+   • Add notes explaining the condition and any adjusted resale price
+7. Click Continue — the item is added and you'll see a negative ticket total.
+   That's what you owe the customer
+   • You can sell them something here to reduce what you owe
+8. Pay out:
+   • Cash → select Cash, the amount populates → Add Transaction
+   • Other payment type → Submit Refund
+9. Click Close
+
+The device is now in inventory as Pending Refurb, and a refurb ticket is
+created with notes and an intake/exit checklist.
+
+Working the refurb ticket:
+• Click Edit
+• Select the technician performing the repair
+• Inventory status → Pending Restock or Restock Immediately
+• Do not change the cost — part costs apply to the sale price automatically
+• Add parts by typing or Look Up Item To Add; the sale price adjusts
+• Click Closed when done
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIR TICKET — COMMON DEVICE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ Always have the customer sign a waiver before each repair.
+
+The catalog generally includes parts and service SKUs for flagship models
+from Apple, Samsung, Motorola, OnePlus, LG and Google.
+
+1. Tickets → Repair, attach the customer
+2. Scroll down → Look Up Device To Add
+3. Select the device type, then the model from the grid
+4. Scroll to Ticket Items → Look Up Item To Add
+5. Choose the repair category (e.g. Repairs – iPhone)
+6. Select the correct repair for that model
+7. Attach the part — scroll through and select available inventory
+   • Some parts will display a back order note
+8. Add transaction information and print the customer's receipt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIR TICKET — UNCOMMON DEVICE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For devices outside the common manufacturers, or any model not listed in
+the grid.
+
+1. Create the repair ticket and attach the customer as usual
+2. Scroll down → Look Up Device To Add → select the device type
+3. If the device isn't in the grid, choose "add your own device details"
+4. Fill in the description of the device and the diagnostic notes
+5. Click Add Device
+6. Scroll to Ticket Items → Look Up Item To Add
+7. Select the repair category, then the service (e.g. Battery Repair)
+   • Choosing Add And Bundle shows recommended parts for most services
+   • Or select Add Item
+8. Complete the repair and get the waiver signed before completing the ticket
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LOCATING A TICKET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Needed when checking device history, processing a return, or looking up
+customer information.
+
+• Search directly by ticket number, or
+• Search by name, phone number or serial number, or
+• Click Tickets in the top left to open your ticket queue
+
+The queue view shows status, type, service, program and more. You can also
+search by device using the panel near the search field, and refine with
+More Filters on the filter panel.
+
+💡 Use quotation marks around your search terms for better results.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NON-REPAIR RETURN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For returning an accessory or pre-owned device.
+
+1. Look up the ticket — search tool or navigation bar, by ticket number or
+   customer contact info
+2. Click Return on the ticket's actions bar
+   • The pop-up summarises the ticket and links any warranty
+3. Click Start A Return
+4. Under Return Items, check the box next to the item being returned
+   • An Initial Diagnostic section expands beneath it
+5. Full unit cost refunds by default. For a partial refund, set a new value
+   in the unit cost field
+   ⚠️ Setting it above the original sale price resets it to the original price
+6. For inventoried items, choose: Restock, Refurbishment, Defective or Void
+   • "Other" exists but is not recommended
+7. Set the item condition. A note is required — give the reason for the return
+8. Click Continue to add the items to the ticket
+   • Use Update to change or add more items
+9. The ticket total shows a negative balance — what's owed back
+   • The customer can buy something with that credit via Ticket Items
+10. Issue the refund:
+    • Refund the original transaction with the yellow refund icon, or
+    • Click Add Transaction for a payout
+    • Available payment types reflect what the VCT accepted at opening
+11. Partial refund → enter the amount. Full refund → click Refund In Full
+12. Add a note (optional but recommended) → Submit Refund
+    • Cancel a pending refund with the red X next to the refund line
+13. When the ticket balance is $0.00, save the ticket to complete the return
+
+You can perform returns on a ticket multiple times.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RETURNING A REPAIR (REWORK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Rework tickets are created FROM the original repair ticket.
+
+1. Look up the original repair ticket
+2. On the pop-up, click Start A Return Repair
+   • A new ticket opens with the customer and device already assigned
+3. Enter new diagnostic notes under Repair Devices, explaining the problem
+4. Under Replacement Items, select any items to replace
+   • Inventoried items are pulled from stock and added to the ticket
+5. Supplier — update if needed for the part being replaced
+6. Add any notes for the returning item
+7. Inventory status — choose:
+   • Defective → initiates the RMA process
+   • Damaged → adjusts the item out as damaged
+8. Replacement parts and services appear in Ticket Items with charges
+   automatically waived
+   • A shift lead can waive charges on any additional items covered by rework
+9. Save the ticket to the appropriate status
+
+On save, the rework ticket links under the original ticket's summary. Return
+items don't affect the original ticket's balance. Returned inventory ends up
+as Defective (Pending RMA, returnable to the supplier for credit), Damaged,
+or COGS.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TICKET STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Keep status current as you work — it's how everyone else knows what's
+happening. If you grab a device to diagnose, mark it In Diagnosis so nobody
+else wastes time looking for it.
+
+IN DIAGNOSIS — you've started diagnosing the device
+IN REPAIR — diagnosis done and repair approved
+PENDING APPROVAL — waiting on the customer to approve
+PENDING NOTIFICATION — the customer needs to be contacted
+READY FOR PICKUP — repair complete, customer can collect
+HOLD / BACKORDERED — waiting on a part
+LAYAWAY — for stores offering financing
+CLOSED — customer has collected and there's no pending balance
+
+Closing tickets keeps the queue tidy.
+
+To update: locate the ticket in list or detail view, click the 3 dots, then
+the pencil icon to edit. Status options are at the bottom of the ticket.
+The ticket saves whenever you select a status.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Notes are a crucial part of the repair process. Add one for any update,
+including:
+
+• When a customer is contacted — what was said, what they said
+• When a test is run — what the results were
+• What the next steps are
+• What was done to diagnose or resolve the issue
+
+Adding a note:
+1. Locate the ticket and click the pencil icon to edit
+2. Click Add A Note
+3. Attach an image if useful — good for documenting damage
+4. Set visibility:
+   • Customer-visible notes print on the final paperwork
+   ⚠️ No acronyms or technical language in a customer-facing note
+5. Flag as Important to pin the note to the top of the ticket`
   },
 ];
 const REPAIR_PARTS = [
