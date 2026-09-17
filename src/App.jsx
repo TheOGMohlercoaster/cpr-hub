@@ -5875,6 +5875,25 @@ const COMPARE_SITES = [
 const CONDITIONS = ['A - Excellent', 'B - Good', 'C - Fair', 'D - Poor'];
 const MAKES = ['Apple', 'Samsung', 'Google', 'Motorola', 'OnePlus', 'Other'];
 
+// The Device Retail Pricing workbook is the source of truth for markup and
+// storage jump — both vary by model, so read them rather than retyping.
+const RETAIL_SHEET_ID = '152ZS8IGum1tuO7fFo4i3zeuUKS6fZLNGQhSAyNqS9Vs';
+const MAKE_TABS = {
+  Apple:   ['IPHONES', 'IPADS', 'APPLE WATCHES'],
+  Samsung: ['SAMSUNG PHONES', 'SAMSUNG WATCHES', 'TABLETS'],
+  Google:  ['GOOGLE PHONES'],
+};
+
+// Workbook model cells read like "15 Pro 128GB" or "XS Max 64GB"
+const splitModelStorage = (raw) => {
+  const t = String(raw || '').trim();
+  const m = t.match(/^(.*?)[\s]*(\d+)\s*(GB|TB)?$/i);
+  if (!m) return { name: t, baseGb: null };
+  let gb = parseInt(m[2], 10);
+  if (/TB/i.test(m[3] || '')) gb *= 1024;
+  return { name: m[1].trim() || t, baseGb: gb };
+};
+
 // Cable + power block added to every device
 const ACCESSORY_ADD = 19.99;
 
@@ -5916,6 +5935,53 @@ const ResalePricingView = ({ currentUser }) => {
     baseGb: '128', actualGb: '128',
   });
   const [saving, setSaving] = useState(false);
+  const [refModels, setRefModels] = useState([]);
+  const [refLoading, setRefLoading] = useState(false);
+
+  useEffect(() => {
+    const tabs = MAKE_TABS[form.make];
+    if (!tabs) { setRefModels([]); return; }
+    setRefLoading(true);
+    Promise.all(tabs.map(tab =>
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${RETAIL_SHEET_ID}/values/${encodeURIComponent(tab)}!A:J?key=${SHEETS_API_KEY}`)
+        .then(r => r.json())
+        .then(j => ({ tab, rows: (j.values || []).slice(1) }))
+        .catch(() => ({ tab, rows: [] }))
+    )).then(results => {
+      const out = [];
+      results.forEach(({ tab, rows }) => {
+        rows.forEach(r => {
+          const raw = String(r[1] || '').trim();
+          if (!raw) return;
+          const jump = parseFloat(String(r[4] || '').replace(/[^0-9.]/g, ''));
+          const markup = parseFloat(String(r[6] || '').replace(/[^0-9.]/g, ''));
+          const { name, baseGb } = splitModelStorage(raw);
+          out.push({
+            label: raw, name, baseGb,
+            storageJump: isNaN(jump) ? null : jump,
+            markup: isNaN(markup) ? null : markup,
+            tab,
+          });
+        });
+      });
+      setRefModels(out);
+      setRefLoading(false);
+    });
+  }, [form.make]);
+
+  // Picking a model fills in what the workbook already knows
+  const pickModel = (label) => {
+    const ref = refModels.find(m => m.label === label);
+    if (!ref) { setForm({ ...form, model: label }); return; }
+    setForm({
+      ...form,
+      model: ref.name,
+      storageJump: ref.storageJump != null ? String(ref.storageJump) : '',
+      markup: ref.markup != null ? String(ref.markup) : form.markup,
+      baseGb: ref.baseGb ? String(ref.baseGb) : form.baseGb,
+      actualGb: ref.baseGb ? String(ref.baseGb) : form.actualGb,
+    });
+  };
 
   const load = () => {
     fetch('/api/device-pricing')
@@ -6076,10 +6142,16 @@ const ResalePricingView = ({ currentUser }) => {
               </select>
             </div>
             <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Model</div>
-              <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}
-                placeholder='iPhone 15 Pro'
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>
+                Model {refLoading && <span style={{ opacity: 0.6 }}>· loading…</span>}
+              </div>
+              <input value={form.model} list='resale-models'
+                onChange={e => pickModel(e.target.value)}
+                placeholder={refModels.length ? 'Start typing or pick…' : 'iPhone 15 Pro'}
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+              <datalist id='resale-models'>
+                {refModels.map(m => <option key={`${m.tab}-${m.label}`} value={m.label} />)}
+              </datalist>
             </div>
             <div>
               <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage</div>
@@ -6109,17 +6181,24 @@ const ResalePricingView = ({ currentUser }) => {
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Markup (by age)</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>
+                Markup <span style={{ opacity: 0.6 }}>· from workbook</span>
+              </div>
               <select value={form.markup} onChange={e => setForm({ ...form, markup: e.target.value })}
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
                 <option value=''>Select…</option>
                 {MARKUP_PRESETS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                {form.markup && !MARKUP_PRESETS.some(m => String(m.value) === String(form.markup)) && (
+                  <option value={form.markup}>${form.markup} — from workbook</option>
+                )}
               </select>
             </div>
             <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage jump $</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>
+                Storage jump $ <span style={{ opacity: 0.6 }}>· from workbook</span>
+              </div>
               <input value={form.storageJump} onChange={e => setForm({ ...form, storageJump: e.target.value })}
-                placeholder='80'
+                placeholder='auto'
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
