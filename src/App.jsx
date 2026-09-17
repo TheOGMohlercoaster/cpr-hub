@@ -322,72 +322,91 @@ const SOPS = [
     id: 10,
     title: "Technician Standards SOP",
     category: "Repair",
-    updated: "Jul 9",
-    content: `TECHNICIAN STANDARDS SOP
-Store-Level Employee Guide | CPR Cell Phone Repair
+    updated: "Sep 2026",
+    content: `📘 TECHNICIAN STANDARDS SOP
+CPR Cell Phone Repair — Store-Level Employee Guide
+
+These procedures exist to ensure consistent repair quality, efficiency,
+organization and customer satisfaction. All technicians are required to
+follow these standards on every repair.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. WORKSTATION CLEANLINESS & ORGANIZATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-During the Day
-• Work areas must remain organized while performing repairs
-• Clean and organize your work area after every repair
-• Tools must be returned to their designated place after use
-• Loose screws or parts should never be left on the bench
+During the day:
+• Work areas stay organized while performing repairs
+• Clean and organize your work area AFTER EVERY REPAIR
+• Tools returned to their designated place after use
+• Loose screws or parts are never left on the bench
 
-End of Shift
-• Desk must be completely cleaned and organized
-• Remove debris, parts, adhesive scraps, and trash
+End of shift:
+• Desk completely cleaned and organized
+• Remove debris, parts, adhesive scraps and trash
 • Return tools and equipment to their proper location
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 2. REPAIR SCHEDULING & TIME MANAGEMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• Standard repairs should be scheduled in 30-minute intervals
-• Complex repairs may require additional time
-• Do not overbook repairs if you are already behind
+Repairs must be completed at or before the time quoted to the customer
+whenever possible.
 
-If Running Behind
-• Communicate with other technicians as soon as possible
+Scheduling:
+• Standard repairs scheduled in 30-minute intervals
+• Complex repairs may require additional time
+• Do not overbook if you are already behind
+
+If running behind:
+• Communicate with other technicians AS SOON AS POSSIBLE
 • Do not wait until the repair is 5 minutes from being due
 • Ask for assistance early
+• If no help is available, leave extra time between check-ins
 
-Customer Communication
-• If a repair will take longer than expected, contact the customer immediately
-• Inform them of the delay and provide a new completion estimate
+Customer communication:
+If a repair will take longer than expected, contact the customer
+immediately and provide a new completion estimate.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 3. REPAIR TICKET & DOCUMENTATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Pre-Repair (REQUIRED before starting any repair)
-✔ Complete Pre-Test Form
-✔ Document all device conditions and issues
-✔ Record findings on repair ticket
-✔ Note any existing damage
+Before beginning any repair:
+☐ Complete Pre-Test Form
+☐ Document all device conditions and issues
+☐ Record findings on the repair ticket
+☐ Note any existing damage
 
-During Repair — Record on ticket:
+⚠️ No repair begins without pre-test documentation.
+
+During the repair, record:
 • Repair performed
 • Parts used
-• Additional observations
-• Unexpected issues discovered
+• Frames / back glass cleaned correctly before applying new adhesive
+• Any additional observations
+• Any unexpected issues discovered
+• The repair ticket stays with the device at all times
 
-Post-Repair
-✔ Complete Post-Test Form
-✔ Document results of testing
-✔ Add final repair notes to ticket
-✔ Mark ticket Ready for Pickup
+⚠️ ADHESIVE — ZERO TOLERANCE
+All old adhesive must be removed and the surface cleaned with alcohol.
+No exceptions. Skipping this, not using new adhesive, or doing it
+incorrectly is a write-up. Three write-ups result in dismissal.
+
+After repair completion:
+☐ Complete Post-Test Form
+☐ Document results of testing
+☐ Add final repair notes to the ticket
+☐ Mark ticket Ready for Pickup
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-4. DEVICE TESTING REQUIREMENTS
+4. DEVICE TESTING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every device gets both a Pre-Test and a Post-Test.
 
 Pre-Test must check:
-• Power • Display • Touch functionality • Cameras
-• Speakers • Microphones • Charging • Buttons
-• Face ID / Touch ID (when applicable)
+Power · Display · Touch · Cameras · Speakers · Microphones
+Charging · Buttons · Face ID / Touch ID (when applicable)
 
 Post-Test must confirm:
 • All replaced parts function correctly
@@ -398,154 +417,222 @@ Post-Test must confirm:
 5. REPAIR QUALITY STANDARDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• All screws removed during repair must be reinstalled
-• No screws or components should be missing
-• Avoid forgetting shields, brackets, or internal components
-• All devices must leave in same or better condition than received
+• All screws removed during repair MUST be reinstalled
+• No screws or components missing
+• Do not forget shields, brackets or internal components
+
+Every device leaves the shop in the same condition or better
+than when it was received.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-6. DEVICE CLEANING & FINAL PREPARATION
+6. CLEANING & FINAL PREPARATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Before returning device to customer:
-• Clean device thoroughly
-• Remove fingerprints, dust, and debris
-• Wipe screen clean
-• Plug device in to charge if possible
+Before a device goes back to the customer:
+☐ Cleaned thoroughly
+☐ Fingerprints, dust and debris removed
+☐ Screen wiped clean
+☐ Plugged in to charge if possible
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 7. ADHESIVE REPLACEMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Required steps when opening a device:
+For any repair that requires opening a device:
 1. Remove all old adhesive
-2. Clean frame or back glass with isopropyl alcohol
+2. Clean the frame or back glass with isopropyl alcohol
 3. Remove any residue or debris
 4. Install new adhesive
 
-• Adhesive must be added to repair ticket OR removed from inventory
-• No device should be sealed without new adhesive
+Inventory — adhesive must be either:
+• Added to the repair ticket (preferred), or
+• Removed from inventory
+
+⚠️ No device is sealed without new adhesive.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-8. SOLDERING WORKSTATION STANDARDS
+8. SOLDERING WORKSTATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-End of Day:
-• Clean ESD mat
-• Clean microscope stand and work area
-• Remove all flux residue and solder splatter
+End of day:
+☐ Clean ESD mat
+☐ Clean microscope stand and work area
+☐ Remove all flux residue
+☐ Remove debris and solder splatter
 
-Equipment Care:
-• Soldering tips must be tinned with solder to prevent corrosion
-• Clean microscope lenses if dirty
+Equipment care:
+• Soldering tips tinned with solder to prevent corrosion
+• Microscope lenses cleaned if dirty
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 9. PARTS & REPAIR TRACKING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• All parts used must be attached to repair ticket and logged in inventory
-• All accessories brought in with device must stay with repair ticket until pickup
+All parts used must be attached to the repair ticket and logged
+correctly in inventory.
+
+Any accessories brought in with the device stay with the repair
+ticket and remain with the device until pickup.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 10. REPAIR QUEUE MANAGEMENT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+Monitor the repair queue throughout the day.
+
 • No repairs should be past due
-• Orange tickets (past due) must be updated with new pickup date
-• Once finished: mark Ready for Pickup, call customer, charge device
+• An orange (past due) ticket must be updated with a new pickup date
+• Update tickets at EVERY step of the repair process
+  — move to "In Repair" once you have pre-tested
+
+On completion:
+☐ Mark ticket Ready for Pickup
+☐ Attempt to call the customer
+☐ Hang the finished device in the appropriate area with the name
+  written on the bag, and charge the device
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-11. REPAIR RESEARCH
+11. CUSTOMER COMMUNICATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-If unfamiliar with a repair, before starting:
-• Check CPR Knowledge Hub
-• Check iFixit
-• Research online
-• Identify potential risks or fragile components
+If issues arise during a repair:
+• Contact the customer immediately
+• Explain the situation clearly
+• Document the conversation in the repair ticket
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-12. BENCH FEE POLICY
+12. REPAIR RESEARCH
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• $50 minimum bench fee applies for diagnostic work
-• May be adjusted based on time spent, complexity, and work performed
+If you are unfamiliar with a repair, before starting:
+☐ Access CPR Knowledge Hub
+☐ Check iFixit
+☐ Research the repair online
+☐ Identify potential risks or fragile components
+
+Understand the repair before beginning it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-13. DRESS CODE
+13. DAMAGE RESPONSIBILITY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Monday – Friday
-• Company-issued CPR collared polo (clean and presentable)
+Accidents happen. If additional damage occurs during a repair, the
+shop is responsible for fixing it.
+
+However, repeated mistakes or preventable damage will require
+management review of technician performance and position.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. REPAIRS WAITING ON PARTS OR APPROVAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Devices waiting on parts or customer approval must be:
+• Placed in an ESD tray
+• Kept with the repair ticket
+
+Devices never sit loose on the workbench.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. BENCH FEE POLICY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A $50 minimum bench fee applies for diagnostic work.
+
+Bench fees may be adjusted based on time spent on the device,
+complexity of diagnosis, and work performed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. DRESS CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Monday – Friday:
+• Company-issued CPR collared polo, clean and presentable
 • Slacks or dress pants
+• Clothing free of stains, excessive wrinkles, tears or holes
 • Closed-toe tennis shoes or dress shoes
 
-Weekend
-• Company-issued CPR t-shirt
-• Clean jeans (no holes, rips, or excessive wear)
+Weekends:
+• Company-issued CPR T-shirt may be worn
+• Clean jeans permitted — no holes, rips, fraying or excessive wear
 • Closed-toe tennis shoes or dress shoes
 
-General
-• Maintain good personal hygiene and neat appearance
-• No hats/hoodies without management approval
-• No offensive language, graphics, or competing logos on clothing
+General appearance:
+• Good personal hygiene and a neat, professional appearance at all times
+• Clothing fits appropriately — not excessively tight, baggy or revealing
+• Hats, hoodies and non-company outerwear only with management approval
+• No offensive language, inappropriate graphics or competing business logos
+• Management determines whether attire meets standards and may require
+  an employee to change
+
+Employees who fail to comply may be asked to correct the issue before
+beginning work.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-14. WRITE-UP TRIGGERS
+ACCOUNTABILITY & WRITE-UP TRIGGERS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Immediate Write-Up
+IMMEDIATE WRITE-UP
 • Missing screws or parts after repair
-• Failure to complete pre or post tests
+• Failure to complete pre- or post-tests
 • Failure to document repairs properly
-• Device returned in worse condition
-• Excessively messy workstation
+• Device returned to the customer in worse condition
+• Leaving the workstation excessively messy
 • Not reinstalling adhesive when required
 
-Performance Write-Up
+PERFORMANCE WRITE-UP
 • Repeated late repairs without communication
-• Multiple overdue tickets
-• Failure to clean workstation regularly
-• Not contacting customers about delays
+• Multiple overdue tickets in the repair queue
+• Failure to clean the workstation regularly
+• Not contacting customers regarding repair delays
 
-Serious Write-Up
+SERIOUS WRITE-UP
 • Careless damage to customer devices
-• Repeated avoidable mistakes
+• Repeated avoidable repair mistakes
 • Ignoring repair procedures
 • Improper documentation
 
+Repeated issues may result in retraining, reduced repair
+responsibilities, or position reassessment.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-15. DAILY CHECKLIST
+DAILY CHECKLIST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Beginning of Shift
+Beginning of shift:
 ✔ Review repair queue
 ✔ Identify upcoming repairs
 ✔ Ensure tools are ready
 ✔ Ensure workstation is clean
 
-During the Day
+During the day:
 ✔ Pre-test every device
 ✔ Complete repair notes
 ✔ Complete post-test
 ✔ Clean workstation after each repair
-✔ Monitor queue for overdue tickets
+✔ Monitor repair queue for overdue tickets
 ✔ Communicate delays early
 
-After Each Repair
+After each repair:
 ✔ Reinstall all screws and parts
-✔ Replace adhesive if device was opened
+✔ Replace adhesive if the device was opened
 ✔ Clean device
 ✔ Plug device in if possible
 ✔ Attach parts to ticket
 ✔ Mark repair Ready for Pickup
 
-End of Shift
+End of shift:
 ✔ Clean workstation
 ✔ Organize tools
 ✔ Dispose of debris and trash
 ✔ Clean soldering workstation (if used)
-✔ Ensure no open repairs are overdue`
+✔ Ensure no open repairs are overdue
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Technicians are expected to demonstrate organization, repair accuracy,
+communication, time management and professionalism.
+
+Failure to follow these standards may result in disciplinary action.`
   },
   {
     id: 11,
