@@ -5873,6 +5873,7 @@ const COMPARE_SITES = [
 ];
 
 const CONDITIONS = ['A - Excellent', 'B - Good', 'C - Fair', 'D - Poor'];
+const MAKES = ['Apple', 'Samsung', 'Google', 'Motorola', 'OnePlus', 'Other'];
 
 // Cable + power block added to every device
 const ACCESSORY_ADD = 19.99;
@@ -5910,7 +5911,7 @@ const ResalePricingView = ({ currentUser }) => {
   const [compareQuery, setCompareQuery] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({
-    model: '', condition: CONDITIONS[0], price: '',
+    make: 'Apple', model: '', condition: CONDITIONS[0], price: '',
     average: '', markup: '', storageJump: '',
     baseGb: '128', actualGb: '128',
   });
@@ -5968,6 +5969,7 @@ const ResalePricingView = ({ currentUser }) => {
     const finalPrice = form.price ? n(form.price) : (hasCalc ? calcPrice : 0);
     if (!finalPrice) return;
     const entry = {
+      make: form.make,
       model: form.model.trim(),
       storage: STORAGE_TIERS.find(t => String(t.gb) === String(form.actualGb))?.label || '',
       condition: form.condition,
@@ -5982,11 +5984,12 @@ const ResalePricingView = ({ currentUser }) => {
     };
     // Replace an existing row for the same model/storage/condition
     const rest = devices.filter(d =>
-      !(d.model.toLowerCase() === entry.model.toLowerCase() &&
+      !((d.make || '') === entry.make &&
+        d.model.toLowerCase() === entry.model.toLowerCase() &&
         (d.storage || '').toLowerCase() === entry.storage.toLowerCase() &&
         d.condition === entry.condition));
     save([entry, ...rest]);
-    setForm({ model: '', condition: CONDITIONS[0], price: '',
+    setForm({ make: form.make, model: '', condition: CONDITIONS[0], price: '',
               average: '', markup: '', storageJump: '',
               baseGb: '128', actualGb: '128' });
     setShowAdd(false);
@@ -5998,7 +6001,7 @@ const ResalePricingView = ({ currentUser }) => {
   };
 
   const filtered = devices.filter(d =>
-    `${d.model} ${d.storage} ${d.condition}`.toLowerCase().includes(search.toLowerCase()));
+    `${d.make || ''} ${d.model} ${d.storage} ${d.condition}`.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div>
@@ -6064,12 +6067,26 @@ const ResalePricingView = ({ currentUser }) => {
       {showAdd && (
         <Card style={{ marginBottom: 14 }}>
           {/* What the device is */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1.4fr', gap: 10, marginBottom: 14 }}>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Make</div>
+              <select value={form.make} onChange={e => setForm({ ...form, make: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {MAKES.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
             <div>
               <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Model</div>
               <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}
                 placeholder='iPhone 15 Pro'
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage</div>
+              <select value={form.actualGb} onChange={e => setForm({ ...form, actualGb: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {STORAGE_TIERS.map(t => <option key={t.gb} value={t.gb}>{t.label}</option>)}
+              </select>
             </div>
             <div>
               <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Condition</div>
@@ -6084,9 +6101,9 @@ const ResalePricingView = ({ currentUser }) => {
           <div style={{ color: C.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
             Price Build-Up
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 0.9fr 0.9fr 0.9fr', gap: 10, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
             <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Avg market price</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Avg retail price</div>
               <input value={form.average} onChange={e => setForm({ ...form, average: e.target.value })}
                 placeholder='605'
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
@@ -6112,13 +6129,7 @@ const ResalePricingView = ({ currentUser }) => {
                 {STORAGE_TIERS.map(t => <option key={t.gb} value={t.gb}>{t.label}</option>)}
               </select>
             </div>
-            <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>This device</div>
-              <select value={form.actualGb} onChange={e => setForm({ ...form, actualGb: e.target.value })}
-                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
-                {STORAGE_TIERS.map(t => <option key={t.gb} value={t.gb}>{t.label}</option>)}
-              </select>
-            </div>
+
           </div>
 
           {/* Live result */}
@@ -6173,7 +6184,7 @@ const ResalePricingView = ({ currentUser }) => {
               <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <div style={{ color: C.text, fontWeight: 700, fontSize: 14 }}>
-                    {d.model}{d.storage ? ` · ${d.storage}` : ''}
+                    {d.make ? `${d.make} ` : ''}{d.model}{d.storage ? ` · ${d.storage}` : ''}
                   </div>
                   <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
                     {d.condition}{d.updatedBy ? ` · ${d.updatedBy}` : ''}

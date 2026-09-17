@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/DevicePricing!A:K?key=${API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/DevicePricing!A:L?key=${API_KEY}`;
       const response = await fetch(url);
       const data = await response.json();
       const rows = (data.values || []).slice(1);
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
         storageJump: num(r[8]),
         tiers:      num(r[9]),
         calculated: num(r[10]),
+        make:       r[11] || '',
       })).filter(d => d.model);
       res.status(200).json({ devices });
     } catch (e) {
@@ -40,10 +41,11 @@ export default async function handler(req, res) {
       const { devices } = req.body;
       const rows = [
         ['Model', 'Storage', 'Condition', 'Price', 'Updated By', 'Updated',
-         'Average', 'Markup', 'Storage Jump', 'Tiers', 'Calculated'],
+         'Average', 'Markup', 'Storage Jump', 'Tiers', 'Calculated', 'Make'],
         ...devices.map(d => [
           d.model, d.storage, d.condition, d.price, d.updatedBy, d.updated,
           d.average || '', d.markup || '', d.storageJump || '', d.tiers || '', d.calculated || '',
+          d.make || '',
         ]),
       ];
       await fetch(SCRIPT_URL, {
