@@ -5874,13 +5874,46 @@ const COMPARE_SITES = [
 
 const CONDITIONS = ['A - Excellent', 'B - Good', 'C - Fair', 'D - Poor'];
 
+// Cable + power block added to every device
+const ACCESSORY_ADD = 19.99;
+
+// Storage ladder doubles each step, so tiers above base is just the gap here
+const STORAGE_TIERS = [
+  { label: '32GB', gb: 32 },
+  { label: '64GB', gb: 64 },
+  { label: '128GB', gb: 128 },
+  { label: '256GB', gb: 256 },
+  { label: '512GB', gb: 512 },
+  { label: '1TB', gb: 1024 },
+];
+const tiersBetween = (baseGb, actualGb) => {
+  const bi = STORAGE_TIERS.findIndex(t => t.gb === Number(baseGb));
+  const ai = STORAGE_TIERS.findIndex(t => t.gb === Number(actualGb));
+  if (bi < 0 || ai < 0) return 0;
+  return Math.max(0, ai - bi);
+};
+
+// Markup tracks device age — these mirror the pricing workbook
+const MARKUP_PRESETS = [
+  { label: '$40 — 2017 and older', value: 40 },
+  { label: '$60 — X / XR / XS era', value: 60 },
+  { label: '$80 — 11 series', value: 80 },
+  { label: '$100 — 12 / 13 series', value: 100 },
+  { label: '$120 — 14 / 15 series', value: 120 },
+  { label: '$150 — 16 / 17 series', value: 150 },
+];
+
 const ResalePricingView = ({ currentUser }) => {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [compareQuery, setCompareQuery] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ model: '', storage: '', condition: CONDITIONS[0], price: '' });
+  const [form, setForm] = useState({
+    model: '', condition: CONDITIONS[0], price: '',
+    average: '', markup: '', storageJump: '',
+    baseGb: '128', actualGb: '128',
+  });
   const [saving, setSaving] = useState(false);
 
   const load = () => {
@@ -5924,23 +5957,38 @@ const ResalePricingView = ({ currentUser }) => {
     setSaving(false);
   };
 
+  const n = (v) => parseFloat(String(v ?? '').replace(/[$,\s]/g, '')) || 0;
+  const tierCount = tiersBetween(form.baseGb, form.actualGb);
+  const storageAdd = n(form.storageJump) * tierCount;
+  const calcPrice = n(form.average) + n(form.markup) + storageAdd + ACCESSORY_ADD;
+  const hasCalc = n(form.average) > 0;
+
   const addDevice = () => {
-    if (!form.model.trim() || !form.price) return;
+    if (!form.model.trim()) return;
+    const finalPrice = form.price ? n(form.price) : (hasCalc ? calcPrice : 0);
+    if (!finalPrice) return;
     const entry = {
       model: form.model.trim(),
-      storage: form.storage.trim(),
+      storage: STORAGE_TIERS.find(t => String(t.gb) === String(form.actualGb))?.label || '',
       condition: form.condition,
-      price: parseFloat(String(form.price).replace(/[$,\s]/g, '')) || 0,
+      price: Math.round(finalPrice * 100) / 100,
       updatedBy: (currentUser?.name || '').split(' ')[0] || '',
-      updated: new Date().toISOString().split('T')[0],
+      updated: localDateKey(),
+      average: n(form.average),
+      markup: n(form.markup),
+      storageJump: n(form.storageJump),
+      tiers: tierCount,
+      calculated: hasCalc ? Math.round(calcPrice * 100) / 100 : 0,
     };
     // Replace an existing row for the same model/storage/condition
     const rest = devices.filter(d =>
       !(d.model.toLowerCase() === entry.model.toLowerCase() &&
-        d.storage.toLowerCase() === entry.storage.toLowerCase() &&
+        (d.storage || '').toLowerCase() === entry.storage.toLowerCase() &&
         d.condition === entry.condition));
     save([entry, ...rest]);
-    setForm({ model: '', storage: '', condition: CONDITIONS[0], price: '' });
+    setForm({ model: '', condition: CONDITIONS[0], price: '',
+              average: '', markup: '', storageJump: '',
+              baseGb: '128', actualGb: '128' });
     setShowAdd(false);
   };
 
@@ -6015,17 +6063,12 @@ const ResalePricingView = ({ currentUser }) => {
 
       {showAdd && (
         <Card style={{ marginBottom: 14 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 1fr auto', gap: 10, alignItems: 'end' }}>
+          {/* What the device is */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr', gap: 10, marginBottom: 14 }}>
             <div>
               <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Model</div>
               <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })}
-                placeholder='iPhone 14 Pro'
-                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
-            </div>
-            <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage</div>
-              <input value={form.storage} onChange={e => setForm({ ...form, storage: e.target.value })}
-                placeholder='128GB'
+                placeholder='iPhone 15 Pro'
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
@@ -6035,19 +6078,82 @@ const ResalePricingView = ({ currentUser }) => {
                 {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+          </div>
+
+          {/* The pricing math */}
+          <div style={{ color: C.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+            Price Build-Up
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 0.9fr 0.9fr 0.9fr', gap: 10, marginBottom: 12 }}>
             <div>
-              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Sell Price</div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Avg market price</div>
+              <input value={form.average} onChange={e => setForm({ ...form, average: e.target.value })}
+                placeholder='605'
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Markup (by age)</div>
+              <select value={form.markup} onChange={e => setForm({ ...form, markup: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                <option value=''>Select…</option>
+                {MARKUP_PRESETS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Storage jump $</div>
+              <input value={form.storageJump} onChange={e => setForm({ ...form, storageJump: e.target.value })}
+                placeholder='80'
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>Base storage</div>
+              <select value={form.baseGb} onChange={e => setForm({ ...form, baseGb: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {STORAGE_TIERS.map(t => <option key={t.gb} value={t.gb}>{t.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>This device</div>
+              <select value={form.actualGb} onChange={e => setForm({ ...form, actualGb: e.target.value })}
+                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none' }}>
+                {STORAGE_TIERS.map(t => <option key={t.gb} value={t.gb}>{t.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Live result */}
+          {hasCalc && (
+            <div style={{ background: C.tealDim, border: `1px solid ${C.teal}44`, borderRadius: 10, padding: '12px 16px', marginBottom: 12 }}>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>
+                ${n(form.average).toFixed(2)} avg
+                {n(form.markup) > 0 && ` + $${n(form.markup).toFixed(2)} markup`}
+                {storageAdd > 0 &&
+                  ` + $${storageAdd.toFixed(2)} storage (${tierCount} tier${tierCount === 1 ? '' : 's'} × $${n(form.storageJump)})`}
+                {` + $${ACCESSORY_ADD.toFixed(2)} cable & block`}
+              </div>
+              <div style={{ color: C.teal, fontWeight: 800, fontSize: 22 }}>
+                ${calcPrice.toFixed(2)}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'end', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 150 }}>
+              <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>
+                Final price {hasCalc && <span style={{ opacity: 0.7 }}>(blank = calculated)</span>}
+              </div>
               <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })}
                 onKeyDown={e => e.key === 'Enter' && addDevice()}
-                placeholder='449'
+                placeholder={hasCalc ? calcPrice.toFixed(2) : '449'}
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <button onClick={addDevice}
-              style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+              style={{ background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '9px 20px', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
               Save
             </button>
           </div>
           <div style={{ color: C.textMuted, fontSize: 11, marginTop: 10 }}>
+            Leave Final price blank to use the calculated figure, or type one to override.
             Saving the same model, storage and condition again replaces the old price.
           </div>
         </Card>
@@ -6071,6 +6177,14 @@ const ResalePricingView = ({ currentUser }) => {
                   </div>
                   <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
                     {d.condition}{d.updatedBy ? ` · ${d.updatedBy}` : ''}
+                    {d.average > 0 && (
+                      <span> · ${d.average} avg + ${d.markup} markup
+                        {d.storageJump * d.tiers > 0 ? ` + $${d.storageJump * d.tiers} storage` : ''}
+                        {' '}+ ${ACCESSORY_ADD}
+                        {d.calculated > 0 && Math.abs(d.calculated - d.price) > 0.01 &&
+                          ` · calc was $${d.calculated.toFixed(2)}`}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div style={{ color: ageColor(age), fontSize: 11, fontWeight: 600, minWidth: 90, textAlign: 'right' }}>

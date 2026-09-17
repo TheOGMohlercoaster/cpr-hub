@@ -10,17 +10,23 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/DevicePricing!A:F?key=${API_KEY}`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/DevicePricing!A:K?key=${API_KEY}`;
       const response = await fetch(url);
       const data = await response.json();
       const rows = (data.values || []).slice(1);
+      const num = v => parseFloat(String(v || '').replace(/[$,\s]/g, '')) || 0;
       const devices = rows.map(r => ({
-        model:     r[0] || '',
-        storage:   r[1] || '',
-        condition: r[2] || '',
-        price:     parseFloat(String(r[3] || '').replace(/[$,\s]/g, '')) || 0,
-        updatedBy: r[4] || '',
-        updated:   r[5] || '',
+        model:      r[0] || '',
+        storage:    r[1] || '',
+        condition:  r[2] || '',
+        price:      num(r[3]),
+        updatedBy:  r[4] || '',
+        updated:    r[5] || '',
+        average:    num(r[6]),
+        markup:     num(r[7]),
+        storageJump: num(r[8]),
+        tiers:      num(r[9]),
+        calculated: num(r[10]),
       })).filter(d => d.model);
       res.status(200).json({ devices });
     } catch (e) {
@@ -33,8 +39,12 @@ export default async function handler(req, res) {
     try {
       const { devices } = req.body;
       const rows = [
-        ['Model', 'Storage', 'Condition', 'Price', 'Updated By', 'Updated'],
-        ...devices.map(d => [d.model, d.storage, d.condition, d.price, d.updatedBy, d.updated]),
+        ['Model', 'Storage', 'Condition', 'Price', 'Updated By', 'Updated',
+         'Average', 'Markup', 'Storage Jump', 'Tiers', 'Calculated'],
+        ...devices.map(d => [
+          d.model, d.storage, d.condition, d.price, d.updatedBy, d.updated,
+          d.average || '', d.markup || '', d.storageJump || '', d.tiers || '', d.calculated || '',
+        ]),
       ];
       await fetch(SCRIPT_URL, {
         method: 'POST',
