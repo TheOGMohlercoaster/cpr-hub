@@ -2898,7 +2898,8 @@ const SOPView = () => {
         body: JSON.stringify({ question: aiQuery, sopContent: allContent })
       });
       const data = await response.json();
-      setAiAnswer(data.answer || data.error || 'No answer found.');
+      if (data.answer) setAiAnswer(data.answer);
+      else setAiAnswer(`⚠️ ${data.error || 'No answer returned.'}`);
     } catch (e) {
       setAiAnswer("Error connecting to AI. Please try again.");
     }
