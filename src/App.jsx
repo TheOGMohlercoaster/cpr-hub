@@ -958,88 +958,119 @@ Failure to complete any portion of the closing procedure may result in disciplin
     id: 9,
     title: "ZAGG Screen Protectors",
     category: "Sales",
-    updated: "Jul 9",
-    content: `ZAGG SOP — Store-Level Employee Guide
+    updated: "Sep 2026",
+    content: `📘 ZAGG SOP — Store-Level Employee Guide
 
-FIELD GUIDE LINK
+FIELD GUIDE
 https://sites.google.com/zaggfranchise.com/field-guide/getting-started/frequently-used-forms-and-links
 
 ISOD LOGIN
-Username: CPR1661
-Password: 9Pbwo5-a0
+User: CPR1661
+Pass: 9Pbwo5-a0
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-GLASS OPTIONS
+GLASS OPTIONS (ISOD)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-DEFENCE — Advanced Clarity and Scratch Protection | MSRP $19.99
+🛡 DEFENCE — Advanced Clarity & Scratch Protection
+MSRP (Phone) $19.99 · 0.15mm · Wearable, Smartphone & Tablet blanks
 • Edge-to-edge impact and shatter protection
 • Precision surface finishing for increased scratch resistance
-• Military grade components (originally for helicopter blades)
-• Thinner, more touch-sensitive package
-• High gloss glass-like surface finish
-• Stain resistant (cosmetics, cleaning supplies, food)
-• Can be cut for any device on ZAGG on Demand
-• Blank sizes: Wearable, Smartphone & Tablet
-• Thickness: 0.15mm
+• Military-grade components — originally designed to protect helicopter blades
+• Thinner and more touch-sensitive than older options
+• High-gloss, glass-like finish
+• Resists cosmetics, cleaning supplies and everyday food
+• Can be cut for any device on ZAGG On Demand
 
-ELITE — Advanced Self-Healing & Superior Impact Protection | MSRP $29.99
-• Superior impact & scratch protection
-• Anti-microbial treatment — inhibits odor-causing bacteria
+🛡 ELITE — Self-Healing & Superior Impact Protection
+MSRP (Phone) $29.99 · 0.18mm · Wearable, Smartphone & Tablet blanks
+• Superior impact and scratch protection
+• Anti-microbial treatment inhibits odor-causing bacteria
 • Premium glass-like feel and clarity
 • Advanced touch sensitivity
-• Advanced self-healing via Nano-Memory Technology
-• Military grade components
-• Can be cut for any device with On Demand
-• Blank sizes: Wearable, Smartphone & Tablet
-• Thickness: 0.18mm
+• Self-healing — Nano-Memory Technology heals minor scratches and dings
+• Military-grade components
+• Can be cut for any device on On Demand
 
-ELITE MATTE — Anti-Glare & Matte Feel | MSRP $29.99
-• Same as Elite plus reduced glare
-• Matte finish reduces direct light reflection
-• Velvet smooth premium matte feel
+🛡 ELITE MATTE — Anti-Glare & Matte Feel
+MSRP (Phone) $29.99 · 0.18mm · Wearable, Smartphone & Tablet blanks
+• Everything Elite offers, plus reduced glare
+• Matte finish stops direct light reflecting off the screen
+• Velvet-smooth premium matte feel
 • Can be cut for any device on ISOD
-• Blank sizes: Wearable, Smartphone & Tablet
-• Thickness: 0.18mm
 
-REINFORCE — Shatterproof, Glass-Like Surface | MSRP $39.99
+🛡 REINFORCE — Shatterproof, Glass-Like Surface
+MSRP (Phone) $39.99 · Small blank size only
 • 100% recycled PET material
 • Ultimate scratch protection
-• Smooth glass-like surface, superior durability
-• Shatterproof — will not chip or shatter unlike glass
+• Tough, glass-like surface — premium look and feel
+• Will not chip or shatter, unlike glass protectors
 • Smudge resistant
-• Available for flat devices only
-• Small blank size only — requires special cutting blade
+⚠️ Flat devices only · Requires a special cutting blade
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PROTECT BETTER CASE TRADE-IN PROGRAM
+PROTECT BETTER — CASE TRADE-IN PROGRAM
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Program Link: https://docs.google.com/presentation/d/18znFKjw5uLyvngjLWOeptwtGPqLIJhXIktGFqPC9NFw/edit
+https://docs.google.com/presentation/d/18znFKjw5uLyvngjLWOeptwtGPqLIJhXIktGFqPC9NFw/edit
 
-• Customers may trade in their current case for credit toward Gear4 (Preferred Partner Only)
-• Cases must be for the same generation of phone
-• Effective 11/11/22 — TBD
-• Coupon #ProtectBetter must be used and visible on receipt
-• New Gear4 sale must be visible on receipt
-• Receipt must be taped to traded-in case and sent with warranty product to receive credit
-• Traded-in case must match same generation as case being sold
-• iFrogz cases are NOT eligible — only trades toward new Gear4 cases
-• Any case, any brand can be traded in toward new Gear4 case
-• All Gear4 phone cases are eligible — not limited to iPhone
+Customers trade in their current case for credit toward a Gear4 case.
+Preferred Partner only. Effective 11/11/22 – TBD.
+
+Rules:
+• Traded case must be the same generation as the Gear4 case being sold
+  (trade an iPhone 12 case → an iPhone 12 case must be on the receipt)
+• Any brand, any original cost is eligible
+• Coupon #Protect Better must be used and visible on the receipt
+• The new Gear4 sale must be visible on the receipt
+• Tape the receipt to the traded-in case and send it with the warranty product
+  to receive credit
+• All Gear4 phone cases qualify — not just iPhone
+⚠️ iFrogz cases are NOT eligible
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WARRANTY PROCESS IN REPAIRQ
+WARRANTY PROCESS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Navigate to Tickets → + Repair Ticket (use Repair ticket to capture customer info)
-2. Capture customer contact information
-3. Capture device details
-4. Add ZAGG Labor SKU: "InvisibleShield Warranty - Professional Installation Service"
-   • Price: $12 for glass / $12 for ISOD
-5. Bundle the appropriate inventoried screen protector catalog item to the labor SKU
-   • This decreases inventory of glass consumed
-   • Customer is charged $12 for glass or $10 for ISOD`
+1. In RepairQ, hover Tickets → start a + Repair ticket
+   (Repair ticket is used so the customer's information gets captured)
+2. Capture the customer's contact information
+3. Capture their device details
+4. Add the ZAGG Labor SKU as the parent item:
+   "InvisibleShield Warranty - Professional Installation Service"
+   • $12 for glass · $12 for ISOD
+5. Bundle the appropriate inventoried screen protector catalog item to it
+   • Decreases inventory of the glass consumed
+   • Customer is charged $12 for glass or $10 for ISOD
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RMA PROCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Full walkthrough:
+https://docs.google.com/presentation/d/1lOU8nU0C0rBHIHJoRhqSVT6jhEMXWw9l/edit
+
+Summary:
+☐ Every screen protector must have a receipt with it
+☐ Organize by screen type, case type, etc.
+☐ Create the RMA on the ZAGG site: b2b.zagg.com
+☐ Create warranty
+☐ Count items by their respective warranty bucket
+☐ Upload the invoice report from RepairQ
+☐ Upload the invoice to the RMA request, plus the shipment tracking number
+☐ Box items and ship
+
+Pulling the RepairQ invoice report:
+1. Open RepairQ
+2. Reports → Sales → Details by Item
+3. Choose the date range
+4. Ticket Status → "Closed"
+5. Select Location
+6. Under "Catalog Item" enter ZAGGWARRANTYSERV
+
+SHIP TO:
+3939 S. Wasatch Blvd, #2
+SLC, UT 84124`
   },
   {
     id: 11,
