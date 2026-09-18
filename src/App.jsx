@@ -1797,154 +1797,313 @@ Adding a note:
   },
   {
     id: 21,
-    title: "ESET Program Guide",
+    title: "Computer Services Program (CSP)",
     category: "Sales",
     updated: "Sep 2026",
-    content: `📘 ESET PROGRAM MANAGEMENT GUIDE
-CPR Computer Services Program
+    content: `📘 CPR COMPUTER SERVICES PROGRAM
+Vendor programs, pricing and ordering
 
-⚠️ CONFIDENTIAL — FOR INTERNAL USE ONLY
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WHY WE SELL IT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ESET has built threat detection software for over 30 years, with more than
-110 million users across 202 countries. Known for strong security with low
-system impact.
-
-Our margin: minimum 50% on all ESET products, from the first purchase.
-For comparison, typical ESET Platinum Partners get 30% — and only after
-$300,000 in annual purchases.
-
-Covers PC, Mac and Android, so it's a revenue opportunity with nearly
-every customer who walks in.
+⚠️ CONFIDENTIAL — FOR INTERNAL USE ONLY. Contains our cost on every product.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PRODUCTS & PRICING
+WHY THIS MATTERS NOW
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-MOBILE SECURITY FOR ANDROID
+Windows 10 support ended October 14, 2025 — no more security updates, bug
+fixes or official support. That forces people to upgrade, replace and repair
+at an above-average rate.
+
+Three things working in our favor:
+• TECHNOLOGY DEPENDENCY — remote work and school, home servers
+• GROWING COMPLEXITY — cybersecurity, AI, Internet of Things
+• DECREASING COMPETITION — big box closures, unpopular depot services,
+  fewer resources for consumers
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHICH VENDOR FOR WHICH SERVICE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Security ................... ESET, TrackOff
+Basic / Premium Tune-Up .... RepairTech (TechSuite)
+Remote Support ............. LogMeIn Rescue
+Cloud Backup ............... Carbonite
+Data Recovery .............. Flashback Data
+Hardware Repair ............ Trusted Tech Team, CyberSpa
+Virus Removal .............. RepairTech, CyberSpa
+System Reload .............. CyberSpa, RepairTech
+Custom Built Computers ..... Biznuity
+Chromebook / K-12 Parts .... AG Parts, ChromebookParts.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ESET — ENDPOINT SECURITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+30+ years of threat detection, 110 million users across 202 countries.
+Strong security, low system impact. Covers PC, Mac and Android.
+
+OUR MARGIN: minimum 50% on all products, from the first purchase.
+Typical ESET Platinum Partners get 30%, and only after $300,000 a year.
+
+PRODUCTS
 ESET Android Security — 1 device / 1 year
-  Our cost $7.50 · Suggested retail $14.99
+  Cost $7.50 · Suggested retail $14.99
 
-INTERNET SECURITY — ALL DEVICES
 ESET Home Security Essentials — 1 device / 1 year
-  Our cost $25.00 · Suggested retail $49.99
+  Cost $25.00 · Suggested retail $49.99
 
 ESET Internet Security — up to 3 devices
-  Our cost $28.00 · Suggested retail $69.99
+  Cost $28.00 · Suggested retail $69.99
   * Usable for Internet Security (Windows) or Cyber Security Pro (Mac)
 
 PRICING RULES
-• Do not advertise more than 35% below suggested retail — ESET requires this
-• Recommended: match the prices listed on eset.com
-• Bundling with another product or service? Don't discount the ESET item
-  itself — show a bundle price and the total savings instead
+• Never advertise more than 35% below suggested retail — ESET requires this
+• Recommended: match the prices on eset.com
+• Bundling? Don't discount the ESET item — show a bundle price and the
+  total savings across everything included
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SERVICE PRICING
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Installation and setup takes roughly 30 minutes per product, assuming the
-system has no other issues like a virus infection or hardware failure.
-
-• Bill computer services in 30-minute increments at $59 per half hour minimum
+Installation and setup runs about 30 minutes per product on a healthy system.
+• Bill in 30-minute increments at $59 per half hour minimum
 • One product installed → $59.00 service on the invoice
-• Multiple devices → adjust service billing accordingly
-• Already doing other paid work (a hardware replacement, say)? Just charge
-  for the ESET product — don't add extra billable time
+• Multiple devices → adjust accordingly
+• Already doing other paid work? Just charge for the ESET product, no extra
+  billable time
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HOW TO PURCHASE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Corporate buys keys in bulk, so all ESET products are ordered through them —
-not from ESET directly.
-
-1. Go to Creatio → Support in the left menu
-2. Click the blue "+ New" button, upper right
-3. Find "ESET Requests, LogMeIn, TechSuite" and click Go
-4. Complete the request ticket:
-   • Location — CPR Springfield MO and Store ID Number
+HOW TO ORDER
+Corporate buys keys in bulk, so ESET is ordered through them.
+1. Creatio → Support in the left menu
+2. Blue "+ New" button, upper right
+3. Find "ESET Requests, LogMeIn, TechSuite" → Go
+4. Complete the ticket:
+   • Location — CPR Springfield MO and Store ID
    • Type — ESET Request
-   • Additional Issue Type — the product you want to purchase
-   • ESET License Qty — how many licenses
-5. You'll receive the licenses back as an Excel spreadsheet
+   • Additional Issue Type — the product
+   • ESET License Qty — how many
+5. Licenses arrive as an Excel spreadsheet
 
-Billing: license costs purchased during a month are automatically billed
-alongside the normal royalty payment schedule.
+Billing: purchases are billed alongside the normal royalty schedule.
+Support: computerhelp@cpr-corporate.com
 
 ⚠️ LICENSE TRACKING IS THE COMMON FAILURE POINT
-The most frequent problem stores hit is someone using a license for a
-customer without marking it off the list. The next tech tries the same
-license and gets an error.
-
+The most frequent problem stores hit is someone using a license without
+marking it off the list. The next tech tries the same one and gets an error.
 Establish a process for marking used licenses and train everyone on it.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HOW TO INSTALL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSTALLING
+https://eset.com/us/download/home/
+A Home Security Essentials license downloads either Home Security for PC or
+Cyber Security Pro for Mac.
+Licensing details: https://www.eset.com/us/home/licensing
 
-Go to https://eset.com/us/download/home/ and select the product to download.
+THE RENEWAL — WHERE THE RECURRING REVENUE IS
+Licenses cover one device for one year. We deliberately don't sell longer:
+• Endpoint protection is only as good as its latest update
+• Annual renewal keeps us in front of the customer every year
 
-Note: a Home Security Essentials license can be used to download either
-Home Security for PC or Cyber Security Pro for Mac.
+The product prompts customers to auto-renew directly with ESET after a year,
+which is why reaching out first matters.
 
-Product and licensing details:
-https://www.eset.com/us/home/licensing
+⚠️ Contact the customer at 11 months. Mailing a flyer 11 months after the
+sale results in a high percentage renewing through us instead.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RECURRING REVENUE — THE RENEWAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Licenses cover one device for one year. We deliberately don't offer longer
-terms:
-
-• Endpoint protection is only as good as its latest update — you don't want
-  a customer locked into three years if the product stops being the right fit
-• Helping customers renew annually builds the relationship and gives us
-  yearly recurring revenue
-
-The product prompts the customer to auto-renew directly with ESET after a
-year. That's why reaching out first matters.
-
-⚠️ Contact the customer at 11 months to remind them of the renewal date and
-offer to handle it. Mailing a flyer 11 months after the sale results in a
-high percentage of customers paying us for the renewal service instead.
+RENEWAL TRACKING — RepairQ can't automate this
+1. After an ESET sale, add a Google Calendar note dated 11 months out
+   • Sale April 1, 2025 → note on March 1, 2026: "ESET PC — Customer Name"
+2. Every Friday, one staff member lists next week's renewals
+3. Mail a renewal notice to everyone on that list
+   • Mention the free check-up included — it gets them booking an appointment
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RENEWAL TRACKING PROCESS
+TRACKOFF — PRIVACY SOFTWARE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-RepairQ can't automate this, so it runs on the store calendar.
+TrackOff Basic — up to 3 devices
+  Cost $3.50 · MSRP $34.99/year
+TrackOff Elite — 3 computers / 1 year
+  Cost $11.00 · MSRP $59.95
+TrackOff Mobile for Android
+  Cost $8.00 · MSRP $29.88
 
-1. After an ESET sale, add a note to the store's Google Calendar dated
-   11 months out
-   • Sale on April 1, 2025 → calendar note on March 1, 2026
-   • Note reads: "ESET PC — Customer Name"
-2. Every Friday, one staff member lists all renewal notices due next week
-3. Mail a renewal notice to everyone on that list, reminding them their
-   endpoint protection needs renewing by a specific date
-   • Mention the free check-up included with renewal — it encourages them
-     to book an appointment
+Order: email TrackoffKeys@merrymtg.com — any quantity
+Billed with the regular royalty schedule
+Support: info@trackoff.com · www.trackoff.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MARKETING
+REPAIRTECH — TECHSUITE DIAGNOSTICS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Every customer who comes in should hear about our PC, Mac and mobile
-security offerings.
+• 1 FREE account per store, included in the monthly tech fee
+• Additional accounts $20 per user per month
+• 300+ professional utilities
+• Preset procedures: basic diagnostic, hardware diagnostic, basic tune-up,
+  cleanup — all customizable
 
-• In-store posters and flyers — see the CPR Digital Asset Library
-• POP stand and other materials
-• Social media posts
-• Email marketing
-• Recommendations by technicians and sales associates during the sale
+Open an account: email support@cellphonerepair.com with the store email
+Support: support@repairtechsolutions.com · www.repairtechsolutions.com
 
-Order approved wall posters through the corporate store design options.
-These services are also on the CPR website and in the monthly email
-marketing campaigns.`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LOGMEIN RESCUE — REMOTE SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+$35 per user per month — a 76% discount off the normal $1,299/year.
+
+What it does:
+• See what the client sees; use built-in diagnostics or your own
+• Install software remotely — annual ESET renewals, printer setup
+• 10 concurrent sessions
+• Invite other technicians into your session
+
+⚠️ This creates a billable support call. Recommend $50 minimum per half hour.
+
+Open an account: email support@cellphonerepair.com with the store email
+Product support: (877) 337-2102 · www.logmeinrescue.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARBONITE — CLOUD BACKUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Set up a partner account directly at http://carbonite.com/partners —
+scroll to the bottom, select "Become a Partner". No cost to join.
+
+⚠️ Use "CPR – Springfield MO" as the account name.
+Benefit: 20% partner discount on Carbonite products.
+Support provided by Carbonite.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FLASHBACK DATA — DATA RECOVERY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• No Data – No Fee guarantee
+• Free shipping to the lab
+• Minimum 10% commission, rising as recovery volume grows across CPR
+• 💡 Technician bonus: $25 Amazon gift card for every accepted recovery
+
+Sign up: https://flashbackdata.com/partner/
+⚠️ Use "CPR – Springfield MO" to get our commission structure.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRUSTED TECH TEAM — SOFTWARE PROCUREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Digital download of Microsoft, Intuit and other software — no inventory cost,
+static pricing for easy quoting.
+
+Sign up: www.trustedtechteam.com/pages/ComputerTroubleshooters — complete the
+short form, and login credentials arrive by email.
+
+⚠️ Once logged in you MUST click the banner "Click here to enter the Elite
+Portal" for our exclusive pricing. The program is shared between CPR and CT,
+so it carries the CT logo — that's expected.
+
+Support: Support@trustedtechteam.com
+Mark Spitzberg, Account Manager — mark@trustedtechteam.com · (949) 771-9783
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CYBERSPA — FRESHSTART SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FreshStart services and discounted Western Digital SSD purchasing.
+One license per repair. Cost $16.50 per license.
+
+ORDERING (non-member stores):
+1. www.cyber-spa.com/individuals
+2. Buy FreshStart License Keys!
+3. Choose quantity → Add to Cart → View Cart
+4. Coupon code CPRS@L3 → Apply Coupon
+5. $3.50 per key discount shows in Cart Totals
+6. Checkout
+
+MEMBERSHIP: at 5+ services a month you qualify as a member store — licenses
+drop to $15, you receive 5 keys monthly, and pay a $75 monthly fee. Members
+also get marketing initiatives.
+
+⚠️ For national online marketing with CyberSpa, the store must complete
+training and deliver 5 complete FreshStart services.
+
+Contact: info@cyber-spa.com
+Marketing portal: https://www.cyber-spa.com/marketing-materials/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BIZNUITY — CUSTOM BUILT COMPUTERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Custom built new and used computers and laptops carrying the CPR logo, with
+a full 3-year warranty backed by Biznuity. Exclusive CPR pricing.
+
+www.biznuity.com/CPR
+Support: teamctcpr@biznuity.com · 888-846-4276
+Tony Waters, Account Manager — tonyw@biznuity.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AG PARTS & CHROMEBOOKPARTS.COM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AG PARTS WORLDWIDE
+• K-12 services
+• Authorized reseller of laptop, Chromebook and Apple parts
+• Motherboard repair services and exchange program
+• Device repair services
+• Technician resource for repair videos
+
+CHROMEBOOKPARTS.COM
+• K-12 services · Chromebook parts
+• Asset management services
+• Device repair services
+• Technician resource for repair videos
+
+HARDWARE PARTS: no corporate accounts exist. Amazon Business and NewEgg
+are the recommended sources.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLING IT — IN THE STORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every customer who walks in should hear about PC, Mac and mobile security.
+
+DISPLAY
+• Display one, sell one — display devices are marketing, not just inventory
+• Simple signage: "Ask About Our New and Used Laptops"
+
+EDUCATE
+• Make the most of every door swing
+• Keep it easy for staff — consistency beats cleverness
+
+GOOGLE BUSINESS PROFILE
+• Add photos of devices and techs working on computers and laptops
+• Respond to all reviews
+• Answer customer questions
+
+BE THE LOCAL LEGEND
+• Go beyond corporate social posts
+• Brag about good work
+• Get customers involved — pictures and stories
+
+MATERIALS in AdCentral: in-store TV ads, email marketing, social media and
+blogs, and the Digital Asset Library. Order approved wall posters through
+corporate store design options.
+
+ESET UPSELL ANGLES
+• Every repair is an upsell opportunity
+• Upsell beyond the repaired device — money-saving bundles, remote support
+• 1-year SKU means annual recurring revenue
+• Android protection is a nearly untapped market
+• Client training opportunities
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GETTING HELP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CSP HELP DESK — staffed by computer repair professionals with extensive
+industry experience.
+→ Complete the support form in RepairQ, or submit a ticket in Creatio
+
+PROGRAM CONTACT
+Kim Weinberger, CPR Computer Services
+Kim.Weinberger@cpr-corporate.com
+Consultations · program questions · support
+
+A Computer Services section of the CPR Knowledge Hub is coming, covering
+best practices, marketing and technical support.`
   },
 ];
 const REPAIR_PARTS = [
