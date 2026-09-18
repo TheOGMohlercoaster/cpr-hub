@@ -1795,6 +1795,157 @@ Adding a note:
    ⚠️ No acronyms or technical language in a customer-facing note
 5. Flag as Important to pin the note to the top of the ticket`
   },
+  {
+    id: 21,
+    title: "ESET Program Guide",
+    category: "Sales",
+    updated: "Sep 2026",
+    content: `📘 ESET PROGRAM MANAGEMENT GUIDE
+CPR Computer Services Program
+
+⚠️ CONFIDENTIAL — FOR INTERNAL USE ONLY
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY WE SELL IT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ESET has built threat detection software for over 30 years, with more than
+110 million users across 202 countries. Known for strong security with low
+system impact.
+
+Our margin: minimum 50% on all ESET products, from the first purchase.
+For comparison, typical ESET Platinum Partners get 30% — and only after
+$300,000 in annual purchases.
+
+Covers PC, Mac and Android, so it's a revenue opportunity with nearly
+every customer who walks in.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCTS & PRICING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MOBILE SECURITY FOR ANDROID
+ESET Android Security — 1 device / 1 year
+  Our cost $7.50 · Suggested retail $14.99
+
+INTERNET SECURITY — ALL DEVICES
+ESET Home Security Essentials — 1 device / 1 year
+  Our cost $25.00 · Suggested retail $49.99
+
+ESET Internet Security — up to 3 devices
+  Our cost $28.00 · Suggested retail $69.99
+  * Usable for Internet Security (Windows) or Cyber Security Pro (Mac)
+
+PRICING RULES
+• Do not advertise more than 35% below suggested retail — ESET requires this
+• Recommended: match the prices listed on eset.com
+• Bundling with another product or service? Don't discount the ESET item
+  itself — show a bundle price and the total savings instead
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SERVICE PRICING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Installation and setup takes roughly 30 minutes per product, assuming the
+system has no other issues like a virus infection or hardware failure.
+
+• Bill computer services in 30-minute increments at $59 per half hour minimum
+• One product installed → $59.00 service on the invoice
+• Multiple devices → adjust service billing accordingly
+• Already doing other paid work (a hardware replacement, say)? Just charge
+  for the ESET product — don't add extra billable time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HOW TO PURCHASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Corporate buys keys in bulk, so all ESET products are ordered through them —
+not from ESET directly.
+
+1. Go to Creatio → Support in the left menu
+2. Click the blue "+ New" button, upper right
+3. Find "ESET Requests, LogMeIn, TechSuite" and click Go
+4. Complete the request ticket:
+   • Location — CPR Springfield MO and Store ID Number
+   • Type — ESET Request
+   • Additional Issue Type — the product you want to purchase
+   • ESET License Qty — how many licenses
+5. You'll receive the licenses back as an Excel spreadsheet
+
+Billing: license costs purchased during a month are automatically billed
+alongside the normal royalty payment schedule.
+
+⚠️ LICENSE TRACKING IS THE COMMON FAILURE POINT
+The most frequent problem stores hit is someone using a license for a
+customer without marking it off the list. The next tech tries the same
+license and gets an error.
+
+Establish a process for marking used licenses and train everyone on it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HOW TO INSTALL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Go to https://eset.com/us/download/home/ and select the product to download.
+
+Note: a Home Security Essentials license can be used to download either
+Home Security for PC or Cyber Security Pro for Mac.
+
+Product and licensing details:
+https://www.eset.com/us/home/licensing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RECURRING REVENUE — THE RENEWAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Licenses cover one device for one year. We deliberately don't offer longer
+terms:
+
+• Endpoint protection is only as good as its latest update — you don't want
+  a customer locked into three years if the product stops being the right fit
+• Helping customers renew annually builds the relationship and gives us
+  yearly recurring revenue
+
+The product prompts the customer to auto-renew directly with ESET after a
+year. That's why reaching out first matters.
+
+⚠️ Contact the customer at 11 months to remind them of the renewal date and
+offer to handle it. Mailing a flyer 11 months after the sale results in a
+high percentage of customers paying us for the renewal service instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RENEWAL TRACKING PROCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+RepairQ can't automate this, so it runs on the store calendar.
+
+1. After an ESET sale, add a note to the store's Google Calendar dated
+   11 months out
+   • Sale on April 1, 2025 → calendar note on March 1, 2026
+   • Note reads: "ESET PC — Customer Name"
+2. Every Friday, one staff member lists all renewal notices due next week
+3. Mail a renewal notice to everyone on that list, reminding them their
+   endpoint protection needs renewing by a specific date
+   • Mention the free check-up included with renewal — it encourages them
+     to book an appointment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MARKETING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every customer who comes in should hear about our PC, Mac and mobile
+security offerings.
+
+• In-store posters and flyers — see the CPR Digital Asset Library
+• POP stand and other materials
+• Social media posts
+• Email marketing
+• Recommendations by technicians and sales associates during the sale
+
+Order approved wall posters through the corporate store design options.
+These services are also on the CPR website and in the monthly email
+marketing campaigns.`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
