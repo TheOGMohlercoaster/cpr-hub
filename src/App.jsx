@@ -2170,6 +2170,55 @@ const StatCard = ({ label, value, sub, color = C.accent, icon }) => (
   </Card>
 );
 // ── OPEN PURCHASE ORDERS ─────────────────────────────────────────────────
+// RepairQ notes are rich text, so tracking arrives wrapped in <p> tags with
+// HTML entities. Clean it, then link straight to the carrier when we can.
+const cleanTracking = (raw) => {
+  let t = String(raw || '')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .trim();
+  return t;
+};
+
+const trackingLink = (raw) => {
+  const t = cleanTracking(raw);
+  if (!t) return null;
+
+  // A pasted carrier URL — use it as-is
+  const url = t.match(/https?:\/\/\S+/);
+  if (url) return { href: url[0], label: 'Track ↗' };
+
+  // Otherwise treat it as a bare number and pick the carrier by format
+  const num = t.replace(/[\s-]/g, '');
+  if (/^1Z[0-9A-Z]{16}$/i.test(num)) {
+    return { href: `https://www.ups.com/track?tracknum=${num}`, href2: null, label: 'Track ↗' };
+  }
+  if (/^9[0-9]{15,25}$/.test(num)) {
+    return { href: `https://tools.usps.com/go/TrackConfirmAction?tLabels=${num}`, label: 'Track ↗' };
+  }
+  if (/^[0-9]{12}$|^[0-9]{15}$|^[0-9]{20}$/.test(num)) {
+    return { href: `https://www.fedex.com/fedextrack/?trknbr=${num}`, label: 'Track ↗' };
+  }
+  // Unrecognised — fall back to a search
+  return { href: `https://www.google.com/search?q=${encodeURIComponent(num)}`, label: 'Look up ↗' };
+};
+
+// Short display form — a pasted URL shows just its tracking number
+const trackingLabel = (raw) => {
+  const t = cleanTracking(raw);
+  if (!t) return '';
+  const m = t.match(/(?:trknbr|tracknum|tLabels|qtc_tLabels1)=([0-9A-Z]+)/i);
+  if (m) return m[1];
+  if (/^https?:\/\//i.test(t)) return 'tracking link';
+  return t;
+};
+
 const OpenPurchaseOrders = () => {
   const [pos, setPos] = useState([]);
   const [mounted, setMounted] = useState(false);
@@ -2227,11 +2276,11 @@ const OpenPurchaseOrders = () => {
               </div>
               <div style={{ color: C.textMuted, fontSize: 11, marginTop: 2 }}>
                 {po.status} · {age === null ? po.created : age === 0 ? 'today' : `${age} day${age === 1 ? '' : 's'} ago`}
-                {po.tracking ? ` · ${po.tracking}` : ' · no tracking yet'}
+                {po.tracking ? ` · ${trackingLabel(po.tracking)}` : ' · no tracking yet'}
               </div>
             </div>
             {po.tracking
-              ? <a href={`https://www.google.com/search?q=${encodeURIComponent(po.tracking)}`} target="_blank" rel="noopener noreferrer"
+              ? <a href={trackingLink(po.tracking)?.href} target="_blank" rel="noopener noreferrer"
                   style={{ background: C.blueDim, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: '4px 12px', color: C.blue, fontSize: 11, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
                   Track ↗
                 </a>
