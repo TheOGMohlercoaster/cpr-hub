@@ -5302,9 +5302,11 @@ const ShiftModal = ({ day, employee, existing, onSave, onDelete, onClose }) => {
   const [end, setEnd] = useState(existing?.end || "5:00 PM");
   const [notes, setNotes] = useState(existing?.notes || "");
 
+  // Store hours — 9:00 AM through 7:00 PM in half-hour steps
   const timeOptions = [];
-  for (let h = 6; h <= 22; h++) {
+  for (let h = 9; h <= 19; h++) {
     for (let m of [0, 30]) {
+      if (h === 19 && m === 30) continue;   // stop at 7:00 PM
       const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
       const ampm = h < 12 ? "AM" : "PM";
       const label = `${hour}:${m === 0 ? "00" : "30"} ${ampm}`;
@@ -5539,8 +5541,9 @@ const ScheduleView = ({ currentUser }) => {
 
   const timeOptions = () => {
     const opts = [];
-    for (let h = 6; h <= 22; h++) {
+    for (let h = 9; h <= 19; h++) {
       for (let m of [0, 30]) {
+        if (h === 19 && m === 30) continue;   // stop at 7:00 PM
         const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
         const ampm = h < 12 ? 'AM' : 'PM';
         opts.push(`${hour}:${m === 0 ? '00' : '30'} ${ampm}`);
