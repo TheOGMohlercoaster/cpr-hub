@@ -278,9 +278,13 @@ const mergeTaskChange = async (date, change) => {
   const custom = [...(server.custom || [])];
 
   if (change.type === 'toggle') {
-    const idx = done.findIndex(d => d.taskId === change.taskId);
-    if (idx >= 0) done.splice(idx, 1);
-    else done.push({ taskId: change.taskId, by: change.by || '', at: new Date().toISOString() });
+    // Remove every matching entry, not just the first — duplicates from older
+    // writes would otherwise survive and re-check the box
+    const had = done.some(d => d.taskId === change.taskId);
+    const kept = done.filter(d => d.taskId !== change.taskId);
+    done.length = 0;
+    kept.forEach(d => done.push(d));
+    if (!had) done.push({ taskId: change.taskId, by: change.by || '', at: new Date().toISOString() });
   } else if (change.type === 'addCustom') {
     custom.push(change.task);
   } else if (change.type === 'deleteCustom') {

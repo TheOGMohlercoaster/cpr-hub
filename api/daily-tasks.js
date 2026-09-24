@@ -3,7 +3,8 @@ const API_KEY = 'AIzaSyBUfyOB-U1RPitIXZn0D0eHgtEkh76xEIA';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1zLjJPZR8DDfABZuj90C8bGeBtPo0zLXDEgzU67ekf9BibqA7o4wV78XR81JKG3Q5/exec';
 
 const HEADERS = ['date', 'type', 'taskId', 'text', 'role', 'priority', 'completedBy', 'completedAt'];
-const KEEP_DAYS = 14;
+// Tasks reset daily, so only today's rows are kept. Anything older is dropped
+// on the next write — it keeps the tab small and prevents stale rows piling up.
 
 async function readRows() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/DailyTasks!A:H?key=${API_KEY}`;
@@ -14,15 +15,26 @@ async function readRows() {
 
 function shape(rows, date) {
   const todays = rows.filter(r => r[0] === date);
-  return {
-    date,
-    done: todays.filter(r => r[1] === 'done').map(r => ({
-      taskId: r[2] || '', by: r[6] || '', at: r[7] || '',
-    })),
-    custom: todays.filter(r => r[1] === 'custom').map(r => ({
-      id: r[2] || '', text: r[3] || '', role: r[4] || '', priority: r[5] || 'med',
-    })),
-  };
+
+  const done = [];
+  const seenDone = new Set();
+  todays.filter(r => r[1] === 'done').forEach(r => {
+    const taskId = r[2] || '';
+    if (!taskId || seenDone.has(taskId)) return;
+    seenDone.add(taskId);
+    done.push({ taskId, by: r[6] || '', at: r[7] || '' });
+  });
+
+  const custom = [];
+  const seenCustom = new Set();
+  todays.filter(r => r[1] === 'custom').forEach(r => {
+    const id = r[2] || '';
+    if (!id || seenCustom.has(id)) return;
+    seenCustom.add(id);
+    custom.push({ id, text: r[3] || '', role: r[4] || '', priority: r[5] || 'med' });
+  });
+
+  return { date, done, custom };
 }
 
 export default async function handler(req, res) {
@@ -50,17 +62,26 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'done and custom must be arrays' });
       }
 
-      // Preserve other days so the sheet keeps a short history
-      const cutoff = new Date(Date.now() - KEEP_DAYS * 86400000).toISOString().split('T')[0];
-      const existing = await readRows();
-      const otherDays = existing.filter(r => r[0] !== day && r[0] >= cutoff);
+      // One row per task per day. Duplicates made unticking impossible —
+      // removing one left the other behind and the box re-checked itself.
+      const seenDone = new Set();
+      const doneRows = [];
+      for (const d of done) {
+        if (!d || !d.taskId || seenDone.has(d.taskId)) continue;
+        seenDone.add(d.taskId);
+        doneRows.push([day, 'done', d.taskId, '', '', '', d.by || '', d.at || '']);
+      }
 
-      const todayRows = [
-        ...done.map(d => [day, 'done', d.taskId, '', '', '', d.by || '', d.at || '']),
-        ...custom.map(c => [day, 'custom', c.id, c.text, c.role || '', c.priority || 'med', '', '']),
-      ];
+      const seenCustom = new Set();
+      const customRows = [];
+      for (const c of custom) {
+        if (!c || !c.id || seenCustom.has(c.id)) continue;
+        seenCustom.add(c.id);
+        customRows.push([day, 'custom', c.id, c.text, c.role || '', c.priority || 'med', '', '']);
+      }
 
-      const rows = [HEADERS, ...otherDays, ...todayRows];
+      // Only today survives — yesterday's rows are dropped
+      const rows = [HEADERS, ...doneRows, ...customRows];
 
       const gs = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
