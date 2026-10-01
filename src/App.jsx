@@ -2109,6 +2109,112 @@ Consultations · program questions · support
 A Computer Services section of the CPR Knowledge Hub is coming, covering
 best practices, marketing and technical support.`
   },
+  {
+    id: 22,
+    title: "Apple GSX Token Reset",
+    category: "POS",
+    updated: "Apr 2025",
+    content: `📘 CPR APPLE GSX TOKEN RESET
+Internal CPR use only · CRR v1.3
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PURPOSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+How to reset the GSX token for our location when the RepairQ–GSX
+integration breaks.
+
+This does not replace the normal method of requesting a token reset —
+doing it yourself is entirely voluntary.
+
+Each location has a unique Apple ID used for the GSX and RepairQ
+integration. When a token breaks, that Apple ID is what generates the
+new one.
+
+⚠️ The process is simple, but done incorrectly it takes the store's
+ability to complete Apple repairs offline.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BEFORE YOU START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+By choosing to reset the token yourself, you agree:
+
+1. You will NOT change the password under any circumstances
+2. You take responsibility for any downtime caused by handling the
+   reset incorrectly
+
+🚨 ALWAYS USE A PRIVATE / INCOGNITO WINDOW
+
+The token credentials for the location are different from your personal
+store GSX login. Without private browsing you will generate a token for
+your own GSX account, which will not work.
+
+It also stops the username and password being saved in your browser —
+saved credentials can break another location's token the next time
+someone resets one.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESETTING THE TOKEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open a private / incognito window and sign in to RepairQ
+
+2. Settings menu → Location Settings
+
+3. Settings Overview → Integrations
+
+4. Enabled Integrations → GSX
+
+5. Open the Credentials tab and copy the Apple ID field to your clipboard
+   ⚠️ CRITICAL: never change or remove the username in this field
+   ⚠️ CRITICAL: do not click or change any value outside the fields in
+      this procedure
+
+6. Click the "Log in to your Apple GSX" link
+   → This opens the Apple API Token Portal
+
+   🚨 If a token is already showing, you have been logged in automatically
+      under a personal or another store's Apple ID. SIGN OUT IMMEDIATELY.
+
+7. Sign in with the Apple ID you copied and the location password
+   • Username format: oem###@cpr-stores.com
+   • Password: see the store credential list (ask a manager)
+
+   🚨 NEVER click "Remember Me"
+
+8. Choose the correct 2FA device and confirm the code
+   • To convert the account to non-2FA, contact Ops Support
+
+9. Copy the token shown
+
+10. Back in RepairQ, paste it into the "GSX API Token" field and click
+    "Save GSX Settings"
+
+11. 🚨 CRITICAL: return to the Apple Token Portal and click Sign Out
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TESTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In RepairQ, go to the GSX Integrations page → API Testing tab.
+Test with a known iPhone serial number.
+
+⚠️ If the test fails twice, STOP. Do not keep trying.
+Contact CPR Support or your FSM.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUICK CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Private / incognito window
+☐ Apple ID copied from RepairQ, not typed from memory
+☐ Username unchanged
+☐ "Remember Me" not clicked
+☐ Token pasted and GSX settings saved
+☐ Signed out of the Apple Token Portal
+☐ Tested with a known iPhone serial`
+  },
 ];
 const REPAIR_PARTS = [
   { part: 'iPhone 15 Pro OLED Screen', supplier: 89.99, ourCost: 139.99, margin: 55 },
