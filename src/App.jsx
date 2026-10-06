@@ -2893,7 +2893,274 @@ const getMSCredentials = () => {
   } catch { return { consumerKey: "", consumerSecret: "", accessToken: "", accessTokenSecret: "" }; }
 };
 
-const PricingView = () => {
+
+// ── REPAIR TIME ESTIMATOR (soft launch — Jason only) ─────────────────────
+// Reads the Looker-fed RepairTickets tab to see when each tech frees up,
+// then adds the chosen repair's duration to give a pickup time.
+
+const REPAIR_TYPES = [
+  { group: 'Standard — 30 min', mins: 30, items: [
+    'iPhone / Samsung screen with frame',
+    'Charge port',
+    'Button / flex',
+    'Camera',
+    'Camera lens',
+    'Samsung back glass',
+    'Back glass — iPhone 14 and newer',
+    'Battery',
+    'Phone / charge port cleaning',
+    'Laptop battery',
+  ]},
+  { group: 'Moderate — 45 min', mins: 45, items: [
+    'Samsung screen without frame',
+    'iPhone back glass requiring housing (pre-15)',
+    'Multi repair',
+  ]},
+  { group: 'Extensive — 1 hour', mins: 60, items: [
+    'Console repair',
+    'Laptop screen',
+    'Laptop hard drive',
+    'Diagnosis',
+    'Software',
+  ]},
+  { group: 'Exception — check first', mins: null, items: [
+    'Temp fix / data transfer',
+    'Odd device or repair',
+  ]},
+];
+
+// Tickets still occupying a slot. on_hold is waiting on parts, so it isn't
+// consuming bench time.
+const ACTIVE_STATUSES = ['new', 'in_diagnosis', 'in_repair', 'pending_approval'];
+
+const STORE_OPEN_HOUR = 9.5;    // 9:30 AM
+const STORE_CLOSE_HOUR = 18.5;  // 6:30 PM
+
+const parseSheetDate = (v) => {
+  if (!v) return null;
+  const d = new Date(String(v).trim().replace(' ', 'T'));
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const fmtWhen = (d) => {
+  if (!d) return '—';
+  const today = localDateKey();
+  const day = localDateKey(d);
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (day === today) return `today at ${time}`;
+  const tomorrow = localDateKey(new Date(Date.now() + 86400000));
+  if (day === tomorrow) return `tomorrow at ${time}`;
+  return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${time}`;
+};
+
+// Round up to the next quarter hour — nobody quotes 4:07
+const snap = (d) => {
+  const out = new Date(d);
+  out.setSeconds(0, 0);
+  const m = out.getMinutes();
+  out.setMinutes(m + ((15 - (m % 15)) % 15));
+  return out;
+};
+
+// Push a time into store hours, rolling to the next day if needed
+const withinHours = (d) => {
+  const out = new Date(d);
+  const h = out.getHours() + out.getMinutes() / 60;
+  if (h < STORE_OPEN_HOUR) {
+    out.setHours(Math.floor(STORE_OPEN_HOUR), (STORE_OPEN_HOUR % 1) * 60, 0, 0);
+  } else if (h > STORE_CLOSE_HOUR) {
+    out.setDate(out.getDate() + 1);
+    out.setHours(Math.floor(STORE_OPEN_HOUR), (STORE_OPEN_HOUR % 1) * 60, 0, 0);
+  }
+  return out;
+};
+
+const RepairTimeEstimator = ({ currentUser }) => {
+  const [tickets, setTickets] = useState([]);
+  const [techShifts, setTechShifts] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [err, setErr] = useState('');
+  const [choice, setChoice] = useState('');
+  const todayStr = localDateKey();
+
+  const load = () => {
+    const sheets = (tab, range) =>
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/${tab}!${range}?key=${SHEETS_API_KEY}`)
+        .then(r => r.json()).catch(() => ({}));
+
+    Promise.all([sheets('RepairTickets', 'A:Z'), sheets('Sheet1', 'A:F')])
+      .then(([rt, sched]) => {
+        const rows = rt?.values || [];
+        if (rows.length < 2) { setErr('No repair ticket data yet — check the Looker schedule.'); setLoaded(true); return; }
+
+        // Match columns by header so a reordered Look doesn't break this
+        const head = rows[0].map(h => String(h).toLowerCase().trim());
+        const col = (...names) => {
+          for (const n of names) {
+            const i = head.findIndex(h => h === n.toLowerCase());
+            if (i >= 0) return i;
+          }
+          for (const n of names) {
+            const i = head.findIndex(h => h.includes(n.toLowerCase()));
+            if (i >= 0) return i;
+          }
+          return -1;
+        };
+        const cStatus = col('status');
+        const cTech   = col('full name', 'technician', 'assigned');
+        const cDue    = col('repair estimated minute', 'estimated', 'promised', 'due');
+        const cType   = col('ticket type');
+
+        const parsed = rows.slice(1).map(r => ({
+          status: String(r[cStatus] || '').toLowerCase().trim(),
+          tech:   String(r[cTech] || '').trim(),
+          due:    parseSheetDate(r[cDue]),
+          type:   String(r[cType] || '').trim(),
+        })).filter(t => ACTIVE_STATUSES.includes(t.status));
+
+        setTickets(parsed);
+        setErr('');
+
+        // Who's on the bench today, and until when
+        const srows = (sched?.values || []).slice(1);
+        const techIds = new Set(EMPLOYEES
+          .filter(e => ['Tech', 'Tech/Sales', 'Owner'].includes(e.role))
+          .map(e => String(e.id)));
+        const shifts = srows
+          .filter(r => r[2] === todayStr && techIds.has(String(r[0])))
+          .map(r => ({ name: String(r[1] || '').trim(), start: r[3] || '', end: r[4] || '' }));
+        setTechShifts(shifts);
+        setLoaded(true);
+      })
+      .catch(() => { setErr('Could not read the repair queue.'); setLoaded(true); });
+  };
+
+  useEffect(() => { load(); const t = setInterval(load, 300000); return () => clearInterval(t); }, []);
+
+  const to24 = (t) => {
+    const m = String(t).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const mins = parseInt(m[2], 10);
+    if (/PM/i.test(m[3]) && h !== 12) h += 12;
+    if (/AM/i.test(m[3]) && h === 12) h = 0;
+    return h + mins / 60;
+  };
+
+  const selected = (() => {
+    for (const g of REPAIR_TYPES) {
+      if (g.items.includes(choice)) return { ...g, label: choice };
+    }
+    return null;
+  })();
+
+  // When each tech is free, and therefore the earliest slot
+  const availability = (() => {
+    const now = new Date();
+    const onShift = techShifts.length ? techShifts : [{ name: 'Bench', start: '9:30 AM', end: '6:30 PM' }];
+
+    const perTech = onShift.map(sh => {
+      const theirs = tickets.filter(t =>
+        t.tech && sh.name && t.tech.toLowerCase() === sh.name.toLowerCase());
+      // Only commitments still ahead of us matter
+      const future = theirs.map(t => t.due).filter(d => d && d > now);
+      const busyUntil = future.length ? new Date(Math.max(...future.map(d => d.getTime()))) : now;
+      return { name: sh.name, end: sh.end, open: theirs.length, busyUntil };
+    });
+
+    // Unassigned tickets are in the queue but carry no committed pickup time,
+    // so they don't affect when a tech is next free.
+    const unassigned = tickets.filter(t => !t.tech).length;
+
+    perTech.sort((a, b) => a.busyUntil - b.busyUntil);
+    return { perTech, unassigned, earliest: perTech[0] || null };
+  })();
+
+  const estimate = (() => {
+    if (!selected || selected.mins == null || !availability.earliest) return null;
+    const start = withinHours(snap(new Date(Math.max(Date.now(), availability.earliest.busyUntil.getTime()))));
+    const done = withinHours(new Date(start.getTime() + selected.mins * 60000));
+    return { tech: availability.earliest.name, start, done };
+  })();
+
+  if (String(currentUser?.id) !== '1') return null;
+
+  return (
+    <Card style={{ marginBottom: 20, border: `1px solid ${C.gold}55` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>⏱️ Next Available Pickup</div>
+        <span style={{ background: C.goldDim, color: C.gold, border: `1px solid ${C.gold}44`, borderRadius: 6, padding: '2px 9px', fontSize: 10, fontWeight: 800 }}>
+          TESTING — OWNER ONLY
+        </span>
+      </div>
+      <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
+        Queue data refreshes every 5 minutes — confirm in RepairQ before promising a time
+      </div>
+
+      {err && (
+        <div style={{ background: C.redDim, border: `1px solid ${C.red}44`, borderRadius: 8, padding: '9px 12px', color: C.red, fontSize: 12, marginBottom: 12 }}>
+          ⚠️ {err}
+        </div>
+      )}
+
+      <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 4 }}>What kind of repair?</div>
+      <select value={choice} onChange={e => setChoice(e.target.value)}
+        style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '9px 12px', color: C.text, fontSize: 13, outline: 'none', marginBottom: 12 }}>
+        <option value=''>Select a repair…</option>
+        {REPAIR_TYPES.map(g => (
+          <optgroup key={g.group} label={g.group}>
+            {g.items.map(i => <option key={i} value={i}>{i}</option>)}
+          </optgroup>
+        ))}
+      </select>
+
+      {selected && selected.mins == null && (
+        <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: '12px 16px', marginBottom: 12 }}>
+          <div style={{ color: C.gold, fontWeight: 700, fontSize: 14 }}>Check with a technician</div>
+          <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>
+            {choice === 'Temp fix / data transfer'
+              ? 'Large or unknown data volumes go in the last slot of the day.'
+              : 'Odd devices and unusual repairs need a tech to scope before quoting a time.'}
+          </div>
+        </div>
+      )}
+
+      {estimate && (
+        <div style={{ background: C.tealDim, border: `1px solid ${C.teal}44`, borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
+          <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 2 }}>Tell the customer</div>
+          <div style={{ color: C.teal, fontWeight: 800, fontSize: 24 }}>{fmtWhen(estimate.done)}</div>
+          <div style={{ color: C.textDim, fontSize: 12, marginTop: 6 }}>
+            {selected.mins} min on the bench · starting {fmtWhen(estimate.start)}
+            {estimate.tech !== 'Bench' ? ` · ${estimate.tech.split(' ')[0]} is free first` : ''}
+          </div>
+        </div>
+      )}
+
+      {loaded && (
+        <div>
+          <div style={{ color: C.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+            Bench right now
+          </div>
+          {availability.perTech.map(p => (
+            <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${C.border}44`, fontSize: 12 }}>
+              <span style={{ color: C.text }}>{p.name.split(' ')[0]}</span>
+              <span style={{ color: C.textMuted }}>
+                {p.open} open · free {fmtWhen(p.busyUntil)}
+              </span>
+            </div>
+          ))}
+          <div style={{ color: C.textMuted, fontSize: 11, marginTop: 8 }}>
+            {tickets.length} active ticket{tickets.length === 1 ? '' : 's'}
+            {availability.unassigned ? ` · ${availability.unassigned} unassigned (no committed time)` : ''}
+            {!techShifts.length && ' · no techs scheduled today, assuming one bench'}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+const PricingView = ({ currentUser }) => {
   const [search, setSearch] = useState("");
   const [allPrices, setAllPrices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2947,6 +3214,8 @@ const PricingView = () => {
           Live from your pricing sheet · {lastUpdated ? `Updated ${lastUpdated}` : "Loading..."}
         </div>
       </div>
+
+      <RepairTimeEstimator currentUser={currentUser} />
 
       {/* iPhone Identifier */}
 
