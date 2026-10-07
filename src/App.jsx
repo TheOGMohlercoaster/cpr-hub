@@ -3056,44 +3056,81 @@ const RepairTimeEstimator = ({ currentUser }) => {
     return null;
   })();
 
-  // When each tech is free, and therefore the earliest slot
+  // Each committed ticket occupies a slot ending at its promised time.
+  // Repairs are booked in 30-minute intervals, so look for a gap big enough
+  // rather than queueing behind the very last commitment.
+  const SLOT_MINUTES = 30;
+
+  const bookedFor = (techName, dayRef) => {
+    const dayKey = localDateKey(dayRef);
+    return tickets
+      .filter(t => t.tech && techName && t.tech.toLowerCase() === techName.toLowerCase())
+      .map(t => t.due)
+      .filter(d => d && localDateKey(d) === dayKey)
+      .map(end => ({ start: new Date(end.getTime() - SLOT_MINUTES * 60000), end }))
+      .sort((a, b) => a.start - b.start);
+  };
+
+  const overlaps = (aStart, aEnd, slots) =>
+    slots.some(s => aStart < s.end && aEnd > s.start);
+
+  // First 30-minute boundary at or after a given time
+  const nextBoundary = (d) => {
+    const out = new Date(d);
+    out.setSeconds(0, 0);
+    const m = out.getMinutes();
+    out.setMinutes(m <= 0 ? 0 : m <= 30 ? 30 : 60);
+    return out;
+  };
+
+  // Walk a day's bench hours looking for the first gap that fits
+  const findOpening = (techName, dayRef, mins, notBefore) => {
+    const slots = bookedFor(techName, dayRef);
+    const dayStart = setHour(dayRef, BENCH_START_HOUR);
+    const latestFinish = setHour(dayRef, LAST_PICKUP_HOUR);
+    let candidate = nextBoundary(new Date(Math.max(dayStart.getTime(), notBefore.getTime())));
+
+    while (candidate.getTime() + mins * 60000 <= latestFinish.getTime() + 1000) {
+      const finish = new Date(candidate.getTime() + mins * 60000);
+      if (!overlaps(candidate, finish, slots)) return { start: candidate, done: finish };
+      candidate = new Date(candidate.getTime() + SLOT_MINUTES * 60000);
+    }
+    return null;
+  };
+
   const availability = (() => {
     const now = new Date();
-    const onShift = techShifts.length ? techShifts : [{ name: 'Bench', start: '9:30 AM', end: '6:30 PM' }];
+    const onShift = techShifts.length ? techShifts : [{ name: 'Bench', start: '10:00 AM', end: '6:00 PM' }];
 
     const perTech = onShift.map(sh => {
-      const theirs = tickets.filter(t =>
-        t.tech && sh.name && t.tech.toLowerCase() === sh.name.toLowerCase());
-      // Only commitments still ahead of us matter
-      const future = theirs.map(t => t.due).filter(d => d && d > now);
-      const busyUntil = future.length ? new Date(Math.max(...future.map(d => d.getTime()))) : now;
-      return { name: sh.name, end: sh.end, open: theirs.length, busyUntil };
+      const todaysSlots = bookedFor(sh.name, now);
+      const nextFree = findOpening(sh.name, now, SLOT_MINUTES, now);
+      return { name: sh.name, end: sh.end, open: todaysSlots.length, nextFree };
     });
 
-    // Unassigned tickets are in the queue but carry no committed pickup time,
-    // so they don't affect when a tech is next free.
     const unassigned = tickets.filter(t => !t.tech).length;
-
-    perTech.sort((a, b) => a.busyUntil - b.busyUntil);
-    return { perTech, unassigned, earliest: perTech[0] || null };
+    return { perTech, unassigned, onShift };
   })();
 
   const estimate = (() => {
-    if (!selected || selected.mins == null || !availability.earliest) return null;
-    let start = withinHours(
-      snap(new Date(Math.max(Date.now(), availability.earliest.busyUntil.getTime()))),
-      LAST_PICKUP_HOUR - selected.mins / 60);   // must finish by the cutoff
-    let done = new Date(start.getTime() + selected.mins * 60000);
+    if (!selected || selected.mins == null) return null;
+    const now = new Date();
+    const onShift = availability.onShift;
 
-    // If it still spills past the cutoff, start fresh tomorrow morning
-    const doneHour = done.getHours() + done.getMinutes() / 60;
-    if (doneHour > LAST_PICKUP_HOUR) {
-      start = new Date(start);
-      start.setDate(start.getDate() + 1);
-      start.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
-      done = new Date(start.getTime() + selected.mins * 60000);
+    // Try today first, then walk forward a few days
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const day = new Date(now);
+      day.setDate(day.getDate() + dayOffset);
+      const notBefore = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
+
+      let best = null;
+      for (const sh of onShift) {
+        const slot = findOpening(sh.name, day, selected.mins, notBefore);
+        if (slot && (!best || slot.done < best.done)) best = { ...slot, tech: sh.name };
+      }
+      if (best) return { ...best, rolled: dayOffset > 0 };
     }
-    return { tech: availability.earliest.name, start, done };
+    return null;
   })();
 
   if (String(currentUser?.id) !== '1') return null;
@@ -3148,7 +3185,7 @@ const RepairTimeEstimator = ({ currentUser }) => {
           </div>
           {estimate.rolled && (
             <div style={{ color: C.gold, fontSize: 11, marginTop: 5, fontWeight: 600 }}>
-              Past the 5:45 cutoff — rolled to tomorrow
+              No gap left today — next opening shown
             </div>
           )}
         </div>
@@ -3163,7 +3200,7 @@ const RepairTimeEstimator = ({ currentUser }) => {
             <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${C.border}44`, fontSize: 12 }}>
               <span style={{ color: C.text }}>{p.name.split(' ')[0]}</span>
               <span style={{ color: C.textMuted }}>
-                {p.open} open · free {fmtWhen(p.busyUntil)}
+                {p.open} booked today · next gap {p.nextFree ? fmtWhen(p.nextFree.start) : 'none left today'}
               </span>
             </div>
           ))}
