@@ -2933,9 +2933,18 @@ const REPAIR_TYPES = [
 // consuming bench time.
 const ACTIVE_STATUSES = ['new', 'in_diagnosis', 'in_repair', 'pending_approval'];
 
-const STORE_OPEN_HOUR = 9.5;        // 9:30 AM
-const STORE_CLOSE_HOUR = 18.0;      // doors close 6:00 PM
+// Staff are in 9:30-6:30; the store itself runs 10:00-6:00. Bench work starts
+// at open, nothing is promised later than 5:45, and a repair that rolls to the
+// next day is 11:00 at the earliest.
+const BENCH_START_HOUR = 10.0;      // 10:00 AM
 const LAST_PICKUP_HOUR = 17.75;     // 5:45 PM — last slot a device can be ready
+const NEXT_DAY_EARLIEST = 11.0;     // 11:00 AM
+
+const setHour = (d, hourFloat) => {
+  const out = new Date(d);
+  out.setHours(Math.floor(hourFloat), Math.round((hourFloat % 1) * 60), 0, 0);
+  return out;
+};
 
 const parseSheetDate = (v) => {
   if (!v) return null;
@@ -2960,20 +2969,6 @@ const snap = (d) => {
   out.setSeconds(0, 0);
   const m = out.getMinutes();
   out.setMinutes(m + ((15 - (m % 15)) % 15));
-  return out;
-};
-
-// Push a time into store hours. Nothing can be promised after 5:45 PM, so a
-// repair finishing later than that rolls to the next morning.
-const withinHours = (d, limit = LAST_PICKUP_HOUR) => {
-  const out = new Date(d);
-  const h = out.getHours() + out.getMinutes() / 60;
-  if (h < STORE_OPEN_HOUR) {
-    out.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
-  } else if (h > limit) {
-    out.setDate(out.getDate() + 1);
-    out.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
-  }
   return out;
 };
 
