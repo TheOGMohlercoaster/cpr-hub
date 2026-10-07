@@ -5852,6 +5852,21 @@ const ScheduleView = ({ currentUser }) => {
   const canEdit = currentUser?.role === "Owner";
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [schedule, setSchedule] = useState(() => loadSchedule(getWeekStart(new Date())));
+
+  // A week with no local draft falls back to whatever was published
+  const publishedForWeek = (ws) => {
+    const out = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws);
+      d.setDate(d.getDate() + i);
+      const dateStr = formatDate(d);
+      SCHEDULE_EMPLOYEES.forEach(emp => {
+        const hit = sheetSchedule[`${emp.id}_${dateStr}`];
+        if (hit) out[`${emp.id}_${dateStr}`] = hit;
+      });
+    }
+    return out;
+  };
   const [modal, setModal] = useState(null); // { day, employee }
   const [published, setPublished] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -5866,6 +5881,23 @@ const ScheduleView = ({ currentUser }) => {
     } catch { return [...PRESET_SHIFTS]; }
   });
   const [presetsLoaded, setPresetsLoaded] = useState(false);
+
+  // Published schedule from the sheet, so past weeks are visible on any device
+  // rather than only where the draft was built.
+  const [sheetSchedule, setSheetSchedule] = useState({});
+  useEffect(() => {
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`)
+      .then(r => r.json())
+      .then(json => {
+        const map = {};
+        (json.values || []).slice(1).forEach(r => {
+          if (!r[0] || !r[2]) return;
+          map[`${r[0]}_${r[2]}`] = { start: r[3] || '', end: r[4] || '', notes: r[5] || '' };
+        });
+        setSheetSchedule(map);
+      })
+      .catch(() => {});
+  }, []);
 
   // ── Time off ──
   const [timeOff, setTimeOff] = useState([]);
@@ -6070,7 +6102,8 @@ const ScheduleView = ({ currentUser }) => {
     const next = new Date(weekStart);
     next.setDate(next.getDate() + dir * 7);
     setWeekStart(next);
-    setSchedule(loadSchedule(next));
+    const local = loadSchedule(next);
+    setSchedule(Object.keys(local).length ? local : publishedForWeek(next));
     setPublished(false);
     setSaved(false);
   };
@@ -6125,23 +6158,41 @@ const ScheduleView = ({ currentUser }) => {
     setEmailBody(body);
     setEmailSubject(subject);
 
-    // Sync schedule to Google Sheets for all devices
+    // Sync schedule to Google Sheets for all devices.
+    // The script clears the tab before writing, so previous weeks have to be
+    // read back and carried over or payroll history disappears on every publish.
     try {
-      const rows = [["empId", "empName", "date", "start", "end", "notes"]];
+      const thisWeek = [];
       SCHEDULE_EMPLOYEES.forEach(emp => {
         days.forEach(d => {
           const dateStr = formatDate(d);
           const shift = schedule[`${emp.id}_${dateStr}`];
           if (shift) {
-            rows.push([emp.id, emp.name, dateStr, shift.start, shift.end, shift.notes || ""]);
+            thisWeek.push([emp.id, emp.name, dateStr, shift.start, shift.end, shift.notes || ""]);
           }
         });
       });
-      // Also add next 4 weeks of schedule data
+
+      // Keep roughly six weeks — current plus the last two pay periods
+      let kept = [];
+      try {
+        const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SCHEDULE_SHEET_ID}/values/Sheet1!A:F?key=${SHEETS_API_KEY}`);
+        const json = await res.json();
+        const weekDates = new Set(days.map(d => formatDate(d)));
+        const cutoff = formatDate(new Date(Date.now() - 42 * 86400000));
+        kept = (json.values || []).slice(1)
+          .filter(r => r[2] && !weekDates.has(r[2]) && r[2] >= cutoff);
+      } catch {}
+
+      const all = [...kept, ...thisWeek]
+        .sort((a, b) => (a[2] === b[2] ? String(a[1]).localeCompare(String(b[1])) : String(a[2]).localeCompare(String(b[2]))));
+
+      const rows = [["empId", "empName", "date", "start", "end", "notes"], ...all];
+
       await fetch(SCHEDULE_SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ rows }),
+        body: JSON.stringify({ sheet: "Sheet1", rows }),
         mode: "no-cors",
       });
     } catch (e) {
@@ -6197,7 +6248,12 @@ const ScheduleView = ({ currentUser }) => {
           style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", color: C.textDim, cursor: "pointer", fontSize: 13 }}>
           ← Prev Week
         </button>
-        <button onClick={() => { setWeekStart(getWeekStart(new Date())); setSchedule(loadSchedule(getWeekStart(new Date()))); }}
+        <button onClick={() => {
+            const ws = getWeekStart(new Date());
+            setWeekStart(ws);
+            const local = loadSchedule(ws);
+            setSchedule(Object.keys(local).length ? local : publishedForWeek(ws));
+          }}
           style={{ background: C.accentDim, color: C.accent, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>
           This Week
         </button>
