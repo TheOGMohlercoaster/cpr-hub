@@ -2933,8 +2933,9 @@ const REPAIR_TYPES = [
 // consuming bench time.
 const ACTIVE_STATUSES = ['new', 'in_diagnosis', 'in_repair', 'pending_approval'];
 
-const STORE_OPEN_HOUR = 9.5;    // 9:30 AM
-const STORE_CLOSE_HOUR = 18.5;  // 6:30 PM
+const STORE_OPEN_HOUR = 9.5;        // 9:30 AM
+const STORE_CLOSE_HOUR = 18.0;      // doors close 6:00 PM
+const LAST_PICKUP_HOUR = 17.75;     // 5:45 PM — last slot a device can be ready
 
 const parseSheetDate = (v) => {
   if (!v) return null;
@@ -2962,15 +2963,16 @@ const snap = (d) => {
   return out;
 };
 
-// Push a time into store hours, rolling to the next day if needed
-const withinHours = (d) => {
+// Push a time into store hours. Nothing can be promised after 5:45 PM, so a
+// repair finishing later than that rolls to the next morning.
+const withinHours = (d, limit = LAST_PICKUP_HOUR) => {
   const out = new Date(d);
   const h = out.getHours() + out.getMinutes() / 60;
   if (h < STORE_OPEN_HOUR) {
-    out.setHours(Math.floor(STORE_OPEN_HOUR), (STORE_OPEN_HOUR % 1) * 60, 0, 0);
-  } else if (h > STORE_CLOSE_HOUR) {
+    out.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
+  } else if (h > limit) {
     out.setDate(out.getDate() + 1);
-    out.setHours(Math.floor(STORE_OPEN_HOUR), (STORE_OPEN_HOUR % 1) * 60, 0, 0);
+    out.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
   }
   return out;
 };
@@ -3078,8 +3080,19 @@ const RepairTimeEstimator = ({ currentUser }) => {
 
   const estimate = (() => {
     if (!selected || selected.mins == null || !availability.earliest) return null;
-    const start = withinHours(snap(new Date(Math.max(Date.now(), availability.earliest.busyUntil.getTime()))));
-    const done = withinHours(new Date(start.getTime() + selected.mins * 60000));
+    let start = withinHours(
+      snap(new Date(Math.max(Date.now(), availability.earliest.busyUntil.getTime()))),
+      LAST_PICKUP_HOUR - selected.mins / 60);   // must finish by the cutoff
+    let done = new Date(start.getTime() + selected.mins * 60000);
+
+    // If it still spills past the cutoff, start fresh tomorrow morning
+    const doneHour = done.getHours() + done.getMinutes() / 60;
+    if (doneHour > LAST_PICKUP_HOUR) {
+      start = new Date(start);
+      start.setDate(start.getDate() + 1);
+      start.setHours(Math.floor(STORE_OPEN_HOUR), Math.round((STORE_OPEN_HOUR % 1) * 60), 0, 0);
+      done = new Date(start.getTime() + selected.mins * 60000);
+    }
     return { tech: availability.earliest.name, start, done };
   })();
 
@@ -3133,6 +3146,11 @@ const RepairTimeEstimator = ({ currentUser }) => {
             {selected.mins} min on the bench · starting {fmtWhen(estimate.start)}
             {estimate.tech !== 'Bench' ? ` · ${estimate.tech.split(' ')[0]} is free first` : ''}
           </div>
+          {estimate.rolled && (
+            <div style={{ color: C.gold, fontSize: 11, marginTop: 5, fontWeight: 600 }}>
+              Past the 5:45 cutoff — rolled to tomorrow
+            </div>
+          )}
         </div>
       )}
 
