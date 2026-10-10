@@ -3172,7 +3172,7 @@ const RepairTimeEstimator = ({ currentUser }) => {
 
       {estimate && (
         <div style={{ background: C.tealDim, border: `1px solid ${C.teal}44`, borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
-          <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 2 }}>Tell the customer</div>
+          <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 2 }}>Estimated pickup</div>
           <div style={{ color: C.teal, fontWeight: 800, fontSize: 24 }}>{fmtWhen(estimate.done)}</div>
           <div style={{ color: C.textDim, fontSize: 12, marginTop: 6 }}>
             {selected.mins} min on the bench · starting {fmtWhen(estimate.start)}
@@ -3183,6 +3183,17 @@ const RepairTimeEstimator = ({ currentUser }) => {
               No gap left today — next opening shown
             </div>
           )}
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 12, background: C.redDim, border: `2px solid ${C.red}`, borderRadius: 8, padding: '10px 12px' }}>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>⚠️</span>
+            <div>
+              <div style={{ color: C.red, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Confirm in RepairQ before promising this time
+              </div>
+              <div style={{ color: C.textDim, fontSize: 11, marginTop: 3 }}>
+                Queue data can be up to 5 minutes old. Check the tech's queue in RepairQ first.
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
