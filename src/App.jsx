@@ -3128,6 +3128,35 @@ const RepairTimeEstimator = ({ currentUser }) => {
     return null;
   })();
 
+  // Backup time in case the first tech can't take it:
+  // the earliest opening with a DIFFERENT tech; if there's only one tech
+  // (or nobody else has room), the next opening after the primary slot.
+  const backup = (() => {
+    if (!estimate) return null;
+    const now = new Date();
+    const search = (techs, earliest) => {
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const day = new Date(now);
+        day.setDate(day.getDate() + dayOffset);
+        const dayFloor = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
+        const notBefore = new Date(Math.max(dayFloor.getTime(), earliest.getTime()));
+        if (localDateKey(notBefore) !== localDateKey(day)) continue;
+        let best = null;
+        for (const sh of techs) {
+          const slot = findOpening(sh.name, day, selected.mins, notBefore);
+          if (slot && (!best || slot.done < best.done)) best = { ...slot, tech: sh.name };
+        }
+        if (best) return best;
+      }
+      return null;
+    };
+    const others = availability.onShift.filter(sh => sh.name !== estimate.tech);
+    const otherTech = others.length ? search(others, now) : null;
+    if (otherTech) return { ...otherTech, sameTech: false };
+    const later = search(availability.onShift.filter(sh => sh.name === estimate.tech), estimate.done);
+    return later ? { ...later, sameTech: true } : null;
+  })();
+
   // Testers: Jason (1), Galen (6)
   if (!['1', '6'].includes(String(currentUser?.id))) return null;
 
@@ -3184,11 +3213,26 @@ const RepairTimeEstimator = ({ currentUser }) => {
               No gap left today — next opening shown
             </div>
           )}
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${C.teal}44` }}>
+            <div style={{ color: C.textMuted, fontSize: 11, marginBottom: 2 }}>Backup time if that falls through</div>
+            {backup ? (
+              <>
+                <div style={{ color: C.text, fontWeight: 700, fontSize: 17 }}>{fmtWhen(backup.done)}</div>
+                <div style={{ color: C.textDim, fontSize: 12, marginTop: 3 }}>
+                  starting {fmtWhen(backup.start)}
+                  {backup.tech !== 'Bench' ? ` · ${backup.tech.split(' ')[0]}` : ''}
+                  {backup.sameTech ? ' · next opening after the first slot' : ' · different tech'}
+                </div>
+              </>
+            ) : (
+              <div style={{ color: C.textDim, fontSize: 12 }}>No second opening this week — check with a technician.</div>
+            )}
+          </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 12, background: C.redDim, border: `2px solid ${C.red}`, borderRadius: 8, padding: '10px 12px' }}>
             <span style={{ fontSize: 18, lineHeight: 1 }}>⚠️</span>
             <div>
               <div style={{ color: C.red, fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                Confirm in RepairQ before promising this time
+                Confirm in RepairQ before promising either time
               </div>
               <div style={{ color: C.textDim, fontSize: 11, marginTop: 3 }}>
                 Queue data can be up to 5 minutes old. Check the tech's queue in RepairQ first.
