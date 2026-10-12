@@ -3018,14 +3018,11 @@ const RepairTimeEstimator = ({ currentUser }) => {
         setTickets(parsed);
         setErr('');
 
-        // Who's on the bench today, and until when
+        // Every scheduled shift (all dates) — used to work out who's on the bench each day
         const srows = (sched?.values || []).slice(1);
-        const techIds = new Set(EMPLOYEES
-          .filter(e => ['Tech', 'Tech/Sales', 'Owner'].includes(e.role))
-          .map(e => String(e.id)));
         const shifts = srows
-          .filter(r => r[2] === todayStr && techIds.has(String(r[0])))
-          .map(r => ({ name: String(r[1] || '').trim(), start: r[3] || '', end: r[4] || '' }));
+          .filter(r => r[0] && r[2])
+          .map(r => ({ id: String(r[0]), name: String(r[1] || '').trim(), date: String(r[2]).trim(), start: r[3] || '', end: r[4] || '' }));
         setTechShifts(shifts);
         setLoaded(true);
       })
@@ -3093,67 +3090,80 @@ const RepairTimeEstimator = ({ currentUser }) => {
     return null;
   };
 
+  // ── Who can take a repair on a given day ──
+  // Bench techs are Nate and Alex. Jason is only an option on a day when
+  // Nate or Alex is off, and when he is, he gets asked first.
+  const BENCH_TECH_IDS = ['4', '5'];   // Nate Williams, Alex Smith
+  const BACKUP_TECH_ID = '1';          // Jason Mohler
+  const empName = (id) => (EMPLOYEES.find(e => String(e.id) === id)?.name) || '';
+
+  const benchFor = (dayRef) => {
+    const key = localDateKey(dayRef);
+    if (new Date(dayRef).getDay() === 0) return [];            // closed Sundays
+    const dayShifts = techShifts.filter(sh => sh.date === key);
+    // Schedule not posted for this day yet: assume both bench techs are in
+    const working = dayShifts.length
+      ? BENCH_TECH_IDS.filter(id => dayShifts.some(sh => sh.id === id))
+      : BENCH_TECH_IDS;
+    const bench = working.map(id => ({ id, name: empName(id), askFirst: false }));
+    if (working.length < BENCH_TECH_IDS.length) {
+      bench.unshift({ id: BACKUP_TECH_ID, name: empName(BACKUP_TECH_ID), askFirst: true });
+    }
+    return bench;
+  };
+
   const availability = (() => {
     const now = new Date();
-    const onShift = techShifts.length ? techShifts : [{ name: 'Bench', start: '10:00 AM', end: '6:00 PM' }];
-
+    const onShift = benchFor(now);
     const perTech = onShift.map(sh => {
       const todaysSlots = bookedFor(sh.name, now);
       const nextFree = findOpening(sh.name, now, SLOT_MINUTES, now);
-      return { name: sh.name, end: sh.end, open: todaysSlots.length, nextFree };
+      return { name: sh.name, askFirst: sh.askFirst, open: todaysSlots.length, nextFree };
     });
-
     const unassigned = tickets.filter(t => !t.tech).length;
     return { perTech, unassigned, onShift };
   })();
 
-  const estimate = (() => {
-    if (!selected || selected.mins == null) return null;
+  // Earliest opening across the next week among techs that pass `allow`
+  const searchOpening = (allow, earliest, preferAskFirst) => {
     const now = new Date();
-    const onShift = availability.onShift;
-
-    // Try today first, then walk forward a few days
     for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
       const day = new Date(now);
       day.setDate(day.getDate() + dayOffset);
-      const notBefore = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
-
-      let best = null;
-      for (const sh of onShift) {
-        const slot = findOpening(sh.name, day, selected.mins, notBefore);
-        if (slot && (!best || slot.done < best.done)) best = { ...slot, tech: sh.name };
+      const dayFloor = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
+      const notBefore = new Date(Math.max(dayFloor.getTime(), earliest.getTime()));
+      if (localDateKey(notBefore) !== localDateKey(day)) continue;
+      const techs = benchFor(day).filter(allow);
+      // Jason first on days he's covering, if he has room
+      if (preferAskFirst) {
+        const j = techs.find(t => t.askFirst);
+        const slot = j && findOpening(j.name, day, selected.mins, notBefore);
+        if (slot) return { ...slot, tech: j.name, askFirst: true };
       }
-      if (best) return { ...best, rolled: dayOffset > 0 };
+      let best = null;
+      for (const t of techs) {
+        const slot = findOpening(t.name, day, selected.mins, notBefore);
+        if (slot && (!best || slot.done < best.done)) best = { ...slot, tech: t.name, askFirst: t.askFirst };
+      }
+      if (best) return best;
     }
     return null;
+  };
+
+  const estimate = (() => {
+    if (!selected || selected.mins == null) return null;
+    const hit = searchOpening(() => true, new Date(), true);
+    return hit ? { ...hit, rolled: localDateKey(hit.done) !== localDateKey(new Date()) } : null;
   })();
 
   // Backup time in case the first tech can't take it:
-  // the earliest opening with a DIFFERENT tech; if there's only one tech
-  // (or nobody else has room), the next opening after the primary slot.
+  // the earliest opening with a DIFFERENT tech; failing that, the same
+  // tech's next opening after the first slot.
   const backup = (() => {
     if (!estimate) return null;
-    const now = new Date();
-    const search = (techs, earliest) => {
-      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-        const day = new Date(now);
-        day.setDate(day.getDate() + dayOffset);
-        const dayFloor = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
-        const notBefore = new Date(Math.max(dayFloor.getTime(), earliest.getTime()));
-        if (localDateKey(notBefore) !== localDateKey(day)) continue;
-        let best = null;
-        for (const sh of techs) {
-          const slot = findOpening(sh.name, day, selected.mins, notBefore);
-          if (slot && (!best || slot.done < best.done)) best = { ...slot, tech: sh.name };
-        }
-        if (best) return best;
-      }
-      return null;
-    };
-    const others = availability.onShift.filter(sh => sh.name !== estimate.tech);
-    const otherTech = others.length ? search(others, now) : null;
+    const otherTech = searchOpening(t => t.name !== estimate.tech, new Date(), false);
     if (otherTech) return { ...otherTech, sameTech: false };
-    const later = search(availability.onShift.filter(sh => sh.name === estimate.tech), estimate.done);
+    const later = searchOpening(t => t.name === estimate.tech, estimate.done, false);
     return later ? { ...later, sameTech: true } : null;
   })();
 
@@ -3206,8 +3216,13 @@ const RepairTimeEstimator = ({ currentUser }) => {
           <div style={{ color: C.teal, fontWeight: 800, fontSize: 24 }}>{fmtWhen(estimate.done)}</div>
           <div style={{ color: C.textDim, fontSize: 12, marginTop: 6 }}>
             {selected.mins} min on the bench · starting {fmtWhen(estimate.start)}
-            {estimate.tech !== 'Bench' ? ` · ${estimate.tech.split(' ')[0]} is free first` : ''}
+            {estimate.askFirst ? '' : ` · ${estimate.tech.split(' ')[0]} is free first`}
           </div>
+          {estimate.askFirst && (
+            <div style={{ color: C.gold, fontSize: 12, marginTop: 6, fontWeight: 700 }}>
+              👤 Ask Jason first — he's covering the bench {localDateKey(estimate.start) === localDateKey() ? 'today' : 'that day'}. If he can't, use the backup time.
+            </div>
+          )}
           {estimate.rolled && (
             <div style={{ color: C.gold, fontSize: 11, marginTop: 5, fontWeight: 600 }}>
               No gap left today — next opening shown
@@ -3220,7 +3235,7 @@ const RepairTimeEstimator = ({ currentUser }) => {
                 <div style={{ color: C.text, fontWeight: 700, fontSize: 17 }}>{fmtWhen(backup.done)}</div>
                 <div style={{ color: C.textDim, fontSize: 12, marginTop: 3 }}>
                   starting {fmtWhen(backup.start)}
-                  {backup.tech !== 'Bench' ? ` · ${backup.tech.split(' ')[0]}` : ''}
+                  {` · ${backup.tech.split(' ')[0]}`}{backup.askFirst ? ' (check with Jason)' : ''}
                   {backup.sameTech ? ' · next opening after the first slot' : ' · different tech'}
                 </div>
               </>
@@ -3249,7 +3264,7 @@ const RepairTimeEstimator = ({ currentUser }) => {
           </div>
           {availability.perTech.map(p => (
             <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${C.border}44`, fontSize: 12 }}>
-              <span style={{ color: C.text }}>{p.name.split(' ')[0]}</span>
+              <span style={{ color: C.text }}>{p.name.split(' ')[0]}{p.askFirst ? <span style={{ color: C.gold, fontSize: 10, fontWeight: 700 }}> · ASK FIRST</span> : null}</span>
               <span style={{ color: C.textMuted }}>
                 {p.open} booked today · next gap {p.nextFree ? fmtWhen(p.nextFree.start) : 'none left today'}
               </span>
@@ -3258,7 +3273,8 @@ const RepairTimeEstimator = ({ currentUser }) => {
           <div style={{ color: C.textMuted, fontSize: 11, marginTop: 8 }}>
             {tickets.length} active ticket{tickets.length === 1 ? '' : 's'}
             {availability.unassigned ? ` · ${availability.unassigned} unassigned (no committed time)` : ''}
-            {!techShifts.length && ' · no techs scheduled today, assuming one bench'}
+            {!availability.onShift.length && ' · store closed today'}
+            {!techShifts.some(sh => sh.date === todayStr) && availability.onShift.length > 0 && ' · schedule not posted for today, assuming Nate & Alex'}
           </div>
         </div>
       )}
