@@ -3150,16 +3150,10 @@ const RepairTimeEstimator = ({ currentUser }) => {
     : null;
   const others = options.slice(1);
 
-  // Testers: Jason (1), Galen (6)
-  if (!['1', '6'].includes(String(currentUser?.id))) return null;
-
   return (
-    <Card style={{ marginBottom: 20, border: `1px solid ${C.gold}55` }}>
+    <Card style={{ marginBottom: 20, border: `1px solid ${C.teal}55` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
         <div style={{ color: C.text, fontWeight: 700, fontSize: 15 }}>⏱️ Next Available Pickup</div>
-        <span style={{ background: C.goldDim, color: C.gold, border: `1px solid ${C.gold}44`, borderRadius: 6, padding: '2px 9px', fontSize: 10, fontWeight: 800 }}>
-          TESTING — JASON & GALEN
-        </span>
       </div>
       <div style={{ color: C.textMuted, fontSize: 12, marginBottom: 12 }}>
         Queue data refreshes every 5 minutes — confirm in RepairQ before promising a time
