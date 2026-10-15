@@ -3140,15 +3140,33 @@ const RepairTimeEstimator = ({ currentUser }) => {
     return null;
   };
 
-  // Pickup options listed Alex → Nate → Jason; the first one is the quote
-  const options = (() => {
-    if (!selected || selected.mins == null) return [];
-    return PRIORITY.map(openingFor).filter(Boolean);
+  // The quote: walk forward day by day. On the first day anyone has an
+  // opening, take the highest-priority tech WORKING that day (Alex, then
+  // Nate, then Jason). So when Alex is off, Nate is primary that day.
+  const primary = (() => {
+    if (!selected || selected.mins == null) return null;
+    const now = new Date();
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const day = new Date(now);
+      day.setDate(day.getDate() + dayOffset);
+      const notBefore = dayOffset === 0 ? now : setHour(day, NEXT_DAY_EARLIEST);
+      const bench = benchFor(day);
+      for (const id of PRIORITY) {
+        const tech = bench.find(t => t.id === id);
+        if (!tech) continue;
+        const slot = findOpening(tech.name, day, selected.mins, notBefore);
+        if (slot) return { ...slot, id, tech: tech.name, covering: tech.covering };
+      }
+    }
+    return null;
   })();
-  const estimate = options[0]
-    ? { ...options[0], rolled: localDateKey(options[0].done) !== localDateKey(new Date()) }
+  const estimate = primary
+    ? { ...primary, rolled: localDateKey(primary.done) !== localDateKey(new Date()) }
     : null;
-  const others = options.slice(1);
+  // Next in line: everyone else, still listed Alex → Nate → Jason
+  const others = estimate
+    ? PRIORITY.filter(id => id !== estimate.id).map(openingFor).filter(Boolean)
+    : [];
 
   return (
     <Card style={{ marginBottom: 20, border: `1px solid ${C.teal}55` }}>
