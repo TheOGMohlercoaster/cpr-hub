@@ -7015,6 +7015,13 @@ const LINK_CATEGORIES = [
       { name: "Akko", url: "https://partner.akko.app/claims/device-info" },
       { name: "Claims National Accounts", url: "https://franchiseeconnects.sharepoint.com/SitePages/National-Accounts.aspx" },
     ]
+  },  {
+    name: "Financing",
+    color: "#A855F7",
+    icon: "💳",
+    links: [
+      { name: "Acima Merchant Portal", url: "https://portal.acima.com/" },
+    ]
   },
 ];
 
