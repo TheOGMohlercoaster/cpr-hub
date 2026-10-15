@@ -3163,10 +3163,28 @@ const RepairTimeEstimator = ({ currentUser }) => {
   const estimate = primary
     ? { ...primary, rolled: localDateKey(primary.done) !== localDateKey(new Date()) }
     : null;
-  // Next in line: everyone else, still listed Alex → Nate → Jason
-  const others = estimate
-    ? PRIORITY.filter(id => id !== estimate.id).map(openingFor).filter(Boolean)
-    : [];
+  // Next in line: the other techs WORKING THAT SAME DAY, in priority order
+  // (so if Alex is off, it's Nate → Jason). Only if nobody else that day has
+  // room do we fall back to whoever's next on a later day.
+  const others = (() => {
+    if (!estimate) return [];
+    const day = new Date(estimate.start);
+    const isToday = localDateKey(day) === localDateKey(new Date());
+    const notBefore = isToday ? new Date() : setHour(day, NEXT_DAY_EARLIEST);
+    const sameDay = PRIORITY
+      .filter(id => id !== estimate.id)
+      .map(id => {
+        const tech = benchFor(day).find(t => t.id === id);
+        if (!tech) return null;
+        const slot = findOpening(tech.name, day, selected.mins, notBefore);
+        return slot ? { ...slot, id, tech: tech.name, covering: tech.covering } : null;
+      })
+      .filter(Boolean);
+    if (sameDay.length) return sameDay;
+    const later = PRIORITY.filter(id => id !== estimate.id).map(openingFor).filter(Boolean)
+      .sort((a, b) => a.done - b.done);
+    return later.slice(0, 1);
+  })();
 
   return (
     <Card style={{ marginBottom: 20, border: `1px solid ${C.teal}55` }}>
