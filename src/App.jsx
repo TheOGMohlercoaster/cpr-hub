@@ -3215,12 +3215,30 @@ const RepairTimeEstimator = ({ currentUser }) => {
 
       {selected && selected.mins == null && (
         <div style={{ background: C.goldDim, border: `1px solid ${C.gold}44`, borderRadius: 10, padding: '12px 16px', marginBottom: 12 }}>
-          <div style={{ color: C.gold, fontWeight: 700, fontSize: 14 }}>Check with a technician</div>
-          <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>
-            {choice === 'Temp fix / data transfer'
-              ? 'Large or unknown data volumes go in the last slot of the day.'
-              : 'Odd devices and unusual repairs need a tech to scope before quoting a time.'}
-          </div>
+          {choice === 'Temp fix / data transfer' ? (() => {
+            const now = new Date();
+            const afterCutoff = now.getHours() + now.getMinutes() / 60 >= 15.5;   // 3:30 PM
+            return (
+              <>
+                <div style={{ color: C.gold, fontWeight: 700, fontSize: 14 }}>
+                  {afterCutoff ? 'Ask a technician first' : 'Typically set for end of day'}
+                </div>
+                <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>
+                  Typically set for end of day — we can call/email the customer when it's complete.
+                </div>
+                <div style={{ color: afterCutoff ? C.red : C.textDim, fontSize: 12, marginTop: 4, fontWeight: afterCutoff ? 800 : 400 }}>
+                  {afterCutoff ? "⚠️ It's after 3:30 PM — ask the tech before checking it in for today." : 'If after 3:30 PM, ask the tech.'}
+                </div>
+              </>
+            );
+          })() : (
+            <>
+              <div style={{ color: C.gold, fontWeight: 700, fontSize: 14 }}>Check with a technician</div>
+              <div style={{ color: C.textDim, fontSize: 12, marginTop: 4 }}>
+                Odd devices and unusual repairs need a tech to scope before quoting a time.
+              </div>
+            </>
+          )}
         </div>
       )}
 
